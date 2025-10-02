@@ -30,7 +30,8 @@ interface ComponentMetadata {
 }
 type SemanticComponent<T = Record<string, unknown>> = React.ComponentType<T & SemanticComponentProps>;
 
-interface ButtonProps extends React.ComponentProps<typeof Button$1>, SemanticComponentProps {
+interface ButtonProps extends Omit<React.ComponentProps<typeof Button$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
     /** The semantic action this button performs */
     action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
     /** Context of where this button is used */
@@ -49,7 +50,8 @@ interface CardProps extends Omit<React.ComponentProps<typeof Card$1>, 'children'
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 declare const Card: React.FC<CardProps>;
 
-interface ModalProps extends React.ComponentProps<typeof Modal$1>, SemanticComponentProps {
+interface ModalProps extends Omit<React.ComponentProps<typeof Modal$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
     /** The semantic purpose of this modal */
     purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
     /** The type of interaction this modal facilitates */

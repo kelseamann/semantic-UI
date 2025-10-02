@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal as PFModal } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../types';
-export interface ModalProps extends React.ComponentProps<typeof PFModal>, SemanticComponentProps {
+export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
     /** The semantic purpose of this modal */
     purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
     /** The type of interaction this modal facilitates */

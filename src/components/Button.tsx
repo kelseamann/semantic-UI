@@ -2,7 +2,8 @@ import React from 'react';
 import { Button as PFButton } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../types';
 
-export interface ButtonProps extends React.ComponentProps<typeof PFButton>, SemanticComponentProps {
+export interface ButtonProps extends Omit<React.ComponentProps<typeof PFButton>, 'children'>, SemanticComponentProps {
+  children?: React.ReactNode;
   /** The semantic action this button performs */
   action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
   /** Context of where this button is used */
