@@ -38,7 +38,7 @@ export const Tbody: React.FC<TbodyProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Table Body Section';
+  const defaultSemanticName = semanticName || 'Body Section';
 
   return (
     <PFTbody

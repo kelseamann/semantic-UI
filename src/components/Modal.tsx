@@ -38,7 +38,7 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Dialog Modal';
+  const defaultSemanticName = semanticName || 'Modal';
 
   return (
     <PFModal

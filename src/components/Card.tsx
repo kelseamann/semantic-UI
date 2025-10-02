@@ -38,7 +38,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Content Card';
+  const defaultSemanticName = semanticName || 'Card';
 
   return (
     <PFCard

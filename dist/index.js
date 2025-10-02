@@ -1393,7 +1393,7 @@ const Button = ({ semanticName, semanticRole, aiMetadata, action, context, child
         usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Action';
+    const defaultSemanticName = semanticName || 'Button';
     return (jsxRuntimeExports.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
 };
 
@@ -1412,7 +1412,7 @@ const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, ch
         usage: [`${inferredPurpose}-display`, 'content-organization']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Content Card';
+    const defaultSemanticName = semanticName || 'Card';
     return (jsxRuntimeExports.jsx(reactCore.Card, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
@@ -1431,7 +1431,7 @@ const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpos
         usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Dialog Modal';
+    const defaultSemanticName = semanticName || 'Modal';
     return (jsxRuntimeExports.jsx(reactCore.Modal, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
 
@@ -1455,7 +1455,7 @@ const Th = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
         usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Table Header';
+    const defaultSemanticName = semanticName || 'Header';
     return (jsxRuntimeExports.jsx(reactTable.Th, { ...props, sort: sort, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
 };
 
@@ -1480,7 +1480,7 @@ const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
         usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Table Cell';
+    const defaultSemanticName = semanticName || 'Cell';
     return (jsxRuntimeExports.jsx(reactTable.Td, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
 };
 
@@ -1499,7 +1499,7 @@ const Thead = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...p
         usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Table Header Section';
+    const defaultSemanticName = semanticName || 'Header Section';
     return (jsxRuntimeExports.jsx(reactTable.Thead, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
 };
 
@@ -1518,7 +1518,7 @@ const Tbody = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...p
         usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Table Body Section';
+    const defaultSemanticName = semanticName || 'Body Section';
     return (jsxRuntimeExports.jsx(reactTable.Tbody, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
 };
 

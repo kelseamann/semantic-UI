@@ -40,7 +40,7 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Action';
+  const defaultSemanticName = semanticName || 'Button';
 
   return (
     <PFButton

@@ -35,7 +35,7 @@ export const Thead: React.FC<TheadProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Table Header Section';
+  const defaultSemanticName = semanticName || 'Header Section';
 
   return (
     <PFThead

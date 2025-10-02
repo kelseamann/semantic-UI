@@ -42,7 +42,7 @@ export const Th: React.FC<ThProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Table Header';
+  const defaultSemanticName = semanticName || 'Header';
 
   return (
     <PFTh
