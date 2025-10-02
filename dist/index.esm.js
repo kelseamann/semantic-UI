@@ -1387,7 +1387,6 @@ const Button = ({ semanticRole, aiMetadata, action, context, children, variant, 
         description: `${inferredAction} action button for ${inferredContext} context`,
         category: 'forms',
         complexity: 'simple',
-        accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
         usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
     return (jsxRuntimeExports.jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
@@ -1405,7 +1404,6 @@ const Card = ({ semanticRole, aiMetadata, purpose, contentType, children, isSele
         description: `${inferredPurpose} card containing ${inferredContentType} content`,
         category: 'data-display',
         complexity: 'moderate',
-        accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
         usage: [`${inferredPurpose}-display`, 'content-organization']
     };
     return (jsxRuntimeExports.jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
@@ -1423,7 +1421,6 @@ const Modal = require$$0.forwardRef(({ semanticRole, aiMetadata, purpose, intera
         description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
         category: 'overlay',
         complexity: 'complex',
-        accessibility: ['keyboard-navigable', 'screen-reader-friendly', 'focus-management'],
         usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
     };
     return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));

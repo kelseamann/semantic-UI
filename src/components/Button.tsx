@@ -35,7 +35,6 @@ export const Button: React.FC<ButtonProps> = ({
     description: `${inferredAction} action button for ${inferredContext} context`,
     category: 'forms',
     complexity: 'simple',
-    accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
     usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
   };
 

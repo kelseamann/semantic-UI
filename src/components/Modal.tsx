@@ -33,7 +33,6 @@ export const Modal = React.forwardRef<any, ModalProps>(({
     description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
     category: 'overlay',
     complexity: 'complex',
-    accessibility: ['keyboard-navigable', 'screen-reader-friendly', 'focus-management'],
     usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
   };
 

@@ -33,7 +33,6 @@ export const Card: React.FC<CardProps> = ({
     description: `${inferredPurpose} card containing ${inferredContentType} content`,
     category: 'data-display',
     complexity: 'moderate',
-    accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
     usage: [`${inferredPurpose}-display`, 'content-organization']
   };
 
