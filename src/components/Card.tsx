@@ -37,12 +37,15 @@ export const Card: React.FC<CardProps> = ({
     usage: [`${inferredPurpose}-display`, 'content-organization']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Content Card';
+
   return (
     <PFCard
       {...props}
       isSelectable={isSelectable}
       isClickable={isClickable}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

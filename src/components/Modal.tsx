@@ -37,13 +37,16 @@ export const Modal = React.forwardRef<any, ModalProps>(({
     usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Dialog Modal';
+
   return (
     <PFModal
       {...props}
       ref={ref}
       variant={variant}
       isOpen={isOpen}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

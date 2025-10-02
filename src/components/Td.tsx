@@ -44,10 +44,13 @@ export const Td: React.FC<TdProps> = ({
     usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Table Cell';
+
   return (
     <PFTd
       {...props}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

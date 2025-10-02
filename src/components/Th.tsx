@@ -41,11 +41,14 @@ export const Th: React.FC<ThProps> = ({
     usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Table Header';
+
   return (
     <PFTh
       {...props}
       sort={sort}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

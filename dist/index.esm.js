@@ -1390,7 +1390,9 @@ const Button = ({ semanticName, semanticRole, aiMetadata, action, context, child
         complexity: 'simple',
         usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
-    return (jsxRuntimeExports.jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Action';
+    return (jsxRuntimeExports.jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
 };
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
@@ -1407,7 +1409,9 @@ const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, ch
         complexity: 'moderate',
         usage: [`${inferredPurpose}-display`, 'content-organization']
     };
-    return (jsxRuntimeExports.jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Content Card';
+    return (jsxRuntimeExports.jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
@@ -1424,7 +1428,9 @@ const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpos
         complexity: 'complex',
         usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
     };
-    return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Dialog Modal';
+    return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
 
 /** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
@@ -1446,7 +1452,9 @@ const Th = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
         complexity: 'simple',
         usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
     };
-    return (jsxRuntimeExports.jsx(Th$1, { ...props, sort: sort, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Header';
+    return (jsxRuntimeExports.jsx(Th$1, { ...props, sort: sort, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
 };
 
 /** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
@@ -1469,7 +1477,9 @@ const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
         complexity: 'simple',
         usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
     };
-    return (jsxRuntimeExports.jsx(Td$1, { ...props, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Cell';
+    return (jsxRuntimeExports.jsx(Td$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
 };
 
 /** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
@@ -1486,7 +1496,9 @@ const Thead = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...p
         complexity: 'moderate',
         usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
     };
-    return (jsxRuntimeExports.jsx(Thead$1, { ...props, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Header Section';
+    return (jsxRuntimeExports.jsx(Thead$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
 };
 
 /** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
@@ -1503,7 +1515,9 @@ const Tbody = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...p
         complexity: 'moderate',
         usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
     };
-    return (jsxRuntimeExports.jsx(Tbody$1, { ...props, "data-semantic-name": semanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Body Section';
+    return (jsxRuntimeExports.jsx(Tbody$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
 };
 
 /**

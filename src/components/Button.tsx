@@ -39,13 +39,16 @@ export const Button: React.FC<ButtonProps> = ({
     usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Action';
+
   return (
     <PFButton
       {...props}
       variant={variant}
       onClick={onClick}
       isDisabled={isDisabled}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-action={inferredAction}

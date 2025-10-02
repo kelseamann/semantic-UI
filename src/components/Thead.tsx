@@ -34,10 +34,13 @@ export const Thead: React.FC<TheadProps> = ({
     usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Table Header Section';
+
   return (
     <PFThead
       {...props}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

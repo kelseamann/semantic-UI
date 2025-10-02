@@ -37,10 +37,13 @@ export const Tbody: React.FC<TbodyProps> = ({
     usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
   };
 
+  // Default semantic name if not provided
+  const defaultSemanticName = semanticName || 'Table Body Section';
+
   return (
     <PFTbody
       {...props}
-      data-semantic-name={semanticName}
+      data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}
