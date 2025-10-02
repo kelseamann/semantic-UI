@@ -3,6 +3,8 @@ import { Button as Button$1, Card as Card$1, Modal as Modal$1 } from '@patternfl
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
+    /** Human-readable semantic name for the component instance */
+    semanticName?: string;
     /** Semantic role or purpose of the component */
     semanticRole?: string;
     /** Additional metadata for AI tooling */

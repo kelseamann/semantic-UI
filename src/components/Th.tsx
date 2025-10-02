@@ -12,6 +12,7 @@ export interface ThProps extends Omit<React.ComponentProps<typeof PFTh>, 'childr
 
 /** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
 export const Th: React.FC<ThProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -44,6 +45,7 @@ export const Th: React.FC<ThProps> = ({
     <PFTh
       {...props}
       sort={sort}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

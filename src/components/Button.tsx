@@ -12,6 +12,7 @@ export interface ButtonProps extends Omit<React.ComponentProps<typeof PFButton>,
 
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
 export const Button: React.FC<ButtonProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   action,
@@ -44,6 +45,7 @@ export const Button: React.FC<ButtonProps> = ({
       variant={variant}
       onClick={onClick}
       isDisabled={isDisabled}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-action={inferredAction}

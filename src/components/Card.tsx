@@ -12,6 +12,7 @@ export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'ch
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 export const Card: React.FC<CardProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -41,6 +42,7 @@ export const Card: React.FC<CardProps> = ({
       {...props}
       isSelectable={isSelectable}
       isClickable={isClickable}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

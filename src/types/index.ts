@@ -2,6 +2,8 @@
 import React from 'react';
 
 export interface SemanticComponentProps {
+  /** Human-readable semantic name for the component instance */
+  semanticName?: string;
   /** Semantic role or purpose of the component */
   semanticRole?: string;
   /** Additional metadata for AI tooling */

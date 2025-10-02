@@ -10,6 +10,7 @@ export interface TbodyProps extends Omit<React.ComponentProps<typeof PFTbody>, '
 
 /** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
 export const Tbody: React.FC<TbodyProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -39,6 +40,7 @@ export const Tbody: React.FC<TbodyProps> = ({
   return (
     <PFTbody
       {...props}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

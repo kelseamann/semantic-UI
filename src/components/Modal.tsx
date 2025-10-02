@@ -12,6 +12,7 @@ export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, '
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 export const Modal = React.forwardRef<any, ModalProps>(({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -42,6 +43,7 @@ export const Modal = React.forwardRef<any, ModalProps>(({
       ref={ref}
       variant={variant}
       isOpen={isOpen}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

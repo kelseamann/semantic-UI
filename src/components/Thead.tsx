@@ -10,6 +10,7 @@ export interface TheadProps extends Omit<React.ComponentProps<typeof PFThead>, '
 
 /** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
 export const Thead: React.FC<TheadProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -36,6 +37,7 @@ export const Thead: React.FC<TheadProps> = ({
   return (
     <PFThead
       {...props}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

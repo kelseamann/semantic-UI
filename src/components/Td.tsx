@@ -12,6 +12,7 @@ export interface TdProps extends Omit<React.ComponentProps<typeof PFTd>, 'childr
 
 /** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
 export const Td: React.FC<TdProps> = ({
+  semanticName,
   semanticRole,
   aiMetadata,
   purpose,
@@ -46,6 +47,7 @@ export const Td: React.FC<TdProps> = ({
   return (
     <PFTd
       {...props}
+      data-semantic-name={semanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}
