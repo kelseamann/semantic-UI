@@ -1585,7 +1585,7 @@ const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusTy
 };
 
 /** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
-const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, ...props }) => {
+const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, style, ...props }) => {
     // Auto-infer semantic properties from props
     const inferredPurpose = purpose || (isFavorited !== undefined ? 'favorite-toggle' : 'rating');
     const inferredContext = context || (onClick ? 'interactive' : 'display');
@@ -1599,7 +1599,18 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
     };
     // Default semantic name if not provided
     const defaultSemanticName = semanticName || 'Star';
-    return (jsxRuntimeExports.jsx("button", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+    // Default styling to remove button appearance
+    const defaultStyle = {
+        background: 'none',
+        border: 'none',
+        padding: '0',
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...style
+    };
+    return (jsxRuntimeExports.jsx("button", { ...props, onClick: onClick, style: defaultStyle, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
 };
 
 /**

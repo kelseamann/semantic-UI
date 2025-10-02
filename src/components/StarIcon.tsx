@@ -21,6 +21,7 @@ export const StarIcon: React.FC<StarIconProps> = ({
   children,
   isFavorited,
   onClick,
+  style,
   ...props
 }) => {
   // Auto-infer semantic properties from props
@@ -40,10 +41,23 @@ export const StarIcon: React.FC<StarIconProps> = ({
   // Default semantic name if not provided
   const defaultSemanticName = semanticName || 'Star';
 
+  // Default styling to remove button appearance
+  const defaultStyle = {
+    background: 'none',
+    border: 'none',
+    padding: '0',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...style
+  };
+
   return (
     <button
       {...props}
       onClick={onClick}
+      style={defaultStyle}
       data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
