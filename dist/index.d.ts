@@ -34,7 +34,7 @@ interface ButtonProps extends React.ComponentProps<typeof Button$1>, SemanticCom
     /** The semantic action this button performs */
     action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
     /** Context of where this button is used */
-    context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation';
+    context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation' | 'table' | 'alert';
 }
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
 declare const Button: React.FC<ButtonProps>;
