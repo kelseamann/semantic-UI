@@ -6,8 +6,7 @@
  * Generates ARIA attributes based on component context
  */
 export const generateAriaAttributes = (
-  componentType: string,
-  context: Record<string, any> = {}
+  componentType: string
 ): Record<string, string> => {
   const baseAttributes: Record<string, string> = {};
 
@@ -41,7 +40,7 @@ export const generateAriaAttributes = (
  */
 export const validateAccessibility = (
   componentType: string,
-  props: Record<string, any>
+  props: Record<string, unknown>
 ): string[] => {
   const issues: string[] = [];
 
@@ -62,7 +61,7 @@ export const validateAccessibility = (
  */
 export const generateKeyboardShortcuts = (
   componentType: string,
-  context: Record<string, any> = {}
+  context: Record<string, unknown> = {}
 ): string[] => {
   const shortcuts: string[] = [];
 

@@ -1,4 +1,5 @@
 // Component exports
-export * from './Button';
-export * from './Card';
-export * from './Modal';
+export { Button } from './Button';
+export { Card } from './Card';
+export { Modal } from './Modal';
+

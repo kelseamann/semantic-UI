@@ -6,12 +6,12 @@ import { generateAriaAttributes, validateAccessibility, generateKeyboardShortcut
  */
 export const useAccessibility = (
   componentType: string,
-  props: Record<string, any> = {},
-  context: Record<string, any> = {}
+  props: Record<string, unknown> = {},
+  context: Record<string, unknown> = {}
 ) => {
   const ariaAttributes = useMemo(() => 
-    generateAriaAttributes(componentType, context),
-    [componentType, context]
+    generateAriaAttributes(componentType),
+    [componentType]
   );
 
   const keyboardShortcuts = useMemo(() => 

@@ -1,4 +1,6 @@
 // Semantic UI Layer Types
+import React from 'react';
+
 export interface SemanticComponentProps {
   /** Semantic role or purpose of the component */
   semanticRole?: string;
@@ -25,7 +27,7 @@ export interface ComponentMetadata {
   complexity: 'simple' | 'moderate' | 'complex';
   accessibility: string[];
   usage: string[];
-  props: Record<string, any>;
+  props: Record<string, unknown>;
 }
 
-export type SemanticComponent<T = {}> = React.ComponentType<T & SemanticComponentProps>;
+export type SemanticComponent<T = Record<string, unknown>> = React.ComponentType<T & SemanticComponentProps>;

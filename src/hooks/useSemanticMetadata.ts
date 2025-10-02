@@ -8,7 +8,7 @@ import { generateComponentMetadata, mergeMetadata } from '../utils/metadata';
 export const useSemanticMetadata = (
   componentName: string,
   userMetadata?: Partial<ComponentMetadata>,
-  props: Record<string, any> = {}
+  props: Record<string, unknown> = {}
 ) => {
   const [metadata, setMetadata] = useState<ComponentMetadata>(() => {
     const defaultMetadata = generateComponentMetadata(componentName, props);

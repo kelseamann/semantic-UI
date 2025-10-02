@@ -1,6 +1,7 @@
 {
   "name": "semantic-ui-layer",
   "version": "1.0.0",
+  "type": "module",
   "description": "A standalone React library that wraps PatternFly design system components with semantic meaning and additional metadata for AI tooling",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -29,10 +30,12 @@
   "author": "",
   "license": "MIT",
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0",
-    "@patternfly/react-core": "^5.0.0",
-    "@patternfly/react-icons": "^5.0.0"
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "dependencies": {
+    "@patternfly/react-core": "^6.3.1",
+    "@patternfly/react-icons": "^6.3.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.0",
@@ -40,8 +43,8 @@
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.0.0",
     "eslint-plugin-react": "^7.0.0",
     "eslint-plugin-react-hooks": "^4.0.0",

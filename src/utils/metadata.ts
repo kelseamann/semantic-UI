@@ -9,7 +9,7 @@ import { ComponentMetadata } from '../types';
  */
 export const generateComponentMetadata = (
   componentName: string,
-  props: Record<string, any> = {}
+  props: Record<string, unknown> = {}
 ): ComponentMetadata => {
   const baseMetadata: ComponentMetadata = {
     name: componentName,

@@ -225,3 +225,4 @@ MIT License - see LICENSE file for details
 - [ ] AI tooling integration examples
 - [ ] Performance optimizations
 - [ ] Theme customization support
+
