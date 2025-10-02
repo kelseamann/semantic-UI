@@ -1,0 +1,1 @@
+{"version":3,"file":"useSemanticMetadata.d.ts","sourceRoot":"","sources":["../../src/hooks/useSemanticMetadata.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,iBAAiB,EAAE,MAAM,UAAU,CAAC;AAG7C;;GAEG;AACH,eAAO,MAAM,mBAAmB,GAC9B,eAAe,MAAM,EACrB,eAAe,OAAO,CAAC,iBAAiB,CAAC,EACzC,QAAO,MAAM,CAAC,MAAM,EAAE,OAAO,CAAM;;8BAaF,OAAO,CAAC,iBAAiB,CAAC;CAQ5D,CAAC"}
