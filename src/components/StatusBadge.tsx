@@ -40,7 +40,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Status';
+  const defaultSemanticName = semanticName || 'Row Item';
 
   return (
     <span

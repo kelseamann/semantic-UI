@@ -38,7 +38,7 @@ export const StarIcon: React.FC<StarIconProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Star';
+  const defaultSemanticName = semanticName || 'Row Item';
 
   return (
     <span

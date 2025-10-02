@@ -45,7 +45,7 @@ export const Td: React.FC<TdProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Cell';
+  const defaultSemanticName = semanticName || 'Row Item';
 
   return (
     <PFTd

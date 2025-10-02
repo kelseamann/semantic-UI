@@ -40,7 +40,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Checkbox';
+  const defaultSemanticName = semanticName || 'Row Item';
 
   return (
     <PFCheckbox

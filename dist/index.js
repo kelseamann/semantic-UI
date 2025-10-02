@@ -1480,7 +1480,7 @@ const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
         usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Cell';
+    const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntimeExports.jsx(reactTable.Td, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
 };
 
@@ -1536,7 +1536,7 @@ const Checkbox = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
         usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Checkbox';
+    const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntimeExports.jsx(reactCore.Checkbox, { ...props, id: id, isChecked: isChecked, onChange: onChange, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
 };
 
@@ -1557,7 +1557,7 @@ const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, childr
         usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Link';
+    const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntimeExports.jsx("a", { ...props, href: href, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
 };
 
@@ -1580,7 +1580,7 @@ const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusTy
         usage: [`${inferredPurpose}`, 'status-display', 'state-indication']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Status';
+    const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntimeExports.jsx("span", { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-status-type": inferredStatusType, children: children }));
 };
 
@@ -1598,7 +1598,7 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
         usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Star';
+    const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntimeExports.jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
 };
 

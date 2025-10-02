@@ -39,7 +39,7 @@ export const Link: React.FC<LinkProps> = ({
   };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Link';
+  const defaultSemanticName = semanticName || 'Row Item';
 
   return (
     <a
