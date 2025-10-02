@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button as Button$1, Card as Card$1, Modal as Modal$1 } from '@patternfly/react-core';
+import { Button as Button$1, Card as Card$1, Modal as Modal$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 var jsxRuntime = {exports: {}};
@@ -1520,6 +1520,86 @@ const Tbody = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...p
     return (jsxRuntimeExports.jsx(Tbody$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
 };
 
+/** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
+const Checkbox = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isChecked, onChange, id, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || (isChecked !== undefined ? 'selection' : 'form-input');
+    const inferredContext = context || (onChange ? 'interactive' : 'form');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `checkbox-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} checkbox for ${inferredContext} context`,
+        category: 'forms',
+        complexity: 'simple',
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Checkbox';
+    return (jsxRuntimeExports.jsx(Checkbox$1, { ...props, id: id, isChecked: isChecked, onChange: onChange, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
+};
+
+/** Link - HTML anchor wrapper with semantic metadata for AI tooling */
+const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, href, onClick, ...props }) => {
+    // Auto-infer semantic properties from props
+    const inferredPurpose = purpose || (href?.startsWith('http') ? 'external' :
+        href === '#' ? 'action' :
+            href?.includes('download') ? 'download' :
+                children?.toString().toLowerCase().includes('launch') ? 'launch' : 'navigation');
+    const inferredContext = context || (onClick ? 'interactive' : 'content');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `link-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} link for ${inferredContext} context`,
+        category: 'navigation',
+        complexity: 'simple',
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Link';
+    return (jsxRuntimeExports.jsx("a", { ...props, href: href, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
+};
+
+/** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
+const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusType, children, ...props }) => {
+    // Auto-infer semantic properties from content
+    const content = children?.toString().toLowerCase() || '';
+    const inferredStatusType = statusType || (content.includes('ready') ? 'ready' :
+        content.includes('success') ? 'success' :
+            content.includes('warning') ? 'warning' :
+                content.includes('error') ? 'error' :
+                    content.includes('pending') ? 'pending' : 'info');
+    const inferredPurpose = purpose || 'status-indicator';
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `status-badge-${inferredPurpose}-${inferredStatusType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} showing ${inferredStatusType} status`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`${inferredPurpose}`, 'status-display', 'state-indication']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Status';
+    return (jsxRuntimeExports.jsx("span", { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-status-type": inferredStatusType, children: children }));
+};
+
+/** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
+const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, ...props }) => {
+    // Auto-infer semantic properties from props
+    const inferredPurpose = purpose || (isFavorited !== undefined ? 'favorite-toggle' : 'rating');
+    const inferredContext = context || (onClick ? 'interactive' : 'display');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `star-icon-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} star icon for ${inferredContext} context`,
+        category: 'forms',
+        complexity: 'simple',
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Star';
+    return (jsxRuntimeExports.jsx("button", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+};
+
 /**
  * Utility functions for managing component metadata
  */
@@ -1701,5 +1781,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Modal, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, Link, Modal, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
 //# sourceMappingURL=index.esm.js.map

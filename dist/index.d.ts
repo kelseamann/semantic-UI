@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button as Button$1, Card as Card$1, Modal as Modal$1 } from '@patternfly/react-core';
+import { Button as Button$1, Card as Card$1, Modal as Modal$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
@@ -99,6 +99,50 @@ interface TbodyProps extends Omit<React.ComponentProps<typeof Tbody$1>, 'childre
 /** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
 declare const Tbody: React.FC<TbodyProps>;
 
+interface CheckboxProps extends Omit<React.ComponentProps<typeof Checkbox$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this checkbox (auto-inferred from props if not provided) */
+    purpose?: 'selection' | 'toggle' | 'form-input' | 'filter';
+    /** The context where this checkbox is used (auto-inferred from props if not provided) */
+    context?: 'table' | 'form' | 'filter' | 'settings';
+    /** Required id for PatternFly Checkbox */
+    id: string;
+}
+/** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
+declare const Checkbox: React.FC<CheckboxProps>;
+
+interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this link (auto-inferred from props if not provided) */
+    purpose?: 'navigation' | 'action' | 'download' | 'external' | 'launch';
+    /** The context where this link is used (auto-inferred from props if not provided) */
+    context?: 'table' | 'card' | 'navigation' | 'content';
+}
+/** Link - HTML anchor wrapper with semantic metadata for AI tooling */
+declare const Link: React.FC<LinkProps>;
+
+interface StatusBadgeProps extends React.HTMLAttributes<HTMLSpanElement>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this status badge (auto-inferred from content if not provided) */
+    purpose?: 'status-indicator' | 'progress-indicator' | 'state-display' | 'alert-indicator';
+    /** The status type (auto-inferred from content if not provided) */
+    statusType?: 'success' | 'warning' | 'error' | 'info' | 'pending' | 'ready';
+}
+/** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
+declare const StatusBadge: React.FC<StatusBadgeProps>;
+
+interface StarIconProps extends React.HTMLAttributes<HTMLButtonElement>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** Whether this star is favorited/active */
+    isFavorited?: boolean;
+    /** The semantic purpose of this star icon (auto-inferred from props if not provided) */
+    purpose?: 'favorite-toggle' | 'rating' | 'bookmark' | 'highlight';
+    /** The context where this star is used (auto-inferred from props if not provided) */
+    context?: 'table' | 'card' | 'list' | 'content';
+}
+/** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
+declare const StarIcon: React.FC<StarIconProps>;
+
 /**
  * Utility functions for managing component metadata
  */
@@ -152,4 +196,4 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     };
 };
 
-export { Button, Card, ComponentMetadata, Modal, SemanticComponent, SemanticComponentProps, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, ComponentMetadata, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };

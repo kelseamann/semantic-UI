@@ -9,3 +9,9 @@ export { Td } from './Td';
 export { Thead } from './Thead';
 export { Tbody } from './Tbody';
 
+// Row item component exports
+export { Checkbox } from './Checkbox';
+export { Link } from './Link';
+export { StatusBadge } from './StatusBadge';
+export { StarIcon } from './StarIcon';
+
