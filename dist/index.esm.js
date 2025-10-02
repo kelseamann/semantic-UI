@@ -1375,45 +1375,58 @@ if (process.env.NODE_ENV === 'production') {
 var jsxRuntimeExports = jsxRuntime.exports;
 
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
-const Button = ({ semanticRole, aiMetadata, action = 'primary', context = 'form', children, ...props }) => {
-    // Generate semantic role and AI metadata if not provided
-    const role = semanticRole || `button-${action}-${context}`;
+const Button = ({ semanticRole, aiMetadata, action, context, children, variant, onClick, isDisabled, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredAction = action || (variant === 'primary' ? 'primary' :
+        variant === 'danger' ? 'destructive' :
+            variant === 'link' ? 'navigation' : 'secondary');
+    const inferredContext = context || (onClick ? 'interactive' : 'form');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
     const metadata = aiMetadata || {
-        description: `${action} action button for ${context} context`,
+        description: `${inferredAction} action button for ${inferredContext} context`,
         category: 'forms',
         complexity: 'simple',
         accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
-        usage: [`${context}-${action}`, 'user-interaction']
+        usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
-    return (jsxRuntimeExports.jsx(Button$1, { ...props, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": action, "data-context": context, children: children }));
+    return (jsxRuntimeExports.jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
 };
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
-const Card = ({ semanticRole, aiMetadata, purpose = 'content-display', contentType = 'mixed', children, ...props }) => {
-    // Generate semantic role and AI metadata if not provided
-    const role = semanticRole || `card-${purpose}-${contentType}`;
+const Card = ({ semanticRole, aiMetadata, purpose, contentType, children, isSelectable, isClickable, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props and children
+    const inferredPurpose = purpose || (isSelectable || isClickable ? 'action-panel' : 'content-display');
+    // Simple content type inference based on children
+    const inferredContentType = contentType || 'mixed';
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
     const metadata = aiMetadata || {
-        description: `${purpose} card containing ${contentType} content`,
+        description: `${inferredPurpose} card containing ${inferredContentType} content`,
         category: 'data-display',
         complexity: 'moderate',
         accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
-        usage: [`${purpose}-display`, 'content-organization']
+        usage: [`${inferredPurpose}-display`, 'content-organization']
     };
-    return (jsxRuntimeExports.jsx(Card$1, { ...props, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": purpose, "data-content-type": contentType, children: children }));
+    return (jsxRuntimeExports.jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
-const Modal = require$$0.forwardRef(({ semanticRole, aiMetadata, purpose = 'information', interactionType = 'blocking', children, ...props }, ref) => {
-    // Generate semantic role and AI metadata if not provided
-    const role = semanticRole || `modal-${purpose}-${interactionType}`;
+const Modal = require$$0.forwardRef(({ semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || (variant === 'small' ? 'confirmation' :
+        variant === 'large' ? 'form' : 'information');
+    const inferredInteractionType = interactionType || (isOpen ? 'blocking' : 'non-blocking');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
     const metadata = aiMetadata || {
-        description: `${purpose} modal with ${interactionType} interaction`,
+        description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
         category: 'overlay',
         complexity: 'complex',
         accessibility: ['keyboard-navigable', 'screen-reader-friendly', 'focus-management'],
-        usage: [`${purpose}-dialog`, 'user-interaction', 'workflow-step']
+        usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
     };
-    return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": purpose, "data-interaction-type": interactionType, children: children }));
+    return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
 
 /**

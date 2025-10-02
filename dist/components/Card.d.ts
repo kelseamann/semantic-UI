@@ -3,9 +3,9 @@ import { Card as PFCard } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../types';
 export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
-    /** The semantic purpose of this card */
+    /** The semantic purpose of this card (auto-inferred from props if not provided) */
     purpose?: 'content-display' | 'data-summary' | 'action-panel' | 'information' | 'navigation';
-    /** The type of content this card contains */
+    /** The type of content this card contains (auto-inferred from children if not provided) */
     contentType?: 'text' | 'data' | 'media' | 'mixed' | 'interactive';
 }
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */

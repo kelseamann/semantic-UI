@@ -32,9 +32,9 @@ type SemanticComponent<T = Record<string, unknown>> = React.ComponentType<T & Se
 
 interface ButtonProps extends Omit<React.ComponentProps<typeof Button$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
-    /** The semantic action this button performs */
+    /** The semantic action this button performs (auto-inferred from variant if not provided) */
     action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
-    /** Context of where this button is used */
+    /** Context of where this button is used (auto-inferred from props if not provided) */
     context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation' | 'table' | 'alert';
 }
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
@@ -42,9 +42,9 @@ declare const Button: React.FC<ButtonProps>;
 
 interface CardProps extends Omit<React.ComponentProps<typeof Card$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
-    /** The semantic purpose of this card */
+    /** The semantic purpose of this card (auto-inferred from props if not provided) */
     purpose?: 'content-display' | 'data-summary' | 'action-panel' | 'information' | 'navigation';
-    /** The type of content this card contains */
+    /** The type of content this card contains (auto-inferred from children if not provided) */
     contentType?: 'text' | 'data' | 'media' | 'mixed' | 'interactive';
 }
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
@@ -52,9 +52,9 @@ declare const Card: React.FC<CardProps>;
 
 interface ModalProps extends Omit<React.ComponentProps<typeof Modal$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
-    /** The semantic purpose of this modal */
+    /** The semantic purpose of this modal (auto-inferred from variant if not provided) */
     purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
-    /** The type of interaction this modal facilitates */
+    /** The type of interaction this modal facilitates (auto-inferred from props if not provided) */
     interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
 }
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */

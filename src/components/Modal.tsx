@@ -4,9 +4,9 @@ import { SemanticComponentProps } from '../types';
 
 export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
-  /** The semantic purpose of this modal */
+  /** The semantic purpose of this modal (auto-inferred from variant if not provided) */
   purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
-  /** The type of interaction this modal facilitates */
+  /** The type of interaction this modal facilitates (auto-inferred from props if not provided) */
   interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
 }
 
@@ -14,29 +14,39 @@ export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, '
 export const Modal = React.forwardRef<any, ModalProps>(({
   semanticRole,
   aiMetadata,
-  purpose = 'information',
-  interactionType = 'blocking',
+  purpose,
+  interactionType,
   children,
+  variant,
+  isOpen,
   ...props
 }, ref) => {
-  // Generate semantic role and AI metadata if not provided
-  const role = semanticRole || `modal-${purpose}-${interactionType}`;
+  // Auto-infer semantic properties from PatternFly props
+  const inferredPurpose = purpose || (variant === 'small' ? 'confirmation' : 
+                                     variant === 'large' ? 'form' : 'information');
+  
+  const inferredInteractionType = interactionType || (isOpen ? 'blocking' : 'non-blocking');
+  
+  // Generate semantic role and AI metadata
+  const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
   const metadata = aiMetadata || {
-    description: `${purpose} modal with ${interactionType} interaction`,
+    description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
     category: 'overlay',
     complexity: 'complex',
     accessibility: ['keyboard-navigable', 'screen-reader-friendly', 'focus-management'],
-    usage: [`${purpose}-dialog`, 'user-interaction', 'workflow-step']
+    usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
   };
 
   return (
     <PFModal
       {...props}
       ref={ref}
+      variant={variant}
+      isOpen={isOpen}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
-      data-purpose={purpose}
-      data-interaction-type={interactionType}
+      data-purpose={inferredPurpose}
+      data-interaction-type={inferredInteractionType}
     >
       {children}
     </PFModal>

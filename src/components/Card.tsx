@@ -4,9 +4,9 @@ import { SemanticComponentProps } from '../types';
 
 export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
-  /** The semantic purpose of this card */
+  /** The semantic purpose of this card (auto-inferred from props if not provided) */
   purpose?: 'content-display' | 'data-summary' | 'action-panel' | 'information' | 'navigation';
-  /** The type of content this card contains */
+  /** The type of content this card contains (auto-inferred from children if not provided) */
   contentType?: 'text' | 'data' | 'media' | 'mixed' | 'interactive';
 }
 
@@ -14,28 +14,38 @@ export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'ch
 export const Card: React.FC<CardProps> = ({
   semanticRole,
   aiMetadata,
-  purpose = 'content-display',
-  contentType = 'mixed',
+  purpose,
+  contentType,
   children,
+  isSelectable,
+  isClickable,
   ...props
 }) => {
-  // Generate semantic role and AI metadata if not provided
-  const role = semanticRole || `card-${purpose}-${contentType}`;
+  // Auto-infer semantic properties from PatternFly props and children
+  const inferredPurpose = purpose || (isSelectable || isClickable ? 'action-panel' : 'content-display');
+  
+  // Simple content type inference based on children
+  const inferredContentType = contentType || 'mixed';
+  
+  // Generate semantic role and AI metadata
+  const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
   const metadata = aiMetadata || {
-    description: `${purpose} card containing ${contentType} content`,
+    description: `${inferredPurpose} card containing ${inferredContentType} content`,
     category: 'data-display',
     complexity: 'moderate',
     accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
-    usage: [`${purpose}-display`, 'content-organization']
+    usage: [`${inferredPurpose}-display`, 'content-organization']
   };
 
   return (
     <PFCard
       {...props}
+      isSelectable={isSelectable}
+      isClickable={isClickable}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
-      data-purpose={purpose}
-      data-content-type={contentType}
+      data-purpose={inferredPurpose}
+      data-content-type={inferredContentType}
     >
       {children}
     </PFCard>

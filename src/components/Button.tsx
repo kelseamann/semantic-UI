@@ -4,9 +4,9 @@ import { SemanticComponentProps } from '../types';
 
 export interface ButtonProps extends Omit<React.ComponentProps<typeof PFButton>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
-  /** The semantic action this button performs */
+  /** The semantic action this button performs (auto-inferred from variant if not provided) */
   action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
-  /** Context of where this button is used */
+  /** Context of where this button is used (auto-inferred from props if not provided) */
   context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation' | 'table' | 'alert';
 }
 
@@ -14,28 +14,41 @@ export interface ButtonProps extends Omit<React.ComponentProps<typeof PFButton>,
 export const Button: React.FC<ButtonProps> = ({
   semanticRole,
   aiMetadata,
-  action = 'primary',
-  context = 'form',
+  action,
+  context,
   children,
+  variant,
+  onClick,
+  isDisabled,
   ...props
 }) => {
-  // Generate semantic role and AI metadata if not provided
-  const role = semanticRole || `button-${action}-${context}`;
+  // Auto-infer semantic properties from PatternFly props
+  const inferredAction = action || (variant === 'primary' ? 'primary' : 
+                                   variant === 'danger' ? 'destructive' : 
+                                   variant === 'link' ? 'navigation' : 'secondary');
+  
+  const inferredContext = context || (onClick ? 'interactive' : 'form');
+  
+  // Generate semantic role and AI metadata
+  const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
   const metadata = aiMetadata || {
-    description: `${action} action button for ${context} context`,
+    description: `${inferredAction} action button for ${inferredContext} context`,
     category: 'forms',
     complexity: 'simple',
     accessibility: ['keyboard-navigable', 'screen-reader-friendly'],
-    usage: [`${context}-${action}`, 'user-interaction']
+    usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
   };
 
   return (
     <PFButton
       {...props}
+      variant={variant}
+      onClick={onClick}
+      isDisabled={isDisabled}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
-      data-action={action}
-      data-context={context}
+      data-action={inferredAction}
+      data-context={inferredContext}
     >
       {children}
     </PFButton>
