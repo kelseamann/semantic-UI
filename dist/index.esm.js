@@ -1582,8 +1582,8 @@ const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusTy
     return (jsxRuntimeExports.jsx("span", { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-status-type": inferredStatusType, children: children }));
 };
 
-/** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
-const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, style, ...props }) => {
+/** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
+const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, ...props }) => {
     // Auto-infer semantic properties from props
     const inferredPurpose = purpose || (isFavorited !== undefined ? 'favorite-toggle' : 'rating');
     const inferredContext = context || (onClick ? 'interactive' : 'display');
@@ -1597,18 +1597,7 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
     };
     // Default semantic name if not provided
     const defaultSemanticName = semanticName || 'Star';
-    // Default styling to remove button appearance
-    const defaultStyle = {
-        background: 'none',
-        border: 'none',
-        padding: '0',
-        cursor: 'pointer',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...style
-    };
-    return (jsxRuntimeExports.jsx("button", { ...props, onClick: onClick, style: defaultStyle, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+    return (jsxRuntimeExports.jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
 };
 
 /**

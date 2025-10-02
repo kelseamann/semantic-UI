@@ -131,7 +131,7 @@ interface StatusBadgeProps extends React.HTMLAttributes<HTMLSpanElement>, Semant
 /** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
 declare const StatusBadge: React.FC<StatusBadgeProps>;
 
-interface StarIconProps extends React.HTMLAttributes<HTMLButtonElement>, SemanticComponentProps {
+interface StarIconProps extends React.HTMLAttributes<HTMLSpanElement>, SemanticComponentProps {
     children?: React.ReactNode;
     /** Whether this star is favorited/active */
     isFavorited?: boolean;
@@ -140,7 +140,7 @@ interface StarIconProps extends React.HTMLAttributes<HTMLButtonElement>, Semanti
     /** The context where this star is used (auto-inferred from props if not provided) */
     context?: 'table' | 'card' | 'list' | 'content';
 }
-/** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
+/** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
 declare const StarIcon: React.FC<StarIconProps>;
 
 /**

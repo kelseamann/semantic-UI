@@ -1,7 +1,7 @@
 import React from 'react';
 import { SemanticComponentProps } from '../types';
 
-export interface StarIconProps extends React.HTMLAttributes<HTMLButtonElement>, SemanticComponentProps {
+export interface StarIconProps extends React.HTMLAttributes<HTMLSpanElement>, SemanticComponentProps {
   children?: React.ReactNode;
   /** Whether this star is favorited/active */
   isFavorited?: boolean;
@@ -11,7 +11,7 @@ export interface StarIconProps extends React.HTMLAttributes<HTMLButtonElement>, 
   context?: 'table' | 'card' | 'list' | 'content';
 }
 
-/** StarIcon - HTML button wrapper with semantic metadata for AI tooling */
+/** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
 export const StarIcon: React.FC<StarIconProps> = ({
   semanticName,
   semanticRole,
@@ -21,7 +21,6 @@ export const StarIcon: React.FC<StarIconProps> = ({
   children,
   isFavorited,
   onClick,
-  style,
   ...props
 }) => {
   // Auto-infer semantic properties from props
@@ -41,23 +40,10 @@ export const StarIcon: React.FC<StarIconProps> = ({
   // Default semantic name if not provided
   const defaultSemanticName = semanticName || 'Star';
 
-  // Default styling to remove button appearance
-  const defaultStyle = {
-    background: 'none',
-    border: 'none',
-    padding: '0',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...style
-  };
-
   return (
-    <button
+    <span
       {...props}
       onClick={onClick}
-      style={defaultStyle}
       data-semantic-name={defaultSemanticName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
@@ -66,7 +52,7 @@ export const StarIcon: React.FC<StarIconProps> = ({
       data-is-favorited={isFavorited}
     >
       {children}
-    </button>
+    </span>
   );
 };
 
