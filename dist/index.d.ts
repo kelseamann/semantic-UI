@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button as Button$1, Card as Card$1, Modal as Modal$1 } from '@patternfly/react-core';
+import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
     /** Semantic role or purpose of the component */
@@ -60,6 +61,42 @@ interface ModalProps extends Omit<React.ComponentProps<typeof Modal$1>, 'childre
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 declare const Modal: React.ForwardRefExoticComponent<Omit<ModalProps, "ref"> & React.RefAttributes<any>>;
 
+interface ThProps extends Omit<React.ComponentProps<typeof Th$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this table header (auto-inferred from props if not provided) */
+    purpose?: 'column-header' | 'sortable-header' | 'selectable-header' | 'action-header';
+    /** The data type this header represents (auto-inferred from content if not provided) */
+    dataType?: 'text' | 'number' | 'date' | 'boolean' | 'action' | 'mixed';
+}
+/** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+declare const Th: React.FC<ThProps>;
+
+interface TdProps extends Omit<React.ComponentProps<typeof Td$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this table cell (auto-inferred from props if not provided) */
+    purpose?: 'data-cell' | 'action-cell' | 'selectable-cell' | 'status-cell';
+    /** The data type this cell contains (auto-inferred from content if not provided) */
+    dataType?: 'text' | 'number' | 'date' | 'boolean' | 'action' | 'mixed';
+}
+/** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
+declare const Td: React.FC<TdProps>;
+
+interface TheadProps extends Omit<React.ComponentProps<typeof Thead$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this table header section (auto-inferred from props if not provided) */
+    purpose?: 'column-definition' | 'sortable-headers' | 'selectable-headers' | 'action-headers';
+}
+/** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+declare const Thead: React.FC<TheadProps>;
+
+interface TbodyProps extends Omit<React.ComponentProps<typeof Tbody$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this table body section (auto-inferred from props if not provided) */
+    purpose?: 'data-rows' | 'selectable-rows' | 'action-rows' | 'mixed-content';
+}
+/** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
+declare const Tbody: React.FC<TbodyProps>;
+
 /**
  * Utility functions for managing component metadata
  */
@@ -113,4 +150,4 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     };
 };
 
-export { Button, Card, ComponentMetadata, Modal, SemanticComponent, SemanticComponentProps, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, ComponentMetadata, Modal, SemanticComponent, SemanticComponentProps, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };

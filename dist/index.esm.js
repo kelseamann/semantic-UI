@@ -1,5 +1,6 @@
-import require$$0, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button as Button$1, Card as Card$1, Modal as Modal$1 } from '@patternfly/react-core';
+import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 var jsxRuntime = {exports: {}};
 
@@ -20,7 +21,7 @@ var hasRequiredReactJsxRuntime_production_min;
 function requireReactJsxRuntime_production_min () {
 	if (hasRequiredReactJsxRuntime_production_min) return reactJsxRuntime_production_min;
 	hasRequiredReactJsxRuntime_production_min = 1;
-var f=require$$0,k=Symbol.for("react.element"),l=Symbol.for("react.fragment"),m=Object.prototype.hasOwnProperty,n=f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,p={key:!0,ref:!0,__self:!0,__source:!0};
+var f=React,k=Symbol.for("react.element"),l=Symbol.for("react.fragment"),m=Object.prototype.hasOwnProperty,n=f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,p={key:!0,ref:!0,__self:!0,__source:!0};
 	function q(c,a,g){var b,d={},e=null,h=null;void 0!==g&&(e=""+g);void 0!==a.key&&(e=""+a.key);void 0!==a.ref&&(h=a.ref);for(b in a)m.call(a,b)&&!p.hasOwnProperty(b)&&(d[b]=a[b]);if(c&&c.defaultProps)for(b in a=c.defaultProps,a)void 0===d[b]&&(d[b]=a[b]);return {$$typeof:k,type:c,key:e,ref:h,props:d,_owner:n.current}}reactJsxRuntime_production_min.Fragment=l;reactJsxRuntime_production_min.jsx=q;reactJsxRuntime_production_min.jsxs=q;
 	return reactJsxRuntime_production_min;
 }
@@ -46,7 +47,7 @@ function requireReactJsxRuntime_development () {
 	if (process.env.NODE_ENV !== "production") {
 	  (function() {
 
-	var React = require$$0;
+	var React$1 = React;
 
 	// ATTENTION
 	// When adding new symbols to this file,
@@ -81,7 +82,7 @@ function requireReactJsxRuntime_development () {
 	  return null;
 	}
 
-	var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+	var ReactSharedInternals = React$1.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
 	function error(format) {
 	  {
@@ -1410,7 +1411,7 @@ const Card = ({ semanticRole, aiMetadata, purpose, contentType, children, isSele
 };
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
-const Modal = require$$0.forwardRef(({ semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
+const Modal = React.forwardRef(({ semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
     // Auto-infer semantic properties from PatternFly props
     const inferredPurpose = purpose || (variant === 'small' ? 'confirmation' :
         variant === 'large' ? 'form' : 'information');
@@ -1425,6 +1426,85 @@ const Modal = require$$0.forwardRef(({ semanticRole, aiMetadata, purpose, intera
     };
     return (jsxRuntimeExports.jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
+
+/** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+const Th = ({ semanticRole, aiMetadata, purpose, dataType, children, sort, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || (sort ? 'sortable-header' :
+        children?.toString().toLowerCase().includes('select') ? 'selectable-header' :
+            children?.toString().toLowerCase().includes('action') ? 'action-header' : 'column-header');
+    // Simple data type inference based on content
+    const inferredDataType = dataType || (children?.toString().toLowerCase().includes('date') ? 'date' :
+        children?.toString().toLowerCase().includes('id') ||
+            children?.toString().toLowerCase().includes('count') ? 'number' :
+            children?.toString().toLowerCase().includes('action') ? 'action' : 'text');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-header-${inferredPurpose}-${inferredDataType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} for ${inferredDataType} data`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
+    };
+    return (jsxRuntimeExports.jsx(Th$1, { ...props, sort: sort, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+};
+
+/** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
+const Td = ({ semanticRole, aiMetadata, purpose, dataType, children, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props and content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action-cell' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Checkbox')) ? 'selectable-cell' :
+            children?.toString().toLowerCase().includes('status') ? 'status-cell' : 'data-cell');
+    // Simple data type inference based on content
+    const inferredDataType = dataType || (typeof children === 'number' ? 'number' :
+        children?.toString().match(/^\d{4}-\d{2}-\d{2}/) ? 'date' :
+            children?.toString().toLowerCase() === 'true' ||
+                children?.toString().toLowerCase() === 'false' ? 'boolean' :
+                React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action' : 'text');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-cell-${inferredPurpose}-${inferredDataType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} containing ${inferredDataType} data`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
+    };
+    return (jsxRuntimeExports.jsx(Td$1, { ...props, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+};
+
+/** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+const Thead = ({ semanticRole, aiMetadata, purpose, children, ...props }) => {
+    // Auto-infer semantic properties from children content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.sort) ? 'sortable-headers' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('select')) ? 'selectable-headers' :
+            React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('action')) ? 'action-headers' : 'column-definition');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-header-section-${inferredPurpose}`;
+    const metadata = aiMetadata || {
+        description: `Table header section with ${inferredPurpose}`,
+        category: 'data-display',
+        complexity: 'moderate',
+        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
+    };
+    return (jsxRuntimeExports.jsx(Thead$1, { ...props, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+};
+
+/** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
+const Tbody = ({ semanticRole, aiMetadata, purpose, children, ...props }) => {
+    // Auto-infer semantic properties from children content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('select'))) ? 'selectable-rows' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('action'))) ? 'action-rows' :
+            React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && typeof cell.props?.children === 'object')) ? 'mixed-content' : 'data-rows');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-body-section-${inferredPurpose}`;
+    const metadata = aiMetadata || {
+        description: `Table body section with ${inferredPurpose}`,
+        category: 'data-display',
+        complexity: 'moderate',
+        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
+    };
+    return (jsxRuntimeExports.jsx(Tbody$1, { ...props, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+};
 
 /**
  * Utility functions for managing component metadata
@@ -1607,5 +1687,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Modal, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Modal, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
 //# sourceMappingURL=index.esm.js.map
