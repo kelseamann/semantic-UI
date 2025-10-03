@@ -10,6 +10,7 @@ export { FlexItem } from './FlexItem';
 // Table component exports
 export { Th } from './Th';
 export { Td } from './Td';
+export { Tr } from './Tr';
 export { Thead } from './Thead';
 export { Tbody } from './Tbody';
 

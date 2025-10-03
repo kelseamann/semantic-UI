@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button as Button$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
-import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
+import { Th as Th$1, Td as Td$1, Tr as Tr$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
     /** Human-readable semantic name for the component instance */
@@ -99,6 +99,18 @@ interface TdProps extends Omit<React.ComponentProps<typeof Td$1>, 'children'>, S
 }
 /** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
 declare const Td: React.FC<TdProps>;
+
+interface TrProps extends Omit<React.ComponentProps<typeof Tr$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The semantic purpose of this table row (auto-inferred from props if not provided) */
+    purpose?: 'data-row' | 'header-row' | 'selectable-row' | 'expandable-row' | 'action-row';
+    /** The interaction type for this row (auto-inferred from props if not provided) */
+    interactionType?: 'clickable' | 'selectable' | 'expandable' | 'static';
+    /** The row state (auto-inferred from props if not provided) */
+    rowState?: 'normal' | 'selected' | 'expanded' | 'disabled' | 'highlighted';
+}
+/** Tr - PatternFly Table Row wrapper with semantic metadata for AI tooling */
+declare const Tr: React.FC<TrProps>;
 
 interface TheadProps extends Omit<React.ComponentProps<typeof Thead$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
@@ -210,4 +222,4 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     enhancedProps: any;
 };
 
-export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };

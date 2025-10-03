@@ -1,7 +1,7 @@
 import { jsx } from 'react/jsx-runtime';
 import React from 'react';
 import { Button as Button$1, Card as Card$1, Modal as Modal$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
-import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
+import { Th as Th$1, Td as Td$1, Tr as Tr$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
 const Button = ({ semanticName, semanticRole, aiMetadata, action, context, children, variant, onClick, isDisabled, ...props }) => {
@@ -189,6 +189,41 @@ const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, childre
     // Default semantic name if not provided
     const defaultSemanticName = semanticName || 'Row Item';
     return (jsx(Td$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+};
+
+/** Tr - PatternFly Table Row wrapper with semantic metadata for AI tooling */
+const Tr = ({ semanticName, semanticRole, aiMetadata, purpose, interactionType, rowState, children, isClickable, isSelectable, isExpanded, isDisabled, isStriped, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props and content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) &&
+        React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Th'))) ? 'header-row' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) &&
+            React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Checkbox'))) ? 'selectable-row' :
+            isExpanded ? 'expandable-row' :
+                React.Children.toArray(children).some(child => React.isValidElement(child) &&
+                    React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Button'))) ? 'action-row' : 'data-row');
+    const inferredInteractionType = interactionType || (isClickable ? 'clickable' :
+        isSelectable ? 'selectable' :
+            isExpanded !== undefined ? 'expandable' :
+                'static');
+    const inferredRowState = rowState || (isDisabled ? 'disabled' :
+        isExpanded ? 'expanded' :
+            isSelectable ? 'selected' :
+                isStriped ? 'highlighted' :
+                    'normal');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-row-${inferredPurpose}-${inferredInteractionType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} with ${inferredInteractionType} interaction`,
+        category: 'data-display',
+        complexity: inferredInteractionType === 'static' ? 'simple' : 'medium',
+        usage: [`table-${inferredPurpose}`, 'row-interaction', 'data-presentation'],
+        interactionType: inferredInteractionType,
+        rowState: inferredRowState,
+        isStriped: isStriped || false
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Row';
+    return (jsx(Tr$1, { ...props, isClickable: isClickable, isSelectable: isSelectable, isExpanded: isExpanded, isDisabled: isDisabled, isStriped: isStriped, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, "data-row-state": inferredRowState, children: children }));
 };
 
 /** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
@@ -490,5 +525,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Checkbox, Flex, FlexItem, Link, Modal, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, Flex, FlexItem, Link, Modal, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
 //# sourceMappingURL=index.esm.js.map
