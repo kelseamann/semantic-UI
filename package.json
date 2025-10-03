@@ -1,11 +1,18 @@
 {
   "name": "semantic-ui-layer",
   "version": "1.0.0",
-  "type": "module",
   "description": "A standalone React library that wraps PatternFly design system components with semantic meaning and additional metadata for AI tooling",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],

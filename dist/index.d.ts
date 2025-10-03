@@ -205,6 +205,49 @@ declare const validateAccessibility: (componentType: string, props: Record<strin
 declare const generateKeyboardShortcuts: (componentType: string, context?: Record<string, unknown>) => string[];
 
 /**
+ * Semantic UI Layer Validation Utility
+ *
+ * This utility helps developers identify when they're using native HTML elements
+ * instead of semantic-ui-layer components, which prevents semantic metadata from being applied.
+ */
+interface ValidationWarning {
+    element: string;
+    tagName: string;
+    suggestion: string;
+    location?: string;
+    elementRef?: HTMLElement;
+}
+interface ValidationResult {
+    warnings: ValidationWarning[];
+    summary: {
+        totalElements: number;
+        semanticElements: number;
+        nativeElements: number;
+        warningsCount: number;
+    };
+}
+/**
+ * Validates the current DOM for native HTML elements that should use semantic-ui-layer components
+ */
+declare const validateSemanticUsage: () => ValidationResult;
+/**
+ * Highlights elements that have validation warnings
+ */
+declare const highlightValidationWarnings: (warnings: ValidationWarning[]) => void;
+/**
+ * Removes validation highlights from all elements
+ */
+declare const clearValidationHighlights: () => void;
+/**
+ * Logs validation results to the console with helpful formatting
+ */
+declare const logValidationResults: (result: ValidationResult) => void;
+/**
+ * Main validation function that runs the complete validation process
+ */
+declare const runSemanticValidation: (highlightWarnings?: boolean) => ValidationResult;
+
+/**
  * Hook for managing semantic metadata for components
  */
 declare const useSemanticMetadata: (componentName: string, userMetadata?: Partial<ComponentMetadata>, props?: Record<string, unknown>) => {
@@ -222,4 +265,4 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     enhancedProps: any;
 };
 
-export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, highlightValidationWarnings, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
