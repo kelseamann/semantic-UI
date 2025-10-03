@@ -1,6 +1,8 @@
 export { Button } from './Button';
 export { Card } from './Card';
 export { Modal } from './Modal';
+export { Flex } from './Flex';
+export { FlexItem } from './FlexItem';
 export { Th } from './Th';
 export { Td } from './Td';
 export { Thead } from './Thead';

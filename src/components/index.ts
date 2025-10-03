@@ -3,6 +3,10 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Modal } from './Modal';
 
+// Layout component exports
+export { Flex } from './Flex';
+export { FlexItem } from './FlexItem';
+
 // Table component exports
 export { Th } from './Th';
 export { Td } from './Td';

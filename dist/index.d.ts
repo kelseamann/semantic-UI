@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button as Button$1, Card as Card$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
+import { Button as Button$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
@@ -55,6 +55,30 @@ declare const Card: React.FC<CardProps>;
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 declare const Modal: any;
+
+interface FlexProps extends Omit<React.ComponentProps<typeof Flex$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The layout purpose of this flex container (auto-inferred from props if not provided) */
+    purpose?: 'layout' | 'navigation' | 'toolbar' | 'form' | 'content' | 'action-group';
+    /** The layout type (auto-inferred from direction if not provided) */
+    layoutType?: 'row' | 'column' | 'responsive';
+    /** The alignment context (auto-inferred from props if not provided) */
+    alignmentContext?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+}
+/** Flex - PatternFly Flex wrapper with semantic metadata for AI tooling */
+declare const Flex: React.FC<FlexProps>;
+
+interface FlexItemProps extends Omit<React.ComponentProps<typeof FlexItem$1>, 'children'>, SemanticComponentProps {
+    children?: React.ReactNode;
+    /** The content type of this flex item (auto-inferred from props if not provided) */
+    contentType?: 'text' | 'button' | 'icon' | 'form-control' | 'media' | 'navigation' | 'action';
+    /** The positioning context (auto-inferred from props if not provided) */
+    positioningContext?: 'start' | 'center' | 'end' | 'stretch' | 'baseline' | 'auto';
+    /** The sizing behavior (auto-inferred from flex prop if not provided) */
+    sizingBehavior?: 'fixed' | 'flexible' | 'grow' | 'shrink' | 'auto';
+}
+/** FlexItem - PatternFly FlexItem wrapper with semantic metadata for AI tooling */
+declare const FlexItem: React.FC<FlexItemProps>;
 
 interface ThProps extends Omit<React.ComponentProps<typeof Th$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
@@ -186,4 +210,4 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     enhancedProps: any;
 };
 
-export { Button, Card, Checkbox, ComponentMetadata, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };

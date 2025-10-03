@@ -1,6 +1,6 @@
 import { jsx } from 'react/jsx-runtime';
 import React from 'react';
-import { Button as Button$1, Card as Card$1, Modal as Modal$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
+import { Button as Button$1, Card as Card$1, Modal as Modal$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
@@ -60,6 +60,87 @@ const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpos
     const defaultSemanticName = semanticName || 'Modal';
     return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
+
+/** Flex - PatternFly Flex wrapper with semantic metadata for AI tooling */
+const Flex = ({ semanticName, semanticRole, aiMetadata, purpose, layoutType, alignmentContext, children, direction, justifyContent, alignItems, alignSelf, flex, spaceItems, gap, columnGap, rowGap, order, component, display, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || (justifyContent?.default === 'justifyContentSpaceBetween' ? 'toolbar' :
+        justifyContent?.default === 'justifyContentCenter' ? 'content' :
+            spaceItems ? 'action-group' :
+                'layout');
+    const inferredLayoutType = layoutType || (direction?.default === 'column' ? 'column' :
+        direction?.lg ? 'responsive' :
+            'row');
+    const inferredAlignmentContext = alignmentContext || (alignItems?.default === 'alignItemsCenter' ? 'center' :
+        alignItems?.default === 'alignItemsFlexEnd' ? 'end' :
+            alignItems?.default === 'alignItemsFlexStart' ? 'start' :
+                alignItems?.default === 'alignItemsStretch' ? 'stretch' :
+                    alignItems?.default === 'alignItemsBaseline' ? 'baseline' :
+                        'start');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `flex-${inferredPurpose}-${inferredLayoutType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} flex container with ${inferredLayoutType} layout`,
+        category: 'layout',
+        complexity: inferredLayoutType === 'responsive' ? 'medium' : 'simple',
+        usage: [`${inferredPurpose}-layout`, `${inferredLayoutType}-container`, 'responsive-design'],
+        alignment: inferredAlignmentContext,
+        layoutDirection: direction?.default || 'row'
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Flex Container';
+    return (jsx(Flex$1, { ...props, direction: direction, justifyContent: justifyContent, alignItems: alignItems, alignSelf: alignSelf, flex: flex, spaceItems: spaceItems, gap: gap, columnGap: columnGap, rowGap: rowGap, order: order, component: component, display: display, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-layout-type": inferredLayoutType, "data-alignment-context": inferredAlignmentContext, children: children }));
+};
+
+/** FlexItem - PatternFly FlexItem wrapper with semantic metadata for AI tooling */
+const FlexItem = ({ semanticName, semanticRole, aiMetadata, contentType, positioningContext, sizingBehavior, children, flex, align, alignSelf, spacer, order, component, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredContentType = contentType || (React.Children.toArray(children).some(child => React.isValidElement(child) &&
+        (child.type?.toString().includes('Button') ||
+            child.props?.variant === 'primary' ||
+            child.props?.variant === 'secondary')) ? 'button' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) &&
+            child.type?.toString().includes('Icon')) ? 'icon' :
+            React.Children.toArray(children).some(child => React.isValidElement(child) &&
+                (child.type?.toString().includes('Input') ||
+                    child.type?.toString().includes('Select') ||
+                    child.type?.toString().includes('Checkbox'))) ? 'form-control' :
+                React.Children.toArray(children).some(child => React.isValidElement(child) &&
+                    (child.type?.toString().includes('img') ||
+                        child.type?.toString().includes('Image'))) ? 'media' :
+                    React.Children.toArray(children).some(child => React.isValidElement(child) &&
+                        child.type?.toString().includes('Link')) ? 'navigation' :
+                        'text');
+    const inferredPositioningContext = positioningContext || (align?.default === 'alignRight' ? 'end' :
+        align?.default === 'alignLeft' ? 'start' :
+            align?.default === 'alignCenter' ? 'center' :
+                alignSelf?.default === 'alignSelfFlexEnd' ? 'end' :
+                    alignSelf?.default === 'alignSelfFlexStart' ? 'start' :
+                        alignSelf?.default === 'alignSelfCenter' ? 'center' :
+                            alignSelf?.default === 'alignSelfStretch' ? 'stretch' :
+                                alignSelf?.default === 'alignSelfBaseline' ? 'baseline' :
+                                    'auto');
+    const inferredSizingBehavior = sizingBehavior || (flex?.default === 'flex_1' ? 'flexible' :
+        flex?.default === 'flex_2' ? 'grow' :
+            flex?.default === 'flex_3' ? 'grow' :
+                flex?.default === 'flexNone' ? 'fixed' :
+                    flex?.default === 'flexAuto' ? 'auto' :
+                        'auto');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `flex-item-${inferredContentType}-${inferredSizingBehavior}`;
+    const metadata = aiMetadata || {
+        description: `${inferredContentType} flex item with ${inferredSizingBehavior} sizing`,
+        category: 'layout',
+        complexity: 'simple',
+        usage: [`${inferredContentType}-item`, `${inferredSizingBehavior}-sizing`, 'flex-layout'],
+        positioning: inferredPositioningContext,
+        sizing: inferredSizingBehavior,
+        spacing: spacer?.default || 'none'
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Flex Item';
+    return (jsx(FlexItem$1, { ...props, flex: flex, align: align, alignSelf: alignSelf, spacer: spacer, order: order, component: component, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-content-type": inferredContentType, "data-positioning-context": inferredPositioningContext, "data-sizing-behavior": inferredSizingBehavior, children: children }));
+};
 
 /** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
 const Th = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, children, sort, ...props }) => {
@@ -409,5 +490,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Checkbox, Link, Modal, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
+export { Button, Card, Checkbox, Flex, FlexItem, Link, Modal, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };
 //# sourceMappingURL=index.esm.js.map
