@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { ComponentMetadata } from '../types';
 import { generateComponentMetadata, mergeMetadata } from '../utils/metadata';
 
@@ -10,12 +10,12 @@ export const useSemanticMetadata = (
   userMetadata?: Partial<ComponentMetadata>,
   props: Record<string, unknown> = {}
 ) => {
-  const [metadata, setMetadata] = useState<ComponentMetadata>(() => {
+  const [metadata, setMetadata] = React.useState<ComponentMetadata>(() => {
     const defaultMetadata = generateComponentMetadata(componentName, props);
     return userMetadata ? mergeMetadata(userMetadata, defaultMetadata) : defaultMetadata;
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     const defaultMetadata = generateComponentMetadata(componentName, props);
     const mergedMetadata = userMetadata ? mergeMetadata(userMetadata, defaultMetadata) : defaultMetadata;
     setMetadata(mergedMetadata);

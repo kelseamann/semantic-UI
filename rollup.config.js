@@ -34,6 +34,8 @@ export default [
     external: [
       ...Object.keys(packageJson.peerDependencies || {}),
       ...Object.keys(packageJson.dependencies || {}),
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
     ],
   },
   {

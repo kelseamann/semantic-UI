@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button as Button$1, Card as Card$1, Modal as Modal$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
+import { Button as Button$1, Card as Card$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
@@ -53,15 +53,8 @@ interface CardProps extends Omit<React.ComponentProps<typeof Card$1>, 'children'
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 declare const Card: React.FC<CardProps>;
 
-interface ModalProps extends Omit<React.ComponentProps<typeof Modal$1>, 'children'>, SemanticComponentProps {
-    children?: React.ReactNode;
-    /** The semantic purpose of this modal (auto-inferred from variant if not provided) */
-    purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
-    /** The type of interaction this modal facilitates (auto-inferred from props if not provided) */
-    interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
-}
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
-declare const Modal: React.ForwardRefExoticComponent<Omit<ModalProps, "ref"> & React.RefAttributes<any>>;
+declare const Modal: any;
 
 interface ThProps extends Omit<React.ComponentProps<typeof Th$1>, 'children'>, SemanticComponentProps {
     children?: React.ReactNode;
@@ -179,7 +172,7 @@ declare const generateKeyboardShortcuts: (componentType: string, context?: Recor
  * Hook for managing semantic metadata for components
  */
 declare const useSemanticMetadata: (componentName: string, userMetadata?: Partial<ComponentMetadata>, props?: Record<string, unknown>) => {
-    metadata: ComponentMetadata;
+    metadata: any;
     updateMetadata: (updates: Partial<ComponentMetadata>) => void;
 };
 
@@ -187,13 +180,10 @@ declare const useSemanticMetadata: (componentName: string, userMetadata?: Partia
  * Hook for managing accessibility features
  */
 declare const useAccessibility: (componentType: string, props?: Record<string, unknown>, context?: Record<string, unknown>) => {
-    ariaAttributes: Record<string, string>;
-    keyboardShortcuts: string[];
-    accessibilityIssues: string[];
-    enhancedProps: {
-        'data-keyboard-shortcuts': string;
-        'data-accessibility-issues': string;
-    };
+    ariaAttributes: any;
+    keyboardShortcuts: any;
+    accessibilityIssues: any;
+    enhancedProps: any;
 };
 
 export { Button, Card, Checkbox, ComponentMetadata, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, mergeMetadata, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata };

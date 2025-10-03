@@ -9,6 +9,6 @@ export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, '
     interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
 }
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
-export declare const Modal: React.ForwardRefExoticComponent<Omit<ModalProps, "ref"> & React.RefAttributes<any>>;
+export declare const Modal: any;
 export default Modal;
 //# sourceMappingURL=Modal.d.ts.map

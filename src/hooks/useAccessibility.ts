@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React from 'react';
 import { generateAriaAttributes, validateAccessibility, generateKeyboardShortcuts } from '../utils/accessibility';
 
 /**
@@ -9,22 +9,22 @@ export const useAccessibility = (
   props: Record<string, unknown> = {},
   context: Record<string, unknown> = {}
 ) => {
-  const ariaAttributes = useMemo(() => 
+  const ariaAttributes = React.useMemo(() => 
     generateAriaAttributes(componentType),
     [componentType]
   );
 
-  const keyboardShortcuts = useMemo(() => 
+  const keyboardShortcuts = React.useMemo(() => 
     generateKeyboardShortcuts(componentType, context),
     [componentType, context]
   );
 
-  const accessibilityIssues = useMemo(() => 
+  const accessibilityIssues = React.useMemo(() => 
     validateAccessibility(componentType, props),
     [componentType, props]
   );
 
-  const enhancedProps = useMemo(() => ({
+  const enhancedProps = React.useMemo(() => ({
     ...props,
     ...ariaAttributes,
     'data-keyboard-shortcuts': keyboardShortcuts.join(','),
