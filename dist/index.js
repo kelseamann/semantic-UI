@@ -20,8 +20,8 @@ const Button = ({ semanticName, semanticRole, aiMetadata, action, context, child
         complexity: 'simple',
         usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Button';
+    // All buttons adopt the semantic name "Button" for consistency
+    const defaultSemanticName = 'Button';
     return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
 };
 

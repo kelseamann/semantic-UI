@@ -39,8 +39,8 @@ export const Button: React.FC<ButtonProps> = ({
     usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
   };
 
-  // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Button';
+  // All buttons adopt the semantic name "Button" for consistency
+  const defaultSemanticName = 'Button';
 
   return (
     <PFButton
