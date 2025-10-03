@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button as PFButton } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../types';
+import { useSemanticContext } from '../context/SemanticContext';
 
 export interface ButtonProps extends Omit<React.ComponentProps<typeof PFButton>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
@@ -23,6 +24,8 @@ export const Button: React.FC<ButtonProps> = ({
   isDisabled,
   ...props
 }) => {
+  const { getContextualName } = useSemanticContext();
+
   // Auto-infer semantic properties from PatternFly props
   const inferredAction = action || (variant === 'primary' ? 'primary' : 
                                    variant === 'danger' ? 'destructive' : 
@@ -39,8 +42,9 @@ export const Button: React.FC<ButtonProps> = ({
     usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
   };
 
-  // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Button';
+  // Get contextual name - if no semanticName provided, use default "Button"
+  // This will automatically become "menu Button" when inside a MenuToggle context
+  const contextualName = getContextualName(semanticName || 'Button');
 
   return (
     <PFButton
@@ -48,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
       variant={variant}
       onClick={onClick}
       isDisabled={isDisabled}
-      data-semantic-name={defaultSemanticName}
+      data-semantic-name={contextualName}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-action={inferredAction}

@@ -5,8 +5,45 @@ var React = require('react');
 var reactCore = require('@patternfly/react-core');
 var reactTable = require('@patternfly/react-table');
 
+const SemanticContext = React.createContext(undefined);
+const useSemanticContext = () => {
+    const context = React.useContext(SemanticContext);
+    if (!context) {
+        throw new Error('useSemanticContext must be used within a SemanticProvider');
+    }
+    return context;
+};
+const SemanticProvider = ({ children }) => {
+    const [contextStack, setContextStack] = React.useState([]);
+    const addContext = (context) => {
+        setContextStack(prev => [...prev, context]);
+    };
+    const removeContext = () => {
+        setContextStack(prev => prev.slice(0, -1));
+    };
+    const clearContext = () => {
+        setContextStack([]);
+    };
+    const getContextualName = (baseName) => {
+        if (contextStack.length === 0) {
+            return baseName;
+        }
+        // Join all context levels with spaces
+        const contextPrefix = contextStack.join(' ');
+        return `${contextPrefix} ${baseName}`;
+    };
+    return (jsxRuntime.jsx(SemanticContext.Provider, { value: {
+            contextStack,
+            addContext,
+            removeContext,
+            getContextualName,
+            clearContext,
+        }, children: children }));
+};
+
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
 const Button = ({ semanticName, semanticRole, aiMetadata, action, context, children, variant, onClick, isDisabled, ...props }) => {
+    const { getContextualName } = useSemanticContext();
     // Auto-infer semantic properties from PatternFly props
     const inferredAction = action || (variant === 'primary' ? 'primary' :
         variant === 'danger' ? 'destructive' :
@@ -20,9 +57,10 @@ const Button = ({ semanticName, semanticRole, aiMetadata, action, context, child
         complexity: 'simple',
         usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
     };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Button';
-    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
+    // Get contextual name - if no semanticName provided, use default "Button"
+    // This will automatically become "menu Button" when inside a MenuToggle context
+    const contextualName = getContextualName(semanticName || 'Button');
+    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": contextualName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
 };
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
@@ -230,6 +268,26 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
     return (jsxRuntime.jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
 };
 
+const MenuToggle = ({ semanticName, semanticRole, aiMetadata, children, ...props }) => {
+    const { addContext, removeContext, getContextualName } = useSemanticContext();
+    // Add "menu" context when this component mounts/renders
+    React.useEffect(() => {
+        addContext('menu');
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get contextual name - if no semanticName provided, use default "Toggle"
+    const contextualName = getContextualName(semanticName || 'Toggle');
+    return (jsxRuntime.jsx(reactCore.MenuToggle, { ...props, "data-semantic-name": contextualName, "data-semantic-role": semanticRole || 'menu-trigger', "data-ai-metadata": JSON.stringify(aiMetadata || {}), children: children }));
+};
+
+const DropdownItem = ({ semanticName, semanticRole, aiMetadata, children, ...props }) => {
+    const { getContextualName } = useSemanticContext();
+    // Get contextual name - if no semanticName provided, use default "Action"
+    // This will automatically become "menu Action" when inside a MenuToggle context
+    const contextualName = getContextualName(semanticName || 'Action');
+    return (jsxRuntime.jsx(reactCore.DropdownItem, { ...props, "data-semantic-name": contextualName, "data-semantic-role": semanticRole || 'menu-item', "data-ai-metadata": JSON.stringify(aiMetadata || {}), children: children }));
+};
+
 /**
  * Utility functions for managing component metadata
  */
@@ -414,8 +472,11 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
 exports.Button = Button;
 exports.Card = Card;
 exports.Checkbox = Checkbox;
+exports.DropdownItem = DropdownItem;
 exports.Link = Link;
+exports.MenuToggle = MenuToggle;
 exports.Modal = Modal;
+exports.SemanticProvider = SemanticProvider;
 exports.StarIcon = StarIcon;
 exports.StatusBadge = StatusBadge;
 exports.Tbody = Tbody;
@@ -427,6 +488,7 @@ exports.generateComponentMetadata = generateComponentMetadata;
 exports.generateKeyboardShortcuts = generateKeyboardShortcuts;
 exports.mergeMetadata = mergeMetadata;
 exports.useAccessibility = useAccessibility;
+exports.useSemanticContext = useSemanticContext;
 exports.useSemanticMetadata = useSemanticMetadata;
 exports.validateAccessibility = validateAccessibility;
 exports.validateMetadata = validateMetadata;

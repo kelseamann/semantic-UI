@@ -1,0 +1,1 @@
+{"version":3,"file":"SemanticContext.d.ts","sourceRoot":"","sources":["../../src/context/SemanticContext.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,EAAuC,SAAS,EAAE,MAAM,OAAO,CAAC;AAY9E,eAAO,MAAM,kBAAkB,WAM9B,CAAC;AAEF,UAAU,qBAAqB;IAC7B,QAAQ,EAAE,SAAS,CAAC;CACrB;AAED,eAAO,MAAM,gBAAgB,EAAE,KAAK,CAAC,EAAE,CAAC,qBAAqB,CAsC5D,CAAC"}
