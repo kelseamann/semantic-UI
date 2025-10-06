@@ -8,16 +8,19 @@ Semantic UI Layer enhances PatternFly components by adding:
 
 - **Semantic Role Identification**: Each component has a clear semantic purpose that AI tools can understand
 - **AI Metadata**: Rich metadata including descriptions, complexity levels, and usage patterns
-- **Enhanced Accessibility**: Automatic ARIA attributes and accessibility validation
 - **Context Awareness**: Components understand their usage context and adapt accordingly
 - **AI-Friendly Documentation**: Structured data that helps AI tools provide better suggestions
+- **Validation Utilities**: Tools to help developers identify when they're using native HTML elements instead of semantic components
 
 ## Features
 
 ### 🎯 Semantic Components
-- `SemanticButton` - Buttons with action context (primary, secondary, destructive, etc.)
-- `SemanticCard` - Cards with content purpose (data-display, action-panel, etc.)
-- `SemanticModal` - Modals with interaction type (confirmation, form, workflow, etc.)
+- `Button` - Buttons with action context (primary, secondary, destructive, etc.)
+- `Card` - Cards with content purpose (data-display, action-panel, etc.)
+- `Modal` - Modals with interaction type (confirmation, form, workflow, etc.)
+- `Flex` / `FlexItem` - Layout components with semantic purpose
+- `Th`, `Td`, `Tr`, `Thead`, `Tbody` - Table components with data context
+- `Checkbox`, `Link`, `StatusBadge`, `StarIcon` - Form and UI components
 
 ### 🤖 AI Metadata
 Each component includes structured metadata:
@@ -31,11 +34,11 @@ Each component includes structured metadata:
 }
 ```
 
-### ♿ Enhanced Accessibility
-- Automatic ARIA attribute generation
-- Keyboard shortcut metadata
-- Accessibility validation and warnings
-- Screen reader optimizations
+### 🔍 Validation Utilities
+- `runSemanticValidation()` - Validates DOM for native HTML elements that should use semantic components
+- `clearValidationHighlights()` - Removes validation highlights from elements
+- `highlightValidationWarnings()` - Highlights elements with validation warnings
+- `logValidationResults()` - Logs validation results to console
 
 ### 🔧 Developer Experience
 - TypeScript support with full type safety
@@ -63,22 +66,22 @@ npm install @patternfly/react-core @patternfly/react-icons
 
 ```tsx
 import React from 'react';
-import { SemanticButton, SemanticCard, SemanticModal } from 'semantic-ui-layer';
+import { Button, Card, Modal } from 'semantic-ui-layer';
 
 function MyComponent() {
   return (
-    <SemanticCard purpose="data-summary" contentType="data">
+    <Card purpose="data-summary" contentType="data">
       <h3>User Dashboard</h3>
       <p>Welcome back, John!</p>
       
-      <SemanticButton 
+      <Button 
         action="primary" 
         context="form"
         onClick={() => console.log('Action clicked')}
       >
         Save Changes
-      </SemanticButton>
-    </SemanticCard>
+      </Button>
+    </Card>
   );
 }
 ```
@@ -86,11 +89,11 @@ function MyComponent() {
 ### Advanced Usage with Custom Metadata
 
 ```tsx
-import { SemanticModal } from 'semantic-ui-layer';
+import { Modal } from 'semantic-ui-layer';
 
 function ConfirmationModal({ isOpen, onClose, onConfirm }) {
   return (
-    <SemanticModal
+    <Modal
       purpose="confirmation"
       interactionType="blocking"
       isOpen={isOpen}
@@ -101,67 +104,68 @@ function ConfirmationModal({ isOpen, onClose, onConfirm }) {
         accessibility: ["keyboard-navigable", "focus-management"],
         usage: ["confirmation", "destructive-action", "workflow-step"]
       }}
-      accessibility={{
-        ariaLabel: "Confirm deletion",
-        ariaDescription: "This action cannot be undone"
-      }}
     >
       <h2>Delete Item</h2>
       <p>Are you sure you want to delete this item?</p>
-      <SemanticButton action="destructive" onClick={onConfirm}>
+      <Button action="destructive" onClick={onConfirm}>
         Delete
-      </SemanticButton>
-      <SemanticButton action="secondary" onClick={onClose}>
+      </Button>
+      <Button action="secondary" onClick={onClose}>
         Cancel
-      </SemanticButton>
-    </SemanticModal>
+      </Button>
+    </Modal>
   );
 }
 ```
 
-### Using Hooks
+### Using Validation Utilities
 
 ```tsx
-import { useSemanticMetadata, useAccessibility } from 'semantic-ui-layer';
+import { runSemanticValidation, clearValidationHighlights } from 'semantic-ui-layer';
 
-function CustomComponent() {
-  const { metadata } = useSemanticMetadata('CustomButton', {
-    description: 'Custom action button',
-    complexity: 'moderate'
-  });
+function ValidationExample() {
+  const handleValidate = () => {
+    const result = runSemanticValidation(true); // true = highlight warnings
+    console.log('Validation result:', result);
+  };
 
-  const { enhancedProps } = useAccessibility('button', props, {
-    action: 'primary'
-  });
+  const handleClearHighlights = () => {
+    clearValidationHighlights();
+  };
 
-  return <button {...enhancedProps}>Custom Button</button>;
+  return (
+    <div>
+      <Button onClick={handleValidate}>Validate Semantic Usage</Button>
+      <Button onClick={handleClearHighlights}>Clear Highlights</Button>
+    </div>
+  );
 }
 ```
 
 ## Component API
 
-### SemanticButton
+### Button
 
 ```tsx
-interface SemanticButtonProps extends ButtonProps, SemanticComponentProps {
+interface ButtonProps extends Omit<React.ComponentProps<typeof Button>, 'children'>, SemanticComponentProps {
   action?: 'primary' | 'secondary' | 'destructive' | 'navigation' | 'toggle';
-  context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation';
+  context?: 'form' | 'toolbar' | 'modal' | 'card' | 'navigation' | 'table' | 'alert';
 }
 ```
 
-### SemanticCard
+### Card
 
 ```tsx
-interface SemanticCardProps extends CardProps, SemanticComponentProps {
+interface CardProps extends Omit<React.ComponentProps<typeof Card>, 'children'>, SemanticComponentProps {
   purpose?: 'content-display' | 'data-summary' | 'action-panel' | 'information' | 'navigation';
   contentType?: 'text' | 'data' | 'media' | 'mixed' | 'interactive';
 }
 ```
 
-### SemanticModal
+### Modal
 
 ```tsx
-interface SemanticModalProps extends ModalProps, SemanticComponentProps {
+interface ModalProps extends React.ComponentProps<typeof Modal>, SemanticComponentProps {
   purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
   interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
 }
@@ -219,9 +223,11 @@ MIT License - see LICENSE file for details
 
 ## Roadmap
 
+- [x] Core semantic components (Button, Card, Modal, Flex, Table components)
+- [x] AI metadata system
+- [x] Validation utilities for semantic usage
 - [ ] Additional PatternFly component wrappers
 - [ ] Storybook documentation
-- [ ] Automated accessibility testing
 - [ ] AI tooling integration examples
 - [ ] Performance optimizations
 - [ ] Theme customization support
