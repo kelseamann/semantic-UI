@@ -20,3 +20,6 @@ export { Link } from './Link';
 export { StatusBadge } from './StatusBadge';
 export { StarIcon } from './StarIcon';
 
+// Context-aware component exports
+export { MenuToggle } from './MenuToggle';
+export { DropdownItem } from './DropdownItem';

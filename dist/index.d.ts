@@ -1,5 +1,5 @@
-import React from 'react';
-import { Button as Button$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1 } from '@patternfly/react-core';
+import React, { ReactNode } from 'react';
+import { Button as Button$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
 import { Th as Th$1, Td as Td$1, Tr as Tr$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
 
 interface SemanticComponentProps {
@@ -172,6 +172,14 @@ interface StarIconProps extends React.HTMLAttributes<HTMLSpanElement>, SemanticC
 /** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
 declare const StarIcon: React.FC<StarIconProps>;
 
+interface MenuToggleProps extends SemanticComponentProps, React.ComponentProps<typeof MenuToggle$1> {
+}
+declare const MenuToggle: React.FC<MenuToggleProps>;
+
+interface DropdownItemProps extends SemanticComponentProps, React.ComponentProps<typeof DropdownItem$1> {
+}
+declare const DropdownItem: React.FC<DropdownItemProps>;
+
 /**
  * Utility functions for managing component metadata
  */
@@ -265,4 +273,10 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
     enhancedProps: any;
 };
 
-export { Button, Card, Checkbox, ComponentMetadata, Flex, FlexItem, Link, Modal, SemanticComponent, SemanticComponentProps, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, highlightValidationWarnings, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+declare const useSemanticContext: () => any;
+interface SemanticProviderProps {
+    children: ReactNode;
+}
+declare const SemanticProvider: React.FC<SemanticProviderProps>;
+
+export { Button, Card, Checkbox, ComponentMetadata, DropdownItem, Flex, FlexItem, Link, MenuToggle, Modal, SemanticComponent, SemanticComponentProps, SemanticProvider, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, highlightValidationWarnings, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
