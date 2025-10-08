@@ -11,6 +11,8 @@ export interface ValidationWarning {
   suggestion: string;
   location?: string;
   elementRef?: HTMLElement;
+  semanticAlternative?: string;
+  canAutoReplace?: boolean;
 }
 
 export interface ValidationResult {
@@ -24,70 +26,69 @@ export interface ValidationResult {
 }
 
 /**
- * Maps native HTML elements to their semantic-ui-layer equivalents
+ * Maps semantic component names to their native HTML equivalents
+ * This is used to detect when semantic components are being used
  */
-const SEMANTIC_ALTERNATIVES: Record<string, string> = {
-  'tr': 'Tr',
-  'td': 'Td',
-  'th': 'Th',
-  'thead': 'Thead',
-  'tbody': 'Tbody',
-  'button': 'Button',
-  'input': 'Checkbox', // for type="checkbox"
-  'div': 'Flex', // when used for layout
-  'span': 'FlexItem', // when used for layout
+const SEMANTIC_TO_NATIVE: Record<string, string> = {
+  'Button': 'button',
+  'Tr': 'tr',
+  'Td': 'td', 
+  'Th': 'th',
+  'Thead': 'thead',
+  'Tbody': 'tbody',
+  'Checkbox': 'input', // for type="checkbox"
+  'Card': 'div',
+  'Modal': 'div',
+  'Flex': 'div',
+  'FlexItem': 'span',
+  'Link': 'a',
+  'StatusBadge': 'span',
+  'StarIcon': 'span',
 };
 
 /**
- * Validates the current DOM for native HTML elements that should use semantic-ui-layer components
+ * Semantic components that should be detected
+ */
+const SEMANTIC_COMPONENTS = Object.keys(SEMANTIC_TO_NATIVE);
+
+/**
+ * Validates the current DOM for semantic-ui-layer components being used
+ * This detects when semantic components are being used and shows their semantic names
  */
 export const validateSemanticUsage = (): ValidationResult => {
   const warnings: ValidationWarning[] = [];
   
   // Get all elements in the document
   const allElements = document.querySelectorAll('*');
-  const semanticElements = document.querySelectorAll('[data-semantic-name]');
   
   // Count elements
   const totalElements = allElements.length;
+  
+  // Find elements that have semantic metadata (data-semantic-name attribute)
+  const semanticElements = document.querySelectorAll('[data-semantic-name]');
   const semanticElementsCount = semanticElements.length;
   
-  // Check for native elements that should be semantic
-  Object.keys(SEMANTIC_ALTERNATIVES).forEach(tagName => {
-    const nativeElements = document.querySelectorAll(tagName);
+  // Check each semantic element and create validation entries
+  semanticElements.forEach(element => {
+    const htmlElement = element as HTMLElement;
+    const semanticName = htmlElement.getAttribute('data-semantic-name');
     
-    nativeElements.forEach(element => {
-      const htmlElement = element as HTMLElement;
-      
-      // Skip if this element already has semantic metadata
-      if (htmlElement.hasAttribute('data-semantic-name')) {
-        return;
-      }
-      
-      // Special cases for specific elements
-      if (tagName === 'input') {
-        const inputElement = htmlElement as HTMLInputElement;
-        if (inputElement.type !== 'checkbox') {
-          return; // Only flag checkbox inputs
-        }
-      }
-      
-      // Skip elements that are likely intentionally native (e.g., form inputs, etc.)
-      if (shouldSkipElement(htmlElement, tagName)) {
-        return;
-      }
+    if (semanticName && SEMANTIC_COMPONENTS.includes(semanticName)) {
+      const nativeEquivalent = SEMANTIC_TO_NATIVE[semanticName];
       
       warnings.push({
-        element: tagName,
-        tagName: tagName.toUpperCase(),
-        suggestion: `Use <${SEMANTIC_ALTERNATIVES[tagName]}> from semantic-ui-layer instead of native <${tagName}>`,
+        element: semanticName,
+        tagName: htmlElement.tagName.toUpperCase(),
+        suggestion: `✅ Using semantic <${semanticName}> component (renders as <${nativeEquivalent}>)`,
         location: getElementLocation(htmlElement),
-        elementRef: htmlElement
+        elementRef: htmlElement,
+        semanticAlternative: semanticName,
+        canAutoReplace: true
       });
-    });
+    }
   });
   
-  const nativeElementsCount = warnings.length;
+  const nativeElementsCount = totalElements - semanticElementsCount;
   
   return {
     warnings,
@@ -100,40 +101,6 @@ export const validateSemanticUsage = (): ValidationResult => {
   };
 };
 
-/**
- * Determines if an element should be skipped during validation
- */
-const shouldSkipElement = (element: HTMLElement, tagName: string): boolean => {
-  // Skip elements inside certain containers that might be intentionally native
-  const parent = element.parentElement;
-  if (parent) {
-    // Skip if parent is a form (forms often need native inputs)
-    if (parent.tagName === 'FORM') {
-      return true;
-    }
-    
-    // Skip if parent has a specific class indicating it's intentionally native
-    if (parent.classList.contains('native-elements') || 
-        parent.classList.contains('raw-html')) {
-      return true;
-    }
-  }
-  
-  // Skip elements with specific attributes that indicate they're intentionally native
-  if (element.hasAttribute('data-native') || 
-      element.hasAttribute('data-raw')) {
-    return true;
-  }
-  
-  // Skip elements that are part of third-party libraries
-  if (element.closest('[data-testid]') || 
-      element.closest('.react-select') ||
-      element.closest('.react-datepicker')) {
-    return true;
-  }
-  
-  return false;
-};
 
 /**
  * Attempts to determine the location of an element for debugging
@@ -161,13 +128,14 @@ export const highlightValidationWarnings = (warnings: ValidationWarning[]): void
   
   warnings.forEach((warning, index) => {
     if (warning.elementRef) {
-      warning.elementRef.style.outline = '2px solid #ff6b6b';
+      // Use green outline for semantic components (success)
+      warning.elementRef.style.outline = '2px solid #28a745';
       warning.elementRef.style.outlineOffset = '2px';
       warning.elementRef.setAttribute('data-validation-warning', index.toString());
       
       // Add a temporary title with the suggestion
       const originalTitle = warning.elementRef.getAttribute('title') || '';
-      warning.elementRef.setAttribute('title', `${originalTitle}\n⚠️ ${warning.suggestion}`.trim());
+      warning.elementRef.setAttribute('title', `${originalTitle}\n✅ ${warning.suggestion}`.trim());
     }
   });
 };
@@ -185,8 +153,8 @@ export const clearValidationHighlights = (): void => {
     
     // Restore original title (remove our added warning)
     const title = htmlElement.getAttribute('title') || '';
-    if (title.includes('⚠️')) {
-      const originalTitle = title.split('\n⚠️')[0].trim();
+    if (title.includes('✅')) {
+      const originalTitle = title.split('\n✅')[0].trim();
       htmlElement.setAttribute('title', originalTitle);
     }
   });
@@ -201,18 +169,19 @@ export const logValidationResults = (result: ValidationResult): void => {
   console.log(`📊 Summary:`, result.summary);
   
   if (result.warnings.length > 0) {
-    console.warn(`⚠️ Found ${result.warnings.length} potential issues:`);
+    console.log(`✅ Found ${result.warnings.length} semantic components being used:`);
     result.warnings.forEach((warning, index) => {
-      console.warn(`${index + 1}. <${warning.tagName}> at ${warning.location}`);
-      console.warn(`   💡 ${warning.suggestion}`);
+      console.log(`${index + 1}. <${warning.element}> at ${warning.location}`);
+      console.log(`   💡 ${warning.suggestion}`);
       if (warning.elementRef) {
-        console.warn(`   🔗 Element:`, warning.elementRef);
+        console.log(`   🔗 Element:`, warning.elementRef);
       }
     });
     
-    console.log(`\n💡 Tip: Use the refresh button to highlight these elements in the UI`);
+    console.log(`\n🎯 This demonstrates the semantic naming capability - components are using semantic names instead of native HTML names`);
+    console.log(`💡 Tip: Use the refresh button to highlight these semantic components in the UI`);
   } else {
-    console.log('✅ No validation issues found! All elements are using semantic-ui-layer components.');
+    console.log('ℹ️ No semantic components detected. This page may not be using semantic-ui-layer components yet.');
   }
   
   console.groupEnd();
@@ -234,5 +203,6 @@ export const runSemanticValidation = (highlightWarnings: boolean = true): Valida
   
   return result;
 };
+
 
 

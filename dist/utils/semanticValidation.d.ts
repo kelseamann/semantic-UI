@@ -10,6 +10,8 @@ export interface ValidationWarning {
     suggestion: string;
     location?: string;
     elementRef?: HTMLElement;
+    semanticAlternative?: string;
+    canAutoReplace?: boolean;
 }
 export interface ValidationResult {
     warnings: ValidationWarning[];
@@ -21,7 +23,8 @@ export interface ValidationResult {
     };
 }
 /**
- * Validates the current DOM for native HTML elements that should use semantic-ui-layer components
+ * Validates the current DOM for semantic-ui-layer components being used
+ * This detects when semantic components are being used and shows their semantic names
  */
 export declare const validateSemanticUsage: () => ValidationResult;
 /**
