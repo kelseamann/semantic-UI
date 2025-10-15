@@ -1,25 +1,26 @@
-// Component exports
-export { Button } from './Button';
-export { Card } from './Card';
-export { Modal } from './Modal';
+// Semantic UI Layer Components
+// Organized by category for better discoverability
 
-// Layout component exports
-export { Flex } from './Flex';
-export { FlexItem } from './FlexItem';
+// Core Components
+export * from './core';
 
-// Table component exports
-export { Th } from './Th';
-export { Td } from './Td';
-export { Tr } from './Tr';
-export { Thead } from './Thead';
-export { Tbody } from './Tbody';
+// Form Components
+export * from './forms';
 
-// Row item component exports
-export { Checkbox } from './Checkbox';
-export { Link } from './Link';
-export { StatusBadge } from './StatusBadge';
-export { StarIcon } from './StarIcon';
+// Data Display Components
+export * from './data-display';
 
-// Context-aware component exports
-export { MenuToggle } from './MenuToggle';
-export { DropdownItem } from './DropdownItem';
+// Layout Components
+export * from './layout';
+
+// Overlay Components
+export * from './overlay';
+
+// Navigation Components
+export * from './navigation';
+
+// Feedback Components
+export * from './feedback';
+
+// Advanced Components
+export * from './advanced';

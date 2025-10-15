@@ -1,40 +1,652 @@
 import { jsx } from 'react/jsx-runtime';
+import { Button as Button$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
 import React, { createContext, useContext, useState } from 'react';
-import { Button as Button$1, Card as Card$1, Modal as Modal$1, Flex as Flex$1, FlexItem as FlexItem$1, Checkbox as Checkbox$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
-import { Th as Th$1, Td as Td$1, Tr as Tr$1, Thead as Thead$1, Tbody as Tbody$1 } from '@patternfly/react-table';
+import { Tbody as Tbody$1, Td as Td$1, Th as Th$1, Thead as Thead$1, Tr as Tr$1 } from '@patternfly/react-table';
+
+/**
+ * Inference utilities for automatically determining semantic properties
+ * from PatternFly component props
+ */
+/**
+ * Infer button action from PatternFly variant and props
+ */
+const inferButtonAction = (variant, href, onClick, target) => {
+    switch (variant) {
+        case 'primary':
+            return 'primary';
+        case 'danger':
+            return 'destructive';
+        case 'link':
+            // Check what the link actually does
+            if (href?.startsWith('http'))
+                return 'external';
+            if (target === '_blank')
+                return 'external';
+            if (onClick && !href)
+                return 'action';
+            if (href?.startsWith('/'))
+                return 'navigation';
+            return 'navigation';
+        case 'control':
+            return 'toggle';
+        case 'secondary':
+        case 'tertiary':
+        case 'plain':
+        default:
+            return 'secondary';
+    }
+};
+/**
+ * Infer input purpose from type
+ */
+const inferInputPurpose = (type) => {
+    switch (type) {
+        case 'email':
+            return 'email-input';
+        case 'password':
+            return 'password-input';
+        case 'search':
+            return 'search-input';
+        case 'tel':
+            return 'phone-input';
+        case 'url':
+            return 'url-input';
+        case 'number':
+            return 'numeric-input';
+        case 'date':
+        case 'datetime-local':
+        case 'time':
+            return 'date-time-input';
+        case 'text':
+        default:
+            return 'text-input';
+    }
+};
+/**
+ * Infer alert severity
+ */
+const inferAlertSeverity = (variant) => {
+    switch (variant) {
+        case 'success':
+            return 'success';
+        case 'danger':
+            return 'error';
+        case 'warning':
+            return 'warning';
+        case 'info':
+        case 'default':
+        default:
+            return 'info';
+    }
+};
+/**
+ * Infer context from parent or usage
+ */
+const inferContext = (props) => {
+    if (props.onClick || props.onSubmit)
+        return 'active';
+    if (props.isDisabled)
+        return 'disabled';
+    if (props.isReadOnly)
+        return 'readonly';
+    return 'default';
+};
+/**
+ * Infer card purpose from props
+ */
+const inferCardPurpose = (props) => {
+    if (props.isSelectable || props.isClickable)
+        return 'action-panel';
+    if (props.isCompact)
+        return 'data-summary';
+    return 'content-display';
+};
+/**
+ * Infer modal purpose from props
+ */
+const inferModalPurpose = (props) => {
+    if (props.variant === 'small')
+        return 'confirmation';
+    if (props.variant === 'large')
+        return 'form';
+    return 'information';
+};
+/**
+ * Infer accessibility features from props
+ */
+const inferAccessibilityFeatures = (props) => {
+    const features = ['keyboard-navigable'];
+    if (props['aria-label'] || props['aria-labelledby']) {
+        features.push('screen-reader-friendly');
+    }
+    if (props.autoFocus) {
+        features.push('auto-focus');
+    }
+    if (props.role) {
+        features.push('semantic-role');
+    }
+    return features;
+};
+/**
+ * Infer usage patterns from component type and props
+ */
+const inferUsagePatterns = (componentType, props) => {
+    const patterns = ['user-interface'];
+    // Component-specific patterns
+    switch (componentType.toLowerCase()) {
+        case 'button':
+            if (props.type === 'submit')
+                patterns.push('form-submission');
+            if (props.onClick)
+                patterns.push('user-interaction');
+            break;
+        case 'textinput':
+        case 'textarea':
+            patterns.push('data-entry', 'form-input');
+            if (props.validated === 'error')
+                patterns.push('validation');
+            break;
+        case 'select':
+            patterns.push('data-entry', 'selection');
+            break;
+        case 'checkbox':
+        case 'radio':
+            patterns.push('user-selection', 'form-input');
+            break;
+        case 'modal':
+            patterns.push('user-interaction', 'workflow-step');
+            break;
+        case 'card':
+            patterns.push('content-organization', 'data-presentation');
+            break;
+    }
+    return patterns;
+};
+/**
+ * Generate comprehensive metadata from props
+ */
+const generateMetadataFromProps = (componentName, props) => {
+    return {
+        description: `${componentName} component`,
+        category: inferCategory(componentName),
+        accessibility: inferAccessibilityFeatures(props),
+        usage: inferUsagePatterns(componentName, props)
+    };
+};
+/**
+ * Infer card content type
+ */
+const inferCardContentType = () => {
+    return 'mixed'; // Default to mixed, can be enhanced with children analysis
+};
+/**
+ * Infer modal interaction type
+ */
+const inferModalInteractionType = (isOpen) => {
+    return isOpen ? 'blocking' : 'non-blocking';
+};
+/**
+ * Infer select purpose
+ */
+const inferSelectPurpose = () => {
+    return 'data-entry';
+};
+/**
+ * Infer select selection type
+ */
+const inferSelectSelectionType = (variant) => {
+    return variant === 'typeahead' ? 'typeahead' : 'single';
+};
+/**
+ * Infer radio purpose
+ */
+const inferRadioPurpose = () => {
+    return 'option-selection';
+};
+/**
+ * Infer radio group context
+ */
+const inferRadioGroupContext = (name) => {
+    return name || 'unknown-group';
+};
+/**
+ * Infer switch purpose
+ */
+const inferSwitchPurpose = () => {
+    return 'setting';
+};
+/**
+ * Infer switch toggle target
+ */
+const inferSwitchToggleTarget = () => {
+    return 'feature';
+};
+/**
+ * Infer textarea purpose
+ */
+const inferTextAreaPurpose = () => {
+    return 'content';
+};
+/**
+ * Infer textarea content type
+ */
+const inferTextAreaContentType = () => {
+    return 'plain-text';
+};
+/**
+ * Infer checkbox purpose
+ */
+const inferCheckboxPurpose = (isChecked) => {
+    return isChecked !== undefined ? 'selection' : 'form-input';
+};
+/**
+ * Infer link purpose
+ */
+const inferLinkPurpose = (href, children) => {
+    if (href?.startsWith('http'))
+        return 'external';
+    if (href === '#')
+        return 'action';
+    if (href?.includes('download'))
+        return 'download';
+    if (children?.toString().toLowerCase().includes('launch'))
+        return 'launch';
+    return 'navigation';
+};
+/**
+ * Infer star icon purpose
+ */
+const inferStarIconPurpose = (isFavorited) => {
+    return isFavorited !== undefined ? 'favorite-toggle' : 'rating';
+};
+/**
+ * Infer validation context
+ */
+const inferValidationContext = (isRequired) => {
+    return isRequired ? 'required' : 'optional';
+};
+/**
+ * Infer form context (default for most form components)
+ */
+const inferFormContext = () => {
+    return 'form';
+};
+/**
+ * Infer settings context (default for switches)
+ */
+const inferSettingsContext = () => {
+    return 'settings';
+};
+/**
+ * Infer status badge type from content
+ */
+const inferStatusBadgeType = (content) => {
+    const lower = content?.toLowerCase() || '';
+    if (lower.includes('ready'))
+        return 'ready';
+    if (lower.includes('success'))
+        return 'success';
+    if (lower.includes('warning'))
+        return 'warning';
+    if (lower.includes('error') || lower.includes('fail'))
+        return 'error';
+    if (lower.includes('pending'))
+        return 'pending';
+    return 'info';
+};
+/**
+ * Infer status badge purpose
+ */
+const inferStatusBadgePurpose = () => {
+    return 'status-indicator';
+};
+/**
+ * Infer category from component name and action
+ */
+const inferCategory = (componentName, action) => {
+    const name = componentName.toLowerCase();
+    // If action is provided, let it override the default category
+    if (action === 'navigation' || action === 'external') {
+        return 'navigation';
+    }
+    if (action === 'destructive' || action === 'primary' || action === 'secondary') {
+        return 'forms';
+    }
+    // Default categorization by component type
+    if (['button', 'textinput', 'textarea', 'select', 'radio', 'checkbox', 'switch'].includes(name)) {
+        return 'forms';
+    }
+    if (['nav', 'breadcrumb', 'tabs', 'pagination', 'masthead'].includes(name)) {
+        return 'navigation';
+    }
+    if (['card', 'table', 'datalist', 'label', 'badge'].includes(name)) {
+        return 'data-display';
+    }
+    if (['alert', 'banner', 'toast', 'progress', 'spinner'].includes(name)) {
+        return 'feedback';
+    }
+    if (['modal', 'drawer', 'popover', 'tooltip'].includes(name)) {
+        return 'overlay';
+    }
+    if (['flex', 'grid', 'stack', 'panel'].includes(name)) {
+        return 'layout';
+    }
+    return 'data-display';
+};
+
+const SemanticContext = createContext(undefined);
+const useSemanticContext = () => {
+    const context = useContext(SemanticContext);
+    if (!context) {
+        throw new Error('useSemanticContext must be used within a SemanticProvider');
+    }
+    return context;
+};
+const SemanticProvider = ({ children }) => {
+    const [contextStack, setContextStack] = useState([]);
+    const addContext = (context) => {
+        setContextStack(prev => [...prev, context]);
+    };
+    const removeContext = () => {
+        setContextStack(prev => prev.slice(0, -1));
+    };
+    const clearContext = () => {
+        setContextStack([]);
+    };
+    const getHierarchy = () => ({
+        parents: [...contextStack],
+        depth: contextStack.length,
+        path: contextStack.length > 0 ? contextStack.join(' > ') : ''
+    });
+    return (jsx(SemanticContext.Provider, { value: {
+            contextStack,
+            addContext,
+            removeContext,
+            getHierarchy,
+            clearContext,
+        }, children: children }));
+};
 
 /** Button - PatternFly Button wrapper with semantic metadata for AI tooling */
-const Button = ({ semanticName, semanticRole, aiMetadata, action, context, children, variant, onClick, isDisabled, ...props }) => {
+const Button = ({ semanticRole, aiMetadata, action, context, target, semanticName, children, variant, onClick, isDisabled, ...props }) => {
+    // Get hierarchy from context (optional - gracefully handles no provider)
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { parents: [], depth: 0, path: '' };
+    }
     // Auto-infer semantic properties from PatternFly props
-    const inferredAction = action || (variant === 'primary' ? 'primary' :
-        variant === 'danger' ? 'destructive' :
-            variant === 'link' ? 'navigation' : 'secondary');
-    const inferredContext = context || (onClick ? 'interactive' : 'form');
-    // Generate semantic role and AI metadata
+    const inferredAction = action || inferButtonAction(variant, props.href, onClick, target);
+    const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
+    const componentName = semanticName || 'Button';
+    // Generate semantic role and AI metadata with hierarchy
     const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
     const metadata = aiMetadata || {
         description: `${inferredAction} action button for ${inferredContext} context`,
+        category: inferCategory('Button', inferredAction),
+        usage: [`${inferredContext}-${inferredAction}`, 'user-interaction'],
+        hierarchy,
+        action: {
+            type: inferredAction,
+            target: target || 'default',
+            consequence: inferredAction === 'destructive' ? 'destructive-permanent' : 'safe',
+            affectsParent: target === 'parent-modal' || target === 'parent-form'
+        }
+    };
+    return (jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-target": target || 'default', "data-context": inferredContext, children: children }));
+};
+
+/** Link - HTML anchor wrapper with semantic metadata for AI tooling */
+const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, target, htmlTarget, children, href, onClick, ...props }) => {
+    // Get hierarchy from context (optional - gracefully handles no provider)
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { parents: [], depth: 0, path: '' };
+    }
+    // Auto-infer semantic properties from props
+    const inferredPurpose = purpose || inferLinkPurpose(href, children);
+    const inferredContext = context || (onClick ? inferContext({ onClick }) : 'content');
+    const componentName = semanticName || 'Link';
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `link-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} link for ${inferredContext} context`,
+        category: inferCategory('Link'),
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction'],
+        hierarchy,
+        action: {
+            type: inferredPurpose,
+            target: target || 'default'
+        }
+    };
+    return (jsx("a", { ...props, href: href, onClick: onClick, target: htmlTarget, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-target": target || 'default', "data-context": inferredContext, children: children }));
+};
+
+/** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
+const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, ...props }) => {
+    // Auto-infer semantic properties from props
+    const inferredPurpose = purpose || inferStarIconPurpose(isFavorited);
+    const inferredContext = context || (onClick ? inferContext({ onClick }) : 'display');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `star-icon-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} star icon for ${inferredContext} context`,
         category: 'forms',
         complexity: 'simple',
-        usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
     };
-    // All buttons adopt the semantic name "Button" for consistency
-    const defaultSemanticName = 'Button';
-    return (jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-context": inferredContext, children: children }));
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Row Item';
+    return (jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+};
+
+/** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
+const Checkbox = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isChecked, onChange, id, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || inferCheckboxPurpose(isChecked);
+    const inferredContext = context || (onChange ? inferContext({ onChange }) : inferFormContext());
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `checkbox-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} checkbox for ${inferredContext} context`,
+        category: inferCategory('Checkbox'),
+        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Row Item';
+    return (jsx(Checkbox$1, { ...props, id: id, isChecked: isChecked, onChange: onChange, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
+};
+
+/**
+ * TextInput - PatternFly TextInput wrapper with semantic metadata for AI tooling
+ *
+ * @example
+ * ```tsx
+ * <TextInput
+ *   type="email"
+ *   purpose="email-input"
+ *   context="form"
+ *   placeholder="Enter your email"
+ *   value={email}
+ *   onChange={handleChange}
+ * />
+ * ```
+ */
+const TextInput = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, context, validationContext, type = 'text', validated, isRequired, ...props }, ref) => {
+    // 1. Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || inferInputPurpose(type);
+    const inferredContext = context || inferFormContext();
+    const inferredValidation = validationContext || inferValidationContext(isRequired);
+    // 2. Generate semantic role and AI metadata
+    const role = semanticRole || `textinput-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        ...generateMetadataFromProps('TextInput', { type, validated, isRequired, ...props }),
+        description: `${inferredPurpose} for ${inferredContext} context`,
+        usage: ['data-entry', 'form-input', 'user-interaction']
+    };
+    // 3. Default semantic name
+    const defaultSemanticName = semanticName || 'TextInput';
+    // 4. Render PatternFly component with semantic data attributes
+    return (jsx(TextInput$1, { ...props, ref: ref, type: type, validated: validated, isRequired: isRequired, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-validation-context": inferredValidation }));
+});
+TextInput.displayName = 'TextInput';
+
+/**
+ * TextArea - PatternFly TextArea wrapper with semantic metadata for AI tooling
+ *
+ * @example
+ * ```tsx
+ * <TextArea
+ *   purpose="comment"
+ *   context="comment-section"
+ *   placeholder="Add your comment..."
+ *   value={comment}
+ *   onChange={handleChange}
+ *   resizeOrientation="vertical"
+ * />
+ * ```
+ */
+const TextArea = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, context, contentType, validated, isRequired, ...props }, ref) => {
+    // 1. Auto-infer semantic properties
+    const inferredPurpose = purpose || inferTextAreaPurpose();
+    const inferredContext = context || inferFormContext();
+    const inferredContentType = contentType || inferTextAreaContentType();
+    // 2. Generate semantic role and AI metadata
+    const role = semanticRole || `textarea-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        ...generateMetadataFromProps('TextArea', { validated, isRequired, ...props }),
+        description: `${inferredPurpose} textarea for ${inferredContext} containing ${inferredContentType}`,
+        usage: ['data-entry', 'long-form-input', 'user-interaction']
+    };
+    // 3. Default semantic name
+    const defaultSemanticName = semanticName || 'TextArea';
+    // 4. Render PatternFly component with semantic data attributes
+    return (jsx(TextArea$1, { ...props, ref: ref, validated: validated, isRequired: isRequired, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-content-type": inferredContentType }));
+});
+TextArea.displayName = 'TextArea';
+
+/**
+ * Select - PatternFly Select wrapper with semantic metadata for AI tooling
+ *
+ * @example
+ * ```tsx
+ * <Select
+ *   purpose="category-selection"
+ *   context="form"
+ *   isOpen={isOpen}
+ *   onToggle={handleToggle}
+ *   selections={selected}
+ *   onSelect={handleSelect}
+ * >
+ *   <SelectOption value="option1" />
+ *   <SelectOption value="option2" />
+ * </Select>
+ * ```
+ */
+const Select = ({ semanticName, semanticRole, aiMetadata, purpose, context, selectionType, variant, children, ...props }) => {
+    // 1. Auto-infer semantic properties
+    const inferredPurpose = purpose || inferSelectPurpose();
+    const inferredContext = context || inferFormContext();
+    const inferredSelectionType = selectionType || inferSelectSelectionType(variant);
+    // 2. Generate semantic role and AI metadata
+    const role = semanticRole || `select-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        ...generateMetadataFromProps('Select', { variant, ...props }),
+        description: `${inferredPurpose} select with ${inferredSelectionType} selection for ${inferredContext}`,
+        usage: ['data-entry', 'user-selection', 'user-interaction']
+    };
+    // 3. Default semantic name
+    const defaultSemanticName = semanticName || 'Select';
+    // 4. Render PatternFly component with semantic data attributes
+    return (jsx(Select$1, { ...props, variant: variant, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-selection-type": inferredSelectionType, children: children }));
+};
+
+/**
+ * Radio - PatternFly Radio wrapper with semantic metadata for AI tooling
+ *
+ * @example
+ * ```tsx
+ * <Radio
+ *   purpose="preference"
+ *   context="settings"
+ *   groupContext="theme-selection"
+ *   name="theme"
+ *   id="theme-light"
+ *   label="Light Theme"
+ *   isChecked={theme === 'light'}
+ *   onChange={handleChange}
+ * />
+ * ```
+ */
+const Radio = ({ semanticName, semanticRole, aiMetadata, purpose, context, groupContext, name, isChecked, isDisabled, children, ...props }) => {
+    // 1. Auto-infer semantic properties
+    const inferredPurpose = purpose || inferRadioPurpose();
+    const inferredContext = context || inferFormContext();
+    const inferredGroupContext = groupContext || inferRadioGroupContext(name);
+    // 2. Generate semantic role and AI metadata
+    const role = semanticRole || `radio-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        ...generateMetadataFromProps('Radio', { name, isChecked, isDisabled, ...props }),
+        description: `${inferredPurpose} radio button in ${inferredGroupContext} group for ${inferredContext}`,
+        usage: ['user-selection', 'form-input', 'user-interaction']
+    };
+    // 3. Default semantic name
+    const defaultSemanticName = semanticName || 'Radio';
+    // 4. Render PatternFly component with semantic data attributes
+    return (jsx(Radio$1, { ...props, name: name, isChecked: isChecked, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-group-context": inferredGroupContext, children: children }));
+};
+
+/**
+ * Switch - PatternFly Switch wrapper with semantic metadata for AI tooling
+ *
+ * @example
+ * ```tsx
+ * <Switch
+ *   purpose="feature-toggle"
+ *   context="settings"
+ *   toggleTarget="feature"
+ *   id="notifications"
+ *   label="Enable notifications"
+ *   isChecked={notificationsEnabled}
+ *   onChange={handleToggle}
+ * />
+ * ```
+ */
+const Switch = ({ semanticName, semanticRole, aiMetadata, purpose, context, toggleTarget, isChecked, isDisabled, children, ...props }) => {
+    // 1. Auto-infer semantic properties
+    const inferredPurpose = purpose || inferSwitchPurpose();
+    const inferredContext = context || inferSettingsContext();
+    const inferredToggleTarget = toggleTarget || inferSwitchToggleTarget();
+    // 2. Generate semantic role and AI metadata
+    const role = semanticRole || `switch-${inferredPurpose}-${inferredContext}`;
+    const metadata = aiMetadata || {
+        ...generateMetadataFromProps('Switch', { isChecked, isDisabled, ...props }),
+        description: `${inferredPurpose} switch for toggling ${inferredToggleTarget} in ${inferredContext}`,
+        usage: ['user-interaction', 'toggle-control', 'settings-control']
+    };
+    // 3. Default semantic name
+    const defaultSemanticName = semanticName || 'Switch';
+    // 4. Render PatternFly component with semantic data attributes
+    return (jsx(Switch$1, { ...props, isChecked: isChecked, isDisabled: isDisabled, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-toggle-target": inferredToggleTarget, children: children }));
 };
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, children, isSelectable, isClickable, ...props }) => {
     // Auto-infer semantic properties from PatternFly props and children
-    const inferredPurpose = purpose || (isSelectable || isClickable ? 'action-panel' : 'content-display');
-    // Simple content type inference based on children
-    const inferredContentType = contentType || 'mixed';
+    const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable });
+    const inferredContentType = contentType || inferCardContentType();
     // Generate semantic role and AI metadata
     const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
     const metadata = aiMetadata || {
         description: `${inferredPurpose} card containing ${inferredContentType} content`,
-        category: 'data-display',
-        complexity: 'moderate',
+        category: inferCategory('Card'),
         usage: [`${inferredPurpose}-display`, 'content-organization']
     };
     // Default semantic name if not provided
@@ -42,24 +654,147 @@ const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, ch
     return (jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
-/** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
-const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
-    // Auto-infer semantic properties from PatternFly props
-    const inferredPurpose = purpose || (variant === 'small' ? 'confirmation' :
-        variant === 'large' ? 'form' : 'information');
-    const inferredInteractionType = interactionType || (isOpen ? 'blocking' : 'non-blocking');
+/** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
+const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusType, children, ...props }) => {
+    // Auto-infer semantic properties from content
+    const content = children?.toString();
+    const inferredStatusType = statusType || inferStatusBadgeType(content);
+    const inferredPurpose = purpose || inferStatusBadgePurpose();
     // Generate semantic role and AI metadata
-    const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
+    const role = semanticRole || `status-badge-${inferredPurpose}-${inferredStatusType}`;
     const metadata = aiMetadata || {
-        description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
-        category: 'overlay',
-        complexity: 'complex',
-        usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
+        description: `${inferredPurpose} showing ${inferredStatusType} status`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`${inferredPurpose}`, 'status-display', 'state-indication']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Modal';
-    return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
-});
+    const defaultSemanticName = semanticName || 'Row Item';
+    return (jsx("span", { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-status-type": inferredStatusType, children: children }));
+};
+
+/** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
+const Tbody = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...props }) => {
+    // Auto-infer semantic properties from children content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('select'))) ? 'selectable-rows' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('action'))) ? 'action-rows' :
+            React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && typeof cell.props?.children === 'object')) ? 'mixed-content' : 'data-rows');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-body-section-${inferredPurpose}`;
+    const metadata = aiMetadata || {
+        description: `Table body section with ${inferredPurpose}`,
+        category: 'data-display',
+        complexity: 'moderate',
+        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Body Section';
+    return (jsx(Tbody$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+};
+
+/** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
+const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, children, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props and content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action-cell' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Checkbox')) ? 'selectable-cell' :
+            children?.toString().toLowerCase().includes('status') ? 'status-cell' : 'data-cell');
+    // Simple data type inference based on content
+    const inferredDataType = dataType || (typeof children === 'number' ? 'number' :
+        children?.toString().match(/^\d{4}-\d{2}-\d{2}/) ? 'date' :
+            children?.toString().toLowerCase() === 'true' ||
+                children?.toString().toLowerCase() === 'false' ? 'boolean' :
+                React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action' : 'text');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-cell-${inferredPurpose}-${inferredDataType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} containing ${inferredDataType} data`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Row Item';
+    return (jsx(Td$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+};
+
+/** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+const Th = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, children, sort, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props
+    const inferredPurpose = purpose || (sort ? 'sortable-header' :
+        children?.toString().toLowerCase().includes('select') ? 'selectable-header' :
+            children?.toString().toLowerCase().includes('action') ? 'action-header' : 'column-header');
+    // Simple data type inference based on content
+    const inferredDataType = dataType || (children?.toString().toLowerCase().includes('date') ? 'date' :
+        children?.toString().toLowerCase().includes('id') ||
+            children?.toString().toLowerCase().includes('count') ? 'number' :
+            children?.toString().toLowerCase().includes('action') ? 'action' : 'text');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-header-${inferredPurpose}-${inferredDataType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} for ${inferredDataType} data`,
+        category: 'data-display',
+        complexity: 'simple',
+        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
+    };
+    // Always use 'Th' for component type identification (for validation)
+    // Store custom semantic name separately as instance name
+    const componentType = 'Th';
+    const instanceName = semanticName;
+    return (jsx(Th$1, { ...props, sort: sort, "data-semantic-name": componentType, "data-instance-name": instanceName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
+};
+
+/** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
+const Thead = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...props }) => {
+    // Auto-infer semantic properties from children content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.sort) ? 'sortable-headers' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('select')) ? 'selectable-headers' :
+            React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('action')) ? 'action-headers' : 'column-definition');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-header-section-${inferredPurpose}`;
+    const metadata = aiMetadata || {
+        description: `Table header section with ${inferredPurpose}`,
+        category: 'data-display',
+        complexity: 'moderate',
+        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Header Section';
+    return (jsx(Thead$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
+};
+
+/** Tr - PatternFly Table Row wrapper with semantic metadata for AI tooling */
+const Tr = ({ semanticName, semanticRole, aiMetadata, purpose, interactionType, rowState, children, isClickable, isSelectable, isExpanded, isStriped, ...props }) => {
+    // Auto-infer semantic properties from PatternFly props and content
+    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) &&
+        React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Th'))) ? 'header-row' :
+        React.Children.toArray(children).some(child => React.isValidElement(child) &&
+            React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Checkbox'))) ? 'selectable-row' :
+            isExpanded ? 'expandable-row' :
+                React.Children.toArray(children).some(child => React.isValidElement(child) &&
+                    React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Button'))) ? 'action-row' : 'data-row');
+    const inferredInteractionType = interactionType || (isClickable ? 'clickable' :
+        isSelectable ? 'selectable' :
+            isExpanded !== undefined ? 'expandable' :
+                'static');
+    const inferredRowState = rowState || (isExpanded ? 'expanded' :
+        isSelectable ? 'selected' :
+            isStriped ? 'highlighted' :
+                'normal');
+    // Generate semantic role and AI metadata
+    const role = semanticRole || `table-row-${inferredPurpose}-${inferredInteractionType}`;
+    const metadata = aiMetadata || {
+        description: `${inferredPurpose} with ${inferredInteractionType} interaction`,
+        category: 'data-display',
+        complexity: inferredInteractionType === 'static' ? 'simple' : 'medium',
+        usage: [`table-${inferredPurpose}`, 'row-interaction', 'data-presentation'],
+        interactionType: inferredInteractionType,
+        rowState: inferredRowState,
+        isStriped: isStriped || false
+    };
+    // Default semantic name if not provided
+    const defaultSemanticName = semanticName || 'Table Row';
+    return (jsx(Tr$1, { ...props, isClickable: isClickable, isSelectable: isSelectable, isExpanded: isExpanded, isStriped: isStriped, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, "data-row-state": inferredRowState, children: children }));
+};
 
 /** Flex - PatternFly Flex wrapper with semantic metadata for AI tooling */
 const Flex = ({ semanticName, semanticRole, aiMetadata, purpose, layoutType, alignmentContext, children, direction, justifyContent, alignItems, alignSelf, flex, spaceItems, gap, columnGap, rowGap, order, component, display, ...props }) => {
@@ -124,8 +859,9 @@ const FlexItem = ({ semanticName, semanticRole, aiMetadata, contentType, positio
         flex?.default === 'flex_2' ? 'grow' :
             flex?.default === 'flex_3' ? 'grow' :
                 flex?.default === 'flexNone' ? 'fixed' :
-                    flex?.default === 'flexAuto' ? 'auto' :
-                        'auto');
+                    flex?.default === 'flexDefault' ? 'auto' :
+                        flex?.default === 'flex_4' ? 'auto' :
+                            'auto');
     // Generate semantic role and AI metadata
     const role = semanticRole || `flex-item-${inferredContentType}-${inferredSizingBehavior}`;
     const metadata = aiMetadata || {
@@ -142,262 +878,69 @@ const FlexItem = ({ semanticName, semanticRole, aiMetadata, contentType, positio
     return (jsx(FlexItem$1, { ...props, flex: flex, align: align, alignSelf: alignSelf, spacer: spacer, order: order, component: component, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-content-type": inferredContentType, "data-positioning-context": inferredPositioningContext, "data-sizing-behavior": inferredSizingBehavior, children: children }));
 };
 
-/** Th - PatternFly Table Header wrapper with semantic metadata for AI tooling */
-const Th = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, children, sort, ...props }) => {
+/** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
+const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
     // Auto-infer semantic properties from PatternFly props
-    const inferredPurpose = purpose || (sort ? 'sortable-header' :
-        children?.toString().toLowerCase().includes('select') ? 'selectable-header' :
-            children?.toString().toLowerCase().includes('action') ? 'action-header' : 'column-header');
-    // Simple data type inference based on content
-    const inferredDataType = dataType || (children?.toString().toLowerCase().includes('date') ? 'date' :
-        children?.toString().toLowerCase().includes('id') ||
-            children?.toString().toLowerCase().includes('count') ? 'number' :
-            children?.toString().toLowerCase().includes('action') ? 'action' : 'text');
+    const inferredPurpose = purpose || inferModalPurpose({ variant });
+    const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
     // Generate semantic role and AI metadata
-    const role = semanticRole || `table-header-${inferredPurpose}-${inferredDataType}`;
+    const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
     const metadata = aiMetadata || {
-        description: `${inferredPurpose} for ${inferredDataType} data`,
-        category: 'data-display',
-        complexity: 'simple',
-        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-definition']
+        description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
+        category: inferCategory('Modal'),
+        usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
     };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Header';
-    return (jsx(Th$1, { ...props, sort: sort, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
-};
+    const defaultSemanticName = semanticName || 'Modal';
+    return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
+});
 
-/** Td - PatternFly Table Data wrapper with semantic metadata for AI tooling */
-const Td = ({ semanticName, semanticRole, aiMetadata, purpose, dataType, children, ...props }) => {
-    // Auto-infer semantic properties from PatternFly props and content
-    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action-cell' :
-        React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Checkbox')) ? 'selectable-cell' :
-            children?.toString().toLowerCase().includes('status') ? 'status-cell' : 'data-cell');
-    // Simple data type inference based on content
-    const inferredDataType = dataType || (typeof children === 'number' ? 'number' :
-        children?.toString().match(/^\d{4}-\d{2}-\d{2}/) ? 'date' :
-            children?.toString().toLowerCase() === 'true' ||
-                children?.toString().toLowerCase() === 'false' ? 'boolean' :
-                React.Children.toArray(children).some(child => React.isValidElement(child) && child.type?.toString().includes('Button')) ? 'action' : 'text');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `table-cell-${inferredPurpose}-${inferredDataType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} containing ${inferredDataType} data`,
-        category: 'data-display',
-        complexity: 'simple',
-        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Row Item';
-    return (jsx(Td$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-data-type": inferredDataType, children: children }));
-};
-
-/** Tr - PatternFly Table Row wrapper with semantic metadata for AI tooling */
-const Tr = ({ semanticName, semanticRole, aiMetadata, purpose, interactionType, rowState, children, isClickable, isSelectable, isExpanded, isDisabled, isStriped, ...props }) => {
-    // Auto-infer semantic properties from PatternFly props and content
-    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) &&
-        React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Th'))) ? 'header-row' :
-        React.Children.toArray(children).some(child => React.isValidElement(child) &&
-            React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Checkbox'))) ? 'selectable-row' :
-            isExpanded ? 'expandable-row' :
-                React.Children.toArray(children).some(child => React.isValidElement(child) &&
-                    React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.type?.toString().includes('Button'))) ? 'action-row' : 'data-row');
-    const inferredInteractionType = interactionType || (isClickable ? 'clickable' :
-        isSelectable ? 'selectable' :
-            isExpanded !== undefined ? 'expandable' :
-                'static');
-    const inferredRowState = rowState || (isDisabled ? 'disabled' :
-        isExpanded ? 'expanded' :
-            isSelectable ? 'selected' :
-                isStriped ? 'highlighted' :
-                    'normal');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `table-row-${inferredPurpose}-${inferredInteractionType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} with ${inferredInteractionType} interaction`,
-        category: 'data-display',
-        complexity: inferredInteractionType === 'static' ? 'simple' : 'medium',
-        usage: [`table-${inferredPurpose}`, 'row-interaction', 'data-presentation'],
-        interactionType: inferredInteractionType,
-        rowState: inferredRowState,
-        isStriped: isStriped || false
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Table Row';
-    return (jsx(Tr$1, { ...props, isClickable: isClickable, isSelectable: isSelectable, isExpanded: isExpanded, isDisabled: isDisabled, isStriped: isStriped, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, "data-row-state": inferredRowState, children: children }));
-};
-
-/** Thead - PatternFly Table Header wrapper with semantic metadata for AI tooling */
-const Thead = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...props }) => {
-    // Auto-infer semantic properties from children content
-    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.sort) ? 'sortable-headers' :
-        React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('select')) ? 'selectable-headers' :
-            React.Children.toArray(children).some(child => React.isValidElement(child) && child.props?.children?.toString().toLowerCase().includes('action')) ? 'action-headers' : 'column-definition');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `table-header-section-${inferredPurpose}`;
-    const metadata = aiMetadata || {
-        description: `Table header section with ${inferredPurpose}`,
-        category: 'data-display',
-        complexity: 'moderate',
-        usage: [`table-${inferredPurpose}`, 'data-organization', 'column-structure']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Header Section';
-    return (jsx(Thead$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
-};
-
-/** Tbody - PatternFly Table Body wrapper with semantic metadata for AI tooling */
-const Tbody = ({ semanticName, semanticRole, aiMetadata, purpose, children, ...props }) => {
-    // Auto-infer semantic properties from children content
-    const inferredPurpose = purpose || (React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('select'))) ? 'selectable-rows' :
-        React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && cell.props?.children?.toString().toLowerCase().includes('action'))) ? 'action-rows' :
-            React.Children.toArray(children).some(child => React.isValidElement(child) && React.Children.toArray(child.props?.children).some(cell => React.isValidElement(cell) && typeof cell.props?.children === 'object')) ? 'mixed-content' : 'data-rows');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `table-body-section-${inferredPurpose}`;
-    const metadata = aiMetadata || {
-        description: `Table body section with ${inferredPurpose}`,
-        category: 'data-display',
-        complexity: 'moderate',
-        usage: [`table-${inferredPurpose}`, 'data-presentation', 'row-content']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Body Section';
-    return (jsx(Tbody$1, { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, children: children }));
-};
-
-/** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
-const Checkbox = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isChecked, onChange, id, ...props }) => {
-    // Auto-infer semantic properties from PatternFly props
-    const inferredPurpose = purpose || (isChecked !== undefined ? 'selection' : 'form-input');
-    const inferredContext = context || (onChange ? 'interactive' : 'form');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `checkbox-${inferredPurpose}-${inferredContext}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} checkbox for ${inferredContext} context`,
-        category: 'forms',
-        complexity: 'simple',
-        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Row Item';
-    return (jsx(Checkbox$1, { ...props, id: id, isChecked: isChecked, onChange: onChange, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
-};
-
-/** Link - HTML anchor wrapper with semantic metadata for AI tooling */
-const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, href, onClick, ...props }) => {
-    // Auto-infer semantic properties from props
-    const inferredPurpose = purpose || (href?.startsWith('http') ? 'external' :
-        href === '#' ? 'action' :
-            href?.includes('download') ? 'download' :
-                children?.toString().toLowerCase().includes('launch') ? 'launch' : 'navigation');
-    const inferredContext = context || (onClick ? 'interactive' : 'content');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `link-${inferredPurpose}-${inferredContext}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} link for ${inferredContext} context`,
-        category: 'navigation',
-        complexity: 'simple',
-        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Row Item';
-    return (jsx("a", { ...props, href: href, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, children: children }));
-};
-
-/** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
-const StatusBadge = ({ semanticName, semanticRole, aiMetadata, purpose, statusType, children, ...props }) => {
-    // Auto-infer semantic properties from content
-    const content = children?.toString().toLowerCase() || '';
-    const inferredStatusType = statusType || (content.includes('ready') ? 'ready' :
-        content.includes('success') ? 'success' :
-            content.includes('warning') ? 'warning' :
-                content.includes('error') ? 'error' :
-                    content.includes('pending') ? 'pending' : 'info');
-    const inferredPurpose = purpose || 'status-indicator';
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `status-badge-${inferredPurpose}-${inferredStatusType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} showing ${inferredStatusType} status`,
-        category: 'data-display',
-        complexity: 'simple',
-        usage: [`${inferredPurpose}`, 'status-display', 'state-indication']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Row Item';
-    return (jsx("span", { ...props, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-status-type": inferredStatusType, children: children }));
-};
-
-/** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
-const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, children, isFavorited, onClick, ...props }) => {
-    // Auto-infer semantic properties from props
-    const inferredPurpose = purpose || (isFavorited !== undefined ? 'favorite-toggle' : 'rating');
-    const inferredContext = context || (onClick ? 'interactive' : 'display');
-    // Generate semantic role and AI metadata
-    const role = semanticRole || `star-icon-${inferredPurpose}-${inferredContext}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} star icon for ${inferredContext} context`,
-        category: 'forms',
-        complexity: 'simple',
-        usage: [`${inferredContext}-${inferredPurpose}`, 'user-interaction']
-    };
-    // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Row Item';
-    return (jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
-};
-
-const SemanticContext = createContext(undefined);
-const useSemanticContext = () => {
-    const context = useContext(SemanticContext);
-    if (!context) {
-        throw new Error('useSemanticContext must be used within a SemanticProvider');
+const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
+    // Get hierarchy from context (optional)
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        const { addContext, removeContext, getHierarchy } = semanticContext;
+        // Add "menu" context when this component mounts/renders
+        React.useEffect(() => {
+            addContext('Menu');
+            return () => removeContext();
+        }, [addContext, removeContext]);
+        hierarchy = getHierarchy();
     }
-    return context;
-};
-const SemanticProvider = ({ children }) => {
-    const [contextStack, setContextStack] = useState([]);
-    const addContext = (context) => {
-        setContextStack(prev => [...prev, context]);
-    };
-    const removeContext = () => {
-        setContextStack(prev => prev.slice(0, -1));
-    };
-    const clearContext = () => {
-        setContextStack([]);
-    };
-    const getContextualName = (baseName) => {
-        if (contextStack.length === 0) {
-            return baseName;
+    catch {
+        hierarchy = { parents: [], depth: 0, path: '' };
+    }
+    const componentName = semanticName || 'Toggle';
+    const metadata = aiMetadata || {
+        hierarchy,
+        action: {
+            type: 'toggle',
+            target: target || 'menu'
         }
-        // Join all context levels with spaces
-        const contextPrefix = contextStack.join(' ');
-        return `${contextPrefix} ${baseName}`;
     };
-    return (jsx(SemanticContext.Provider, { value: {
-            contextStack,
-            addContext,
-            removeContext,
-            getContextualName,
-            clearContext,
-        }, children: children }));
+    return (jsx(MenuToggle$1, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": semanticRole || 'menu-trigger', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'menu', children: children }));
 };
 
-const MenuToggle = ({ semanticName, semanticRole, aiMetadata, children, ...props }) => {
-    const { addContext, removeContext, getContextualName } = useSemanticContext();
-    // Add "menu" context when this component mounts/renders
-    React.useEffect(() => {
-        addContext('menu');
-        return () => removeContext();
-    }, [addContext, removeContext]);
-    // Get contextual name - if no semanticName provided, use default "Toggle"
-    const contextualName = getContextualName(semanticName || 'Toggle');
-    return (jsx(MenuToggle$1, { ...props, "data-semantic-name": contextualName, "data-semantic-role": semanticRole || 'menu-trigger', "data-ai-metadata": JSON.stringify(aiMetadata || {}), children: children }));
-};
-
-const DropdownItem = ({ semanticName, semanticRole, aiMetadata, children, ...props }) => {
-    const { getContextualName } = useSemanticContext();
-    // Get contextual name - if no semanticName provided, use default "Action"
-    // This will automatically become "menu Action" when inside a MenuToggle context
-    const contextualName = getContextualName(semanticName || 'Action');
-    return (jsx(DropdownItem$1, { ...props, "data-semantic-name": contextualName, "data-semantic-role": semanticRole || 'menu-item', "data-ai-metadata": JSON.stringify(aiMetadata || {}), children: children }));
+const DropdownItem = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
+    // Get hierarchy from context (optional)
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { parents: [], depth: 0, path: '' };
+    }
+    const componentName = semanticName || 'Action';
+    const metadata = aiMetadata || {
+        hierarchy,
+        action: {
+            type: 'menu-action',
+            target: target || 'default'
+        }
+    };
+    return (jsx(DropdownItem$1, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": semanticRole || 'menu-item', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'default', children: children }));
 };
 
 /**
@@ -411,7 +954,6 @@ const generateComponentMetadata = (componentName, props = {}) => {
         name: componentName,
         description: `Semantic wrapper for ${componentName}`,
         category: 'data-display',
-        complexity: 'simple',
         accessibility: ['keyboard-navigable'],
         usage: ['user-interface'],
         props: props
@@ -436,7 +978,6 @@ const generateComponentMetadata = (componentName, props = {}) => {
             return {
                 ...baseMetadata,
                 category: 'overlay',
-                complexity: 'complex',
                 description: 'Overlay dialog with semantic purpose',
                 accessibility: ['keyboard-navigable', 'focus-management', 'screen-reader-friendly'],
                 usage: ['user-interaction', 'workflow-step', 'confirmation']
@@ -452,7 +993,6 @@ const validateMetadata = (metadata) => {
     return !!(metadata.name &&
         metadata.description &&
         metadata.category &&
-        metadata.complexity &&
         Array.isArray(metadata.accessibility) &&
         Array.isArray(metadata.usage));
 };
@@ -738,5 +1278,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Checkbox, DropdownItem, Flex, FlexItem, Link, MenuToggle, Modal, SemanticProvider, StarIcon, StatusBadge, Tbody, Td, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, highlightValidationWarnings, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+export { Button, Card, Checkbox, DropdownItem, Flex, FlexItem, Link, MenuToggle, Modal, Radio, Select, SemanticProvider, StarIcon, StatusBadge, Switch, Tbody, Td, TextArea, TextInput, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
 //# sourceMappingURL=index.esm.js.map

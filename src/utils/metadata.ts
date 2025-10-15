@@ -15,7 +15,6 @@ export const generateComponentMetadata = (
     name: componentName,
     description: `Semantic wrapper for ${componentName}`,
     category: 'data-display',
-    complexity: 'simple',
     accessibility: ['keyboard-navigable'],
     usage: ['user-interface'],
     props: props
@@ -41,7 +40,6 @@ export const generateComponentMetadata = (
       return {
         ...baseMetadata,
         category: 'overlay',
-        complexity: 'complex',
         description: 'Overlay dialog with semantic purpose',
         accessibility: ['keyboard-navigable', 'focus-management', 'screen-reader-friendly'],
         usage: ['user-interaction', 'workflow-step', 'confirmation']
@@ -59,7 +57,6 @@ export const validateMetadata = (metadata: ComponentMetadata): boolean => {
     metadata.name &&
     metadata.description &&
     metadata.category &&
-    metadata.complexity &&
     Array.isArray(metadata.accessibility) &&
     Array.isArray(metadata.usage)
   );

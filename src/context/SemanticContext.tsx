@@ -1,10 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+export interface HierarchyData {
+  parents: string[];
+  depth: number;
+  path: string;
+}
+
 interface SemanticContextType {
   contextStack: string[];
   addContext: (context: string) => void;
   removeContext: () => void;
-  getContextualName: (baseName: string) => string;
+  getHierarchy: () => HierarchyData;
   clearContext: () => void;
 }
 
@@ -37,15 +43,11 @@ export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) 
     setContextStack([]);
   };
 
-  const getContextualName = (baseName: string): string => {
-    if (contextStack.length === 0) {
-      return baseName;
-    }
-    
-    // Join all context levels with spaces
-    const contextPrefix = contextStack.join(' ');
-    return `${contextPrefix} ${baseName}`;
-  };
+  const getHierarchy = (): HierarchyData => ({
+    parents: [...contextStack],
+    depth: contextStack.length,
+    path: contextStack.length > 0 ? contextStack.join(' > ') : ''
+  });
 
   return (
     <SemanticContext.Provider
@@ -53,7 +55,7 @@ export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) 
         contextStack,
         addContext,
         removeContext,
-        getContextualName,
+        getHierarchy,
         clearContext,
       }}
     >

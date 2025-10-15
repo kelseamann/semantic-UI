@@ -23,7 +23,9 @@
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "generate:component": "node scripts/generate-component.js",
+    "prebuild": "npm run clean && npm run type-check"
   },
   "keywords": [
     "react",

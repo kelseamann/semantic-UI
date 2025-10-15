@@ -1,5 +1,17 @@
 import React, { ReactNode } from 'react';
-export declare const useSemanticContext: () => any;
+export interface HierarchyData {
+    parents: string[];
+    depth: number;
+    path: string;
+}
+interface SemanticContextType {
+    contextStack: string[];
+    addContext: (context: string) => void;
+    removeContext: () => void;
+    getHierarchy: () => HierarchyData;
+    clearContext: () => void;
+}
+export declare const useSemanticContext: () => SemanticContextType;
 interface SemanticProviderProps {
     children: ReactNode;
 }
