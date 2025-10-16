@@ -155,11 +155,14 @@ Component Render
 ### `src/types/index.ts`
 
 ```typescript
-HierarchyMetadata {
-  parents: string[]      // ["Modal", "Form"]
-  depth: number          // 2
-  path: string           // "Modal > Form"
+HierarchyData {
+  fullPath: string              // "Modal > Form > Card" (ALL components)
+  qualifiedParents: string[]    // ["Modal"] (only visual parents)
+  immediateParent: string       // "Modal" (last visual parent)
+  depth: number                 // 1 (count of visual parents only)
 }
+// Visual Parents = require user action to see (Modal, Drawer, Tab, Wizard Step)
+// Wrappers = always visible (Form, Card, Grid, Flex)
 
 ActionMetadata {
   type: string           // "action", "navigation", "external" (what it DOES)
@@ -173,12 +176,8 @@ SemanticComponentProps {
   semanticName?: string
   semanticRole?: string
   target?: string        // What the component affects
-  aiMetadata?: {
-    description, category, complexity,
-    accessibility, usage,
-    hierarchy: HierarchyMetadata,
-    action: ActionMetadata
-  }
+  action?: string        // What it does (inferred or explicit)
+  context?: string       // State context (inferred or explicit)
 }
 ```
 
