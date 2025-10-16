@@ -36,21 +36,24 @@ export const Button: React.FC<ButtonProps> = ({
   }
 
   // Auto-infer semantic properties from PatternFly props
-  const inferredAction = action || inferButtonAction(variant, props.href as string, onClick, target);
+  const inferredAction = inferButtonAction(variant, props.href as string, onClick, target);
+  const actionType = action || inferredAction.type;
+  const actionVariant = inferredAction.variant;
   const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
   const componentName = semanticName || 'Button';
   
   // Generate semantic role and AI metadata with hierarchy
-  const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
+  const role = semanticRole || `button-${actionType}-${inferredContext}`;
   const metadata = aiMetadata || {
-    description: `${inferredAction} action button for ${inferredContext} context`,
-    category: inferCategory('Button', inferredAction),
-    usage: [`${inferredContext}-${inferredAction}`, 'user-interaction'],
+    description: `${actionType} action button (${actionVariant} style) for ${inferredContext} context`,
+    category: inferCategory('Button'),
+    usage: [`${inferredContext}-${actionType}`, 'user-interaction'],
     hierarchy,
     action: {
-      type: inferredAction,
+      type: actionType,
+      variant: actionVariant,
       target: target || 'default',
-      consequence: inferredAction === 'destructive' ? 'destructive-permanent' : 'safe',
+      consequence: actionVariant === 'destructive' ? 'destructive-permanent' : 'safe',
       affectsParent: target === 'parent-modal' || target === 'parent-form'
     }
   };
@@ -66,7 +69,8 @@ export const Button: React.FC<ButtonProps> = ({
       data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
-      data-action={inferredAction}
+      data-action-type={actionType}
+      data-action-variant={actionVariant}
       data-target={target || 'default'}
       data-context={inferredContext}
     >

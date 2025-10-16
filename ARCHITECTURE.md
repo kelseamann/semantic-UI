@@ -110,32 +110,37 @@ Component Render
     │
     ├─► 2. Infer Semantic Properties
     │       │
-    │       ├─► inferButtonAction(variant) → "primary" | "destructive" | ...
-    │       ├─► inferContext({ onClick, isDisabled, ... }) → "form" | "modal" | ...
-    │       ├─► inferComplexity(...) → "simple" | "moderate" | "complex"
-    │       └─► inferCategory(...) → "forms" | "navigation" | ...
+    │       ├─► inferButtonAction(variant, href, onClick, target) → { type: "action", variant: "primary" }
+    │       ├─► inferContext({ onClick, isDisabled, ... }) → "active" | "disabled" | ...
+    │       └─► inferCategory('Button') → "button"
     │
     ├─► 3. Build Metadata Object
     │       │
     │       └─► {
     │             description: string,
     │             category: string,
-    │             complexity: string,
     │             hierarchy: HierarchyMetadata,
-    │             action: ActionMetadata { type, target, consequence, affectsParent }
+    │             action: ActionMetadata { 
+    │               type,           // What it DOES
+    │               variant,        // How it LOOKS
+    │               target, 
+    │               consequence, 
+    │               affectsParent 
+    │             }
     │           }
     │
     └─► 4. Render with Data Attributes
             │
-            └─► <PatternFly Component
+                └─► <PatternFly Component
                   data-semantic-name="Button"
                   data-semantic-path="Modal > Form > Button"
                   data-semantic-hierarchy='["Modal", "Form"]'
-                  data-semantic-role="button-primary-form"
+                  data-semantic-role="button-action-active"
                   data-ai-metadata='{...full metadata...}'
-                  data-action="primary"
+                  data-action-type="action"
+                  data-action-variant="primary"
                   data-target="user-record"
-                  data-context="form"
+                  data-context="active"
                 />
 ```
 
@@ -153,7 +158,8 @@ HierarchyMetadata {
 }
 
 ActionMetadata {
-  type: string           // "delete", "submit", "navigate"
+  type: string           // "action", "navigation", "external" (what it DOES)
+  variant: string        // "primary", "destructive", "secondary" (how it LOOKS)
   target?: string        // "user-record", "parent-modal"
   consequence?: string   // "destructive-permanent", "safe"
   affectsParent?: boolean // true if closes/dismisses parent
@@ -182,8 +188,9 @@ All components import inference logic from this file:
 
 ```typescript
 // Button inference
-inferButtonAction(variant) → string
+inferButtonAction(variant, href, onClick, target) → { type: string, variant: string }
 inferContext(props) → string
+inferCategory(componentName) → string
 
 // Card inference
 inferCardPurpose(isClickable, isCompact, children) → string
@@ -213,8 +220,6 @@ inferFormContext(props) → string
 inferValidationContext(validated, isInvalid, isValid) → string
 inferSettingsContext(props) → string
 
-// Complexity inference
-inferComplexity(props, numChildren) → "simple" | "moderate" | "complex"
 
 // Category inference
 inferCategory(componentType) → "forms" | "navigation" | "overlay" | ...

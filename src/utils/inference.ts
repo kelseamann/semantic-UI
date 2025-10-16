@@ -5,33 +5,53 @@
 
 /**
  * Infer button action from PatternFly variant and props
+ * Returns both behavior (what it does) and styling (how it looks)
  */
 export const inferButtonAction = (
   variant?: string,
   href?: string,
   onClick?: unknown,
   target?: string
-): string => {
+): { type: string; variant: string } => {
+  // Determine behavior - what the button DOES
+  let behaviorType = 'default';
+  
+  if (href) {
+    // Has href - it's a link
+    if (href.startsWith('http')) behaviorType = 'external';
+    else if (target === '_blank') behaviorType = 'external';
+    else if (href.startsWith('/')) behaviorType = 'navigation';
+    else behaviorType = 'navigation';
+  } else if (onClick) {
+    // Has onClick but no href - it's an action
+    behaviorType = 'action';
+  }
+  
+  // Determine styling - visual importance/appearance
+  let styleVariant = 'secondary';
+  
   switch (variant) {
     case 'primary':
-      return 'primary';
+      styleVariant = 'primary';
+      break;
     case 'danger':
-      return 'destructive';
-    case 'link':
-      // Check what the link actually does
-      if (href?.startsWith('http')) return 'external';
-      if (target === '_blank') return 'external';
-      if (onClick && !href) return 'action';
-      if (href?.startsWith('/')) return 'navigation';
-      return 'navigation';
+      styleVariant = 'destructive';
+      break;
     case 'control':
-      return 'toggle';
+      styleVariant = 'toggle';
+      break;
     case 'secondary':
     case 'tertiary':
     case 'plain':
-    default:
-      return 'secondary';
+    case 'link':
+      styleVariant = variant;
+      break;
   }
+  
+  return {
+    type: behaviorType,
+    variant: styleVariant
+  };
 };
 
 /**
@@ -323,26 +343,17 @@ export const inferStatusBadgePurpose = (): string => {
 };
 
 /**
- * Infer category from component name and action
- * 
- * TODO: Current implementation hardcodes action → category mappings.
- * Need a more extensible solution that doesn't require adding new if statements
- * for every action type. Consider a mapping system or pattern-based approach.
+ * Infer category from component name
+ * Category describes WHAT the component IS, not what it DOES (that's the action)
  */
-export const inferCategory = (componentName: string, action?: string): string => {
+export const inferCategory = (componentName: string): string => {
   const name = componentName.toLowerCase();
   
-  // If action is provided, let it override the default category
-  // NOTE: This is hardcoded and not ideal - needs refactoring
-  if (action === 'navigation' || action === 'external') {
-    return 'navigation';
+  // Component type categorization
+  if (name === 'button') {
+    return 'button';
   }
-  if (action === 'destructive' || action === 'primary' || action === 'secondary') {
-    return 'forms';
-  }
-  
-  // Default categorization by component type
-  if (['button', 'textinput', 'textarea', 'select', 'radio', 'checkbox', 'switch'].includes(name)) {
+  if (['textinput', 'textarea', 'select', 'radio', 'checkbox', 'switch'].includes(name)) {
     return 'forms';
   }
   if (['nav', 'breadcrumb', 'tabs', 'pagination', 'masthead'].includes(name)) {

@@ -422,8 +422,12 @@ declare const runSemanticValidation: (highlightWarnings?: boolean) => Validation
  */
 /**
  * Infer button action from PatternFly variant and props
+ * Returns both behavior (what it does) and styling (how it looks)
  */
-declare const inferButtonAction: (variant?: string, href?: string, onClick?: unknown, target?: string) => string;
+declare const inferButtonAction: (variant?: string, href?: string, onClick?: unknown, target?: string) => {
+    type: string;
+    variant: string;
+};
 /**
  * Infer input purpose from type
  */
@@ -534,9 +538,10 @@ declare const inferStatusBadgeType: (content?: string) => string;
  */
 declare const inferStatusBadgePurpose: () => string;
 /**
- * Infer category from component name and action
+ * Infer category from component name
+ * Category describes WHAT the component IS, not what it DOES (that's the action)
  */
-declare const inferCategory: (componentName: string, action?: string) => string;
+declare const inferCategory: (componentName: string) => string;
 
 /**
  * Hook for managing semantic metadata for components

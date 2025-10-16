@@ -4,8 +4,12 @@
  */
 /**
  * Infer button action from PatternFly variant and props
+ * Returns both behavior (what it does) and styling (how it looks)
  */
-export declare const inferButtonAction: (variant?: string, href?: string, onClick?: unknown, target?: string) => string;
+export declare const inferButtonAction: (variant?: string, href?: string, onClick?: unknown, target?: string) => {
+    type: string;
+    variant: string;
+};
 /**
  * Infer input purpose from type
  */
@@ -116,7 +120,8 @@ export declare const inferStatusBadgeType: (content?: string) => string;
  */
 export declare const inferStatusBadgePurpose: () => string;
 /**
- * Infer category from component name and action
+ * Infer category from component name
+ * Category describes WHAT the component IS, not what it DOES (that's the action)
  */
-export declare const inferCategory: (componentName: string, action?: string) => string;
+export declare const inferCategory: (componentName: string) => string;
 //# sourceMappingURL=inference.d.ts.map

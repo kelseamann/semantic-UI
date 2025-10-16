@@ -11,32 +11,49 @@ var reactTable = require('@patternfly/react-table');
  */
 /**
  * Infer button action from PatternFly variant and props
+ * Returns both behavior (what it does) and styling (how it looks)
  */
 const inferButtonAction = (variant, href, onClick, target) => {
+    // Determine behavior - what the button DOES
+    let behaviorType = 'default';
+    if (href) {
+        // Has href - it's a link
+        if (href.startsWith('http'))
+            behaviorType = 'external';
+        else if (target === '_blank')
+            behaviorType = 'external';
+        else if (href.startsWith('/'))
+            behaviorType = 'navigation';
+        else
+            behaviorType = 'navigation';
+    }
+    else if (onClick) {
+        // Has onClick but no href - it's an action
+        behaviorType = 'action';
+    }
+    // Determine styling - visual importance/appearance
+    let styleVariant = 'secondary';
     switch (variant) {
         case 'primary':
-            return 'primary';
+            styleVariant = 'primary';
+            break;
         case 'danger':
-            return 'destructive';
-        case 'link':
-            // Check what the link actually does
-            if (href?.startsWith('http'))
-                return 'external';
-            if (target === '_blank')
-                return 'external';
-            if (onClick && !href)
-                return 'action';
-            if (href?.startsWith('/'))
-                return 'navigation';
-            return 'navigation';
+            styleVariant = 'destructive';
+            break;
         case 'control':
-            return 'toggle';
+            styleVariant = 'toggle';
+            break;
         case 'secondary':
         case 'tertiary':
         case 'plain':
-        default:
-            return 'secondary';
+        case 'link':
+            styleVariant = variant;
+            break;
     }
+    return {
+        type: behaviorType,
+        variant: styleVariant
+    };
 };
 /**
  * Infer input purpose from type
@@ -303,19 +320,16 @@ const inferStatusBadgePurpose = () => {
     return 'status-indicator';
 };
 /**
- * Infer category from component name and action
+ * Infer category from component name
+ * Category describes WHAT the component IS, not what it DOES (that's the action)
  */
-const inferCategory = (componentName, action) => {
+const inferCategory = (componentName) => {
     const name = componentName.toLowerCase();
-    // If action is provided, let it override the default category
-    if (action === 'navigation' || action === 'external') {
-        return 'navigation';
+    // Component type categorization
+    if (name === 'button') {
+        return 'button';
     }
-    if (action === 'destructive' || action === 'primary' || action === 'secondary') {
-        return 'forms';
-    }
-    // Default categorization by component type
-    if (['button', 'textinput', 'textarea', 'select', 'radio', 'checkbox', 'switch'].includes(name)) {
+    if (['textinput', 'textarea', 'select', 'radio', 'checkbox', 'switch'].includes(name)) {
         return 'forms';
     }
     if (['nav', 'breadcrumb', 'tabs', 'pagination', 'masthead'].includes(name)) {
@@ -381,24 +395,27 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
         hierarchy = { parents: [], depth: 0, path: '' };
     }
     // Auto-infer semantic properties from PatternFly props
-    const inferredAction = action || inferButtonAction(variant, props.href, onClick, target);
+    const inferredAction = inferButtonAction(variant, props.href, onClick, target);
+    const actionType = action || inferredAction.type;
+    const actionVariant = inferredAction.variant;
     const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
     const componentName = semanticName || 'Button';
     // Generate semantic role and AI metadata with hierarchy
-    const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
+    const role = semanticRole || `button-${actionType}-${inferredContext}`;
     const metadata = aiMetadata || {
-        description: `${inferredAction} action button for ${inferredContext} context`,
-        category: inferCategory('Button', inferredAction),
-        usage: [`${inferredContext}-${inferredAction}`, 'user-interaction'],
+        description: `${actionType} action button (${actionVariant} style) for ${inferredContext} context`,
+        category: inferCategory('Button'),
+        usage: [`${inferredContext}-${actionType}`, 'user-interaction'],
         hierarchy,
         action: {
-            type: inferredAction,
+            type: actionType,
+            variant: actionVariant,
             target: target || 'default',
-            consequence: inferredAction === 'destructive' ? 'destructive-permanent' : 'safe',
+            consequence: actionVariant === 'destructive' ? 'destructive-permanent' : 'safe',
             affectsParent: target === 'parent-modal' || target === 'parent-form'
         }
     };
-    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action": inferredAction, "data-target": target || 'default', "data-context": inferredContext, children: children }));
+    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action-type": actionType, "data-action-variant": actionVariant, "data-target": target || 'default', "data-context": inferredContext, children: children }));
 };
 
 /** Link - HTML anchor wrapper with semantic metadata for AI tooling */

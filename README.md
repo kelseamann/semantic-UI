@@ -160,26 +160,30 @@ The library **automatically infers** semantic properties from PatternFly props y
 </Button>
 
 // Library automatically infers:
-// action: "destructive"  (from variant="danger")
-// context: "interactive" (from presence of onClick)
+// action.type: "action"       (from presence of onClick)
+// action.variant: "destructive" (from variant="danger")
+// context: "active"           (from presence of onClick)
 ```
 
-**How it works** (from `Button.tsx` lines 27-28):
+**How it works** (from `Button.tsx`):
 
 ```typescript
 // Button.tsx imports utilities from single source of truth
-import { inferButtonAction, inferContext } from '../../utils/inference';
+import { inferButtonAction, inferContext, inferCategory } from '../../utils/inference';
 
-// Step 1: Infer ACTION from PatternFly's variant prop
-const inferredAction = action || inferButtonAction(variant);
-// inferButtonAction in utils/inference.ts:
-//   case 'danger': return 'destructive';  ✅ Matches!
-// Result: inferredAction = "destructive"
+// Step 1: Infer ACTION (behavior + styling) from PatternFly props
+const inferredAction = inferButtonAction(variant, href, onClick, target);
+// inferButtonAction checks onClick first (behavior), then variant (styling)
+// Result: { type: "action", variant: "destructive" }
 
 // Step 2: Infer CONTEXT from PatternFly props  
-const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
-// inferContext checks for onClick and returns 'interactive'
-// Result: inferredContext = "interactive"
+const inferredContext = context || inferContext({ onClick, isDisabled });
+// inferContext checks for onClick and returns 'active'
+// Result: "active"
+
+// Step 3: Infer CATEGORY from component name
+const category = inferCategory('Button');
+// Result: "button"
 ```
 
 **DRY Principle**: All inference logic lives in `utils/inference.ts` - a single source of truth shared by all components. Change it once, affects everywhere!
@@ -201,19 +205,20 @@ const inferredContext = context || inferContext({ onClick, isDisabled, ...props 
 
 The `semanticRole` is a **unique identifier** that describes what the component does and where it's used.
 
-**How it's determined** (from `Button.tsx` line 33):
+**How it's determined** (from `Button.tsx`):
 
 ```typescript
-const role = semanticRole || `button-${inferredAction}-${inferredContext}`;
-// Result: "button-destructive-interactive"
+const actionType = inferredAction.type;  // "action"
+const role = semanticRole || `button-${actionType}-${inferredContext}`;
+// Result: "button-action-active"
 ```
 
 **Pattern**: `{component}-{action}-{context}`
 
 **Examples:**
-- `"button-primary-form"` - Primary action button in a form
-- `"button-destructive-modal"` - Destructive action in a modal
-- `"button-navigation-toolbar"` - Navigation button in a toolbar
+- `"button-action-active"` - Action button with active state
+- `"button-navigation-active"` - Navigation button (active)
+- `"button-external-active"` - External link button
 
 **The role appears in the DOM:**
 
