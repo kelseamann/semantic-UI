@@ -32,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
   } catch {
-    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
+    hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
   }
 
   // Auto-infer semantic properties from PatternFly props
@@ -40,11 +40,34 @@ export const Button: React.FC<ButtonProps> = ({
   const actionType = action || inferredAction.type;
   const actionVariant = inferredAction.variant;
   const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
-  const componentName = semanticName || 'Button';
   
-  // Generate semantic role and queryable data attributes
+  // Generate semantic role (combines category, action, context into one)
   const role = semanticRole || `button-${actionType}-${inferredContext}`;
-  const category = inferCategory('Button');
+  
+  // Generate semantic name: wrapper > parent > action type
+  // Button acts on wrapper (if exists), otherwise parent, otherwise standalone
+  const componentName = semanticName || (() => {
+    // Format action type: "action" → "Action", "navigation" → "Navigation", "external" → "External Link"
+    // Treat "default" as "Action"
+    let actionLabel;
+    if (actionType === 'default') {
+      actionLabel = 'Action';
+    } else if (actionType === 'external') {
+      actionLabel = 'External Link';
+    } else {
+      actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
+    }
+    
+    // Priority: wrapper (immediate context) > parent > standalone
+    if (hierarchy.immediateWrapper) {
+      return `${hierarchy.immediateWrapper} ${actionLabel}`;
+    } else if (hierarchy.immediateParent) {
+      return `${hierarchy.immediateParent} ${actionLabel}`;
+    }
+    
+    // Otherwise just the action label
+    return actionLabel;
+  })();
   const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
   const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
   const affectsParent = target === 'parent-modal' || target === 'parent-form';
@@ -58,16 +81,14 @@ export const Button: React.FC<ButtonProps> = ({
       data-semantic-name={componentName}
       data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
       data-parent={hierarchy.immediateParent || 'none'}
-      data-hierarchy-depth={hierarchy.depth}
+      data-wrapper={hierarchy.immediateWrapper || 'none'}
+      data-num-parents={hierarchy.depth}
       data-semantic-role={role}
-      data-category={category}
       data-description={description}
-      data-action-type={actionType}
       data-action-variant={actionVariant}
       data-target={target || 'default'}
       data-consequence={consequence}
       data-affects-parent={affectsParent}
-      data-context={inferredContext}
     >
       {children}
     </PFButton>

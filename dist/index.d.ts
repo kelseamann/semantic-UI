@@ -572,7 +572,9 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
 interface HierarchyData {
     fullPath: string;
     qualifiedParents: string[];
+    wrappers: string[];
     immediateParent: string;
+    immediateWrapper: string;
     depth: number;
 }
 interface ContextItem {

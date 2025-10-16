@@ -29,7 +29,7 @@ export const MenuToggle: React.FC<MenuToggleProps> = ({
     
     hierarchy = getHierarchy();
   } catch {
-    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
+    hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
   }
 
   const componentName = semanticName || 'Toggle';
@@ -47,6 +47,8 @@ export const MenuToggle: React.FC<MenuToggleProps> = ({
       data-semantic-name={componentName}
       data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
       data-parent={hierarchy.immediateParent || 'none'}
+      data-wrapper={hierarchy.immediateWrapper || 'none'}
+      data-num-parents={hierarchy.depth}
       data-semantic-role={semanticRole || 'menu-trigger'}
       data-ai-metadata={JSON.stringify(metadata)}
       data-target={target || 'menu'}

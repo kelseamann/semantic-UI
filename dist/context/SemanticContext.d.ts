@@ -2,7 +2,9 @@ import React, { ReactNode } from 'react';
 export interface HierarchyData {
     fullPath: string;
     qualifiedParents: string[];
+    wrappers: string[];
     immediateParent: string;
+    immediateWrapper: string;
     depth: number;
 }
 interface ContextItem {

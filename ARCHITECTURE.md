@@ -132,19 +132,17 @@ Component Render
     └─► 4. Render with Data Attributes
             │
                 └─► <PatternFly Component
-                  data-semantic-name="Button"
+                  data-semantic-name="Form Action"
                   data-semantic-path="Modal > Form > Button"
                   data-parent="Modal"
-                  data-hierarchy-depth="1"
+                  data-wrapper="Form"
+                  data-num-parents="1"
                   data-semantic-role="button-action-active"
-                  data-category="button"
                   data-description="action button (primary style) for active context"
-                  data-action-type="action"
                   data-action-variant="primary"
                   data-target="user-record"
                   data-consequence="safe"
                   data-affects-parent="false"
-                  data-context="active"
                 />
 ```
 
@@ -285,51 +283,56 @@ All components render with structured, queryable data attributes:
 
 ```html
 <button
-  data-semantic-name="Button"
+  data-semantic-name="Form Action"
   data-semantic-path="Modal > Form > Button"
   data-parent="Modal"
-  data-hierarchy-depth="1"
+  data-wrapper="Form"
+  data-num-parents="1"
   data-semantic-role="button-action-active"
-  data-category="button"
   data-description="action button (destructive style) for active context"
-  data-action-type="action"
   data-action-variant="destructive"
   data-target="user-record"
   data-consequence="destructive-permanent"
   data-affects-parent="false"
-  data-context="active"
 >
   Delete
 </button>
 ```
 
-**Key Insight: Visual Parents vs Wrappers**
+**Key Insights:**
 
-- `data-parent="Modal"` - Only the visual parent (user must open to see)
-- `data-hierarchy-depth="1"` - Only counts visual parents, not wrappers
+**Visual Parents vs Wrappers:**
+- `data-parent="Modal"` - Immediate visual parent (user must open to see)
+- `data-wrapper="Form"` - Immediate wrapper (always visible structure)
+- `data-num-parents="1"` - Count of visual parents only, not wrappers
 - `data-semantic-path="Modal > Form > Button"` - Full path shows ALL components
 
-Form is a **wrapper** (always visible structure), Modal is a **visual parent** (requires action to see).
+Modal is a **visual parent** (requires action to see), Form is a **wrapper** (always visible structure).
+
+**Semantic Naming:**
+- `data-semantic-name="Form Action"` - Prioritizes wrapper > parent + action type (or just action if neither)
+- Button acts on its **immediate wrapper** (e.g., Form data), or **parent** if no wrapper (e.g., Modal itself)
+- Never just "Button" - always describes what it DOES: Action, Navigation, External Link
+- Examples: "Form Action" (in form), "Modal Action" (no wrapper), "Navigation" (standalone)
 
 ### Why Individual Attributes?
 
-Each piece of metadata is a separate, queryable attribute:
+Each piece of metadata is a separate, queryable attribute for maximum AI flexibility:
 
 ```javascript
+// AI parses semantic role for category + action + context
+// "button-action-active" → button that performs action, currently active
+// "button-navigation-disabled" → button for navigation, currently disabled
+document.querySelectorAll('[data-semantic-role^="button-navigation"]')
+
 // Find all destructive actions
 document.querySelectorAll('[data-consequence="destructive-permanent"]')
 
 // Find buttons that affect their parent (close modals, dismiss forms)
 document.querySelectorAll('[data-affects-parent="true"]')
 
-// Find deeply nested components
-document.querySelectorAll('[data-hierarchy-depth="3"]')
-
-// Find all buttons by category
-document.querySelectorAll('[data-category="button"]')
-
-// Find navigation actions
-document.querySelectorAll('[data-action-type="navigation"]')
+// Find deeply nested components (3+ visual parents)
+document.querySelectorAll('[data-num-parents="3"]')
 ```
 
 ---
@@ -347,28 +350,30 @@ document.querySelectorAll('[data-action-type="navigation"]')
 ### With Individual Queryable Attributes:
 ```html
 <button 
+  data-semantic-name="Form Action"
   data-semantic-path="Modal > Form > Button"
   data-parent="Modal"
-  data-hierarchy-depth="1"
-  data-action-type="action"
+  data-wrapper="Form"
+  data-num-parents="1"
+  data-semantic-role="button-action-active"
   data-action-variant="destructive"
   data-target="user-record"
   data-consequence="destructive-permanent"
   data-affects-parent="false"
-  data-context="active"
 >
   Delete
 </button>
 ```
 ```
-✅ "This is a destructive action Button" (data-action-variant)
-✅ "It's INSIDE Modal (depth 1), path includes Form wrapper" (data-parent, data-hierarchy-depth, data-semantic-path)
-✅ "Modal is visual parent (must open), Form is wrapper (always visible)" (qualification system)
+✅ "This is a 'Form Action' button" (data-semantic-name: wrapper + action type, prioritizes wrapper over parent)
+✅ "It's a button-action-active" (data-semantic-role: category + what it does + state)
+✅ "It's destructive" (data-action-variant)
+✅ "It's INSIDE Modal (1 visual parent), wrapped by Form" (data-parent, data-wrapper, data-num-parents)
+✅ "Full path includes all containers" (data-semantic-path: "Modal > Form > Button")
 ✅ "It deletes user-record" (data-target)
 ✅ "It does NOT close the parent modal" (data-affects-parent: false)
-✅ "It's in an active state" (data-context)
 ✅ "It's a destructive-permanent action" (data-consequence)
-✅ "All attributes are queryable via CSS selectors"
+✅ "AI parses attributes to understand complete context and behavior"
 ```
 
 ---

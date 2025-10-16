@@ -4,7 +4,9 @@ import { isVisualParent } from '../utils/inference';
 export interface HierarchyData {
   fullPath: string;              // All components: "Modal > Form > Card"
   qualifiedParents: string[];    // Only visual parents: ["Modal"]
+  wrappers: string[];            // Only wrapper components: ["Form", "Card"]
   immediateParent: string;       // Last qualified parent: "Modal"
+  immediateWrapper: string;      // Last wrapper: "Card"
   depth: number;                 // Count of visual parents: 1
 }
 
@@ -55,11 +57,14 @@ export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) 
   const getHierarchy = (): HierarchyData => {
     const allNames = contextStack.map(c => c.name);
     const qualifiedOnly = contextStack.filter(c => c.isQualified).map(c => c.name);
+    const wrappersOnly = contextStack.filter(c => !c.isQualified).map(c => c.name);
     
     return {
       fullPath: allNames.length > 0 ? allNames.join(' > ') : '',
       qualifiedParents: qualifiedOnly,
+      wrappers: wrappersOnly,
       immediateParent: qualifiedOnly.length > 0 ? qualifiedOnly[qualifiedOnly.length - 1] : '',
+      immediateWrapper: wrappersOnly.length > 0 ? wrappersOnly[wrappersOnly.length - 1] : '',
       depth: qualifiedOnly.length
     };
   };

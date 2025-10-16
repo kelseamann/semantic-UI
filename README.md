@@ -23,15 +23,21 @@ Semantic UI Layer enhances PatternFly components by adding:
 - `Checkbox`, `Link`, `StatusBadge`, `StarIcon` - Form and UI components
 
 ### 🤖 AI Metadata
-Each component includes structured metadata:
-```typescript
-{
-  description: "Primary action button for form context",
-  category: "forms",
-  complexity: "simple",
-  accessibility: ["keyboard-navigable", "screen-reader-friendly"],
-  usage: ["form-submission", "user-interaction"]
-}
+Each component includes structured, queryable data attributes:
+```html
+<button
+  data-semantic-name="Form Action"
+  data-semantic-path="Modal > Form > Button"
+  data-parent="Modal"
+  data-wrapper="Form"
+  data-num-parents="1"
+  data-semantic-role="button-action-active"
+  data-description="action button (destructive style) for active context"
+  data-action-variant="destructive"
+  data-target="user-record"
+  data-consequence="destructive-permanent"
+  data-affects-parent="false"
+>
 ```
 
 ### 🔍 Validation Utilities
@@ -144,9 +150,9 @@ function ValidationExample() {
 
 ## How Semantic Metadata Works
 
-Your components use a **three-layer system** to automatically generate rich metadata for AI tooling. Let's break down exactly how it works using the Button component as an example.
+Your components use an **intelligent inference system** to automatically generate rich metadata for AI tooling, plus a **hierarchical context system** to track visual parents and wrappers. Let's break down exactly how it works.
 
-### Layer 1: Auto-Inference ✨
+### Auto-Inference from PatternFly Props ✨
 
 The library **automatically infers** semantic properties from PatternFly props you're already using:
 
@@ -163,6 +169,7 @@ The library **automatically infers** semantic properties from PatternFly props y
 // action.type: "action"       (from presence of onClick)
 // action.variant: "destructive" (from variant="danger")
 // context: "active"           (from presence of onClick)
+// semanticRole: "button-action-active"
 ```
 
 **How it works** (from `Button.tsx`):
@@ -220,10 +227,19 @@ const role = semanticRole || `button-${actionType}-${inferredContext}`;
 - `"button-navigation-active"` - Navigation button (active)
 - `"button-external-active"` - External link button
 
-**The role appears in the DOM:**
+**The role and other attributes appear in the DOM:**
 
 ```html
-<button data-semantic-role="button-destructive-interactive">
+<button 
+  data-semantic-name="Form Action"
+  data-semantic-path="Modal > Form > Button"
+  data-parent="Modal"
+  data-wrapper="Form"
+  data-num-parents="1"
+  data-semantic-role="button-action-active"
+  data-action-variant="destructive"
+  data-consequence="destructive-permanent"
+>
   Delete
 </button>
 ```
@@ -236,38 +252,54 @@ const role = semanticRole || `button-${actionType}-${inferredContext}`;
 </Button>
 ```
 
-### Layer 3: AI Metadata 🤖
+### Hierarchical Context System 🏗️
 
-The `aiMetadata` object contains **rich structured data** that AI tools can parse and understand.
+Components automatically track their **visual parents** (require user action to see) and **wrappers** (always visible containers).
 
-**How it's determined** (from `Button.tsx` lines 34-39):
+**Visual Parents vs Wrappers:**
+- **Visual Parent**: Modal, Drawer, Tab - must be opened/clicked to see contents
+- **Wrapper**: Form, Card, Grid - always visible, organize content
 
-```typescript
-const metadata = aiMetadata || {
-  // Natural language description
-  description: `${inferredAction} action button for ${inferredContext} context`,
-  // Result: "destructive action button for interactive context"
-  
-  // Component category
-  category: 'forms',
-  
-  // Complexity level
-  complexity: 'simple',
-  
-  // Usage patterns
-  usage: [`${inferredContext}-${inferredAction}`, 'user-interaction']
-  // Result: ["interactive-destructive", "user-interaction"]
-};
+**How it works:**
+
+```tsx
+// SemanticProvider tracks the hierarchy
+<SemanticProvider>
+  <Modal>  {/* Visual parent - must be opened */}
+    <Form>  {/* Wrapper - always visible */}
+      <Button>Delete</Button>
+    </Form>
+  </Modal>
+</SemanticProvider>
+
+// Button automatically gets:
+// data-parent="Modal" (immediate visual parent)
+// data-wrapper="Form" (immediate wrapper)
+// data-num-parents="1" (count of visual parents)
+// data-semantic-path="Modal > Form > Button" (full path)
+// data-semantic-name="Form Action" (wrapper prioritized - acts on form data)
 ```
 
-**The metadata appears in the DOM as JSON:**
+**Semantic Naming Priority:**
+1. **Wrapper first** - Button acts on wrapper's context (e.g., "Form Action" submits form data)
+2. **Parent second** - If no wrapper, acts on parent (e.g., "Modal Action" affects modal)
+3. **Standalone** - Just action type (e.g., "Action", "Navigation", "External Link")
+
+**All metadata appears as queryable data attributes:**
 
 ```html
 <button 
-  data-semantic-role="button-destructive-interactive"
-  data-ai-metadata='{"description":"destructive action button for interactive context","category":"forms","complexity":"simple","usage":["interactive-destructive","user-interaction"]}'
-  data-action="destructive"
-  data-context="interactive"
+  data-semantic-name="Form Action"
+  data-semantic-path="Modal > Form > Button"
+  data-parent="Modal"
+  data-wrapper="Form"
+  data-num-parents="1"
+  data-semantic-role="button-action-active"
+  data-description="action button (destructive style) for active context"
+  data-action-variant="destructive"
+  data-target="user-record"
+  data-consequence="destructive-permanent"
+  data-affects-parent="false"
 >
   Delete
 </button>
@@ -329,23 +361,27 @@ const metadata = aiMetadata || {
 
 When AI tools (like Cursor, GitHub Copilot, or ChatGPT) analyze your code, they can:
 
-1. **Read the semantic role** to understand the button's purpose
-2. **Parse the AI metadata** to get rich context
-3. **Suggest better code** based on usage patterns
-4. **Generate tests** that match the component's intent
-5. **Find bugs** by comparing intent vs. implementation
+1. **Read the semantic role** to understand component type, action, and state
+2. **Parse queryable data attributes** to get rich context
+3. **Understand hierarchy** via parent/wrapper relationships
+4. **Suggest better code** based on context and consequences
+5. **Generate tests** that match the component's intent
+6. **Find bugs** by comparing intent vs. implementation
 
-**Example AI suggestions:**
+**Example AI analysis:**
 
-```typescript
-// AI sees: semanticRole="button-destructive-interactive"
-// AI suggests: "This destructive button should have a confirmation dialog"
+```javascript
+// AI queries: [data-semantic-name="Form Action"]
+// AI understands: "This button submits form data, not modal actions"
 
-// AI sees: usage includes "user-management"
-// AI suggests: "Add RBAC check before allowing delete"
+// AI sees: data-consequence="destructive-permanent"
+// AI suggests: "Add confirmation dialog for destructive actions"
 
-// AI sees: complexity="moderate"
-// AI suggests: "Consider adding loading state and error handling"
+// AI sees: data-parent="Modal", data-num-parents="1"
+// AI understands: "Button is inside modal, may need focus management"
+
+// AI queries: [data-wrapper="Form"][data-action-variant="destructive"]
+// AI finds: All destructive actions in forms for testing
 ```
 
 ### Auto-Inference for Other Components
