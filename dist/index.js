@@ -400,22 +400,13 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
     const actionVariant = inferredAction.variant;
     const inferredContext = context || inferContext({ onClick, isDisabled, ...props });
     const componentName = semanticName || 'Button';
-    // Generate semantic role and AI metadata with hierarchy
+    // Generate semantic role and queryable data attributes
     const role = semanticRole || `button-${actionType}-${inferredContext}`;
-    const metadata = aiMetadata || {
-        description: `${actionType} action button (${actionVariant} style) for ${inferredContext} context`,
-        category: inferCategory('Button'),
-        usage: [`${inferredContext}-${actionType}`, 'user-interaction'],
-        hierarchy,
-        action: {
-            type: actionType,
-            variant: actionVariant,
-            target: target || 'default',
-            consequence: actionVariant === 'destructive' ? 'destructive-permanent' : 'safe',
-            affectsParent: target === 'parent-modal' || target === 'parent-form'
-        }
-    };
-    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-action-type": actionType, "data-action-variant": actionVariant, "data-target": target || 'default', "data-context": inferredContext, children: children }));
+    const category = inferCategory('Button');
+    const description = `${actionType} action button (${actionVariant} style) for ${inferredContext} context`;
+    const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
+    const affectsParent = target === 'parent-modal' || target === 'parent-form';
+    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-hierarchy-depth": hierarchy.depth, "data-semantic-role": role, "data-category": category, "data-description": description, "data-action-type": actionType, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, "data-context": inferredContext, children: children }));
 };
 
 /** Link - HTML anchor wrapper with semantic metadata for AI tooling */

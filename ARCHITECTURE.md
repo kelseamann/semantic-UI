@@ -135,11 +135,15 @@ Component Render
                   data-semantic-name="Button"
                   data-semantic-path="Modal > Form > Button"
                   data-semantic-hierarchy='["Modal", "Form"]'
+                  data-hierarchy-depth="2"
                   data-semantic-role="button-action-active"
-                  data-ai-metadata='{...full metadata...}'
+                  data-category="button"
+                  data-description="action action button (primary style) for active context"
                   data-action-type="action"
                   data-action-variant="primary"
                   data-target="user-record"
+                  data-consequence="safe"
+                  data-affects-parent="false"
                   data-context="active"
                 />
 ```
@@ -278,55 +282,84 @@ const hierarchy = getHierarchy();
 
 ## Component Data Attributes
 
-All components render with structured data attributes for AI consumption:
+All components render with structured, queryable data attributes:
 
 ```html
 <button
   data-semantic-name="Button"
   data-semantic-path="Modal > Form > Button"
   data-semantic-hierarchy='["Modal", "Form"]'
-  data-semantic-role="button-destructive-form"
-  data-action="destructive"
+  data-hierarchy-depth="2"
+  data-semantic-role="button-action-active"
+  data-category="button"
+  data-description="action action button (destructive style) for active context"
+  data-action-type="action"
+  data-action-variant="destructive"
   data-target="user-record"
-  data-context="form"
-  data-ai-metadata='{
-    "description": "destructive action button for form context",
-    "category": "forms",
-    "complexity": "simple",
-    "hierarchy": {
-      "parents": ["Modal", "Form"],
-      "depth": 2,
-      "path": "Modal > Form"
-    },
-    "action": {
-      "type": "destructive",
-      "target": "user-record",
-      "consequence": "destructive-permanent",
-      "affectsParent": false
-    }
-  }'
+  data-consequence="destructive-permanent"
+  data-affects-parent="false"
+  data-context="active"
 >
   Delete
 </button>
+```
+
+### Why Individual Attributes?
+
+Each piece of metadata is a separate, queryable attribute:
+
+```javascript
+// Find all destructive actions
+document.querySelectorAll('[data-consequence="destructive-permanent"]')
+
+// Find buttons that affect their parent (close modals, dismiss forms)
+document.querySelectorAll('[data-affects-parent="true"]')
+
+// Find deeply nested components
+document.querySelectorAll('[data-hierarchy-depth="3"]')
+
+// Find all buttons by category
+document.querySelectorAll('[data-category="button"]')
+
+// Find navigation actions
+document.querySelectorAll('[data-action-type="navigation"]')
 ```
 
 ---
 
 ## How AI Understands Components
 
-### Without Hierarchy:
+### Without Structured Metadata:
+```html
+<button>Delete</button>
 ```
-❌ "Button deletes something, but where? What context?"
+```
+❌ "A button that deletes something, but where? What context? What consequences?"
 ```
 
-### With Hierarchy:
+### With Individual Queryable Attributes:
+```html
+<button 
+  data-semantic-path="Modal > Form > Button"
+  data-hierarchy-depth="2"
+  data-action-type="action"
+  data-action-variant="destructive"
+  data-target="user-record"
+  data-consequence="destructive-permanent"
+  data-affects-parent="false"
+  data-context="active"
+>
+  Delete
+</button>
 ```
-✅ "This is a destructive Button"
-✅ "It's INSIDE a Modal and Form" (hierarchy.parents)
-✅ "It deletes user-record" (action.target)
-✅ "It does NOT affect its parents" (action.affectsParent: false)
-✅ "It's in a form context" (context)
-✅ "It's a destructive-permanent action" (action.consequence)
+```
+✅ "This is a destructive action Button" (data-action-variant)
+✅ "It's INSIDE a Modal and Form at depth 2" (data-semantic-path, data-hierarchy-depth)
+✅ "It deletes user-record" (data-target)
+✅ "It does NOT close the parent modal" (data-affects-parent: false)
+✅ "It's in an active state" (data-context)
+✅ "It's a destructive-permanent action" (data-consequence)
+✅ "All attributes are queryable via CSS selectors"
 ```
 
 ---
