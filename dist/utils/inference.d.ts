@@ -3,6 +3,11 @@
  * from PatternFly component props
  */
 /**
+ * Determine if a component is a visual parent (requires user action to see contents)
+ * vs a wrapper/structure (always visible)
+ */
+export declare const isVisualParent: (componentName: string) => boolean;
+/**
  * Infer button action from PatternFly variant and props
  * Returns both behavior (what it does) and styling (how it looks)
  */

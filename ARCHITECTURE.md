@@ -134,11 +134,11 @@ Component Render
                 └─► <PatternFly Component
                   data-semantic-name="Button"
                   data-semantic-path="Modal > Form > Button"
-                  data-semantic-hierarchy='["Modal", "Form"]'
-                  data-hierarchy-depth="2"
+                  data-parent="Modal"
+                  data-hierarchy-depth="1"
                   data-semantic-role="button-action-active"
                   data-category="button"
-                  data-description="action action button (primary style) for active context"
+                  data-description="action button (primary style) for active context"
                   data-action-type="action"
                   data-action-variant="primary"
                   data-target="user-record"
@@ -288,11 +288,11 @@ All components render with structured, queryable data attributes:
 <button
   data-semantic-name="Button"
   data-semantic-path="Modal > Form > Button"
-  data-semantic-hierarchy='["Modal", "Form"]'
-  data-hierarchy-depth="2"
+  data-parent="Modal"
+  data-hierarchy-depth="1"
   data-semantic-role="button-action-active"
   data-category="button"
-  data-description="action action button (destructive style) for active context"
+  data-description="action button (destructive style) for active context"
   data-action-type="action"
   data-action-variant="destructive"
   data-target="user-record"
@@ -303,6 +303,14 @@ All components render with structured, queryable data attributes:
   Delete
 </button>
 ```
+
+**Key Insight: Visual Parents vs Wrappers**
+
+- `data-parent="Modal"` - Only the visual parent (user must open to see)
+- `data-hierarchy-depth="1"` - Only counts visual parents, not wrappers
+- `data-semantic-path="Modal > Form > Button"` - Full path shows ALL components
+
+Form is a **wrapper** (always visible structure), Modal is a **visual parent** (requires action to see).
 
 ### Why Individual Attributes?
 
@@ -341,7 +349,8 @@ document.querySelectorAll('[data-action-type="navigation"]')
 ```html
 <button 
   data-semantic-path="Modal > Form > Button"
-  data-hierarchy-depth="2"
+  data-parent="Modal"
+  data-hierarchy-depth="1"
   data-action-type="action"
   data-action-variant="destructive"
   data-target="user-record"
@@ -354,7 +363,8 @@ document.querySelectorAll('[data-action-type="navigation"]')
 ```
 ```
 ✅ "This is a destructive action Button" (data-action-variant)
-✅ "It's INSIDE a Modal and Form at depth 2" (data-semantic-path, data-hierarchy-depth)
+✅ "It's INSIDE Modal (depth 1), path includes Form wrapper" (data-parent, data-hierarchy-depth, data-semantic-path)
+✅ "Modal is visual parent (must open), Form is wrapper (always visible)" (qualification system)
 ✅ "It deletes user-record" (data-target)
 ✅ "It does NOT close the parent modal" (data-affects-parent: false)
 ✅ "It's in an active state" (data-context)

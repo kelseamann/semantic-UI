@@ -4,6 +4,19 @@
  */
 
 /**
+ * Determine if a component is a visual parent (requires user action to see contents)
+ * vs a wrapper/structure (always visible)
+ */
+export const isVisualParent = (componentName: string): boolean => {
+  const visualParents = [
+    'modal', 'drawer', 'popover', 'tooltip',           // Overlays
+    'wizardstep', 'wizard', 'tab', 'accordion',        // Navigation containers
+    'expandable', 'dropdown', 'menu', 'menutoggle'     // Expandable containers
+  ];
+  return visualParents.includes(componentName.toLowerCase());
+};
+
+/**
  * Infer button action from PatternFly variant and props
  * Returns both behavior (what it does) and styling (how it looks)
  */

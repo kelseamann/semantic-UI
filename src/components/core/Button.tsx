@@ -32,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
   } catch {
-    hierarchy = { parents: [], depth: 0, path: '' };
+    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
   }
 
   // Auto-infer semantic properties from PatternFly props
@@ -45,7 +45,7 @@ export const Button: React.FC<ButtonProps> = ({
   // Generate semantic role and queryable data attributes
   const role = semanticRole || `button-${actionType}-${inferredContext}`;
   const category = inferCategory('Button');
-  const description = `${actionType} action button (${actionVariant} style) for ${inferredContext} context`;
+  const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
   const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
   const affectsParent = target === 'parent-modal' || target === 'parent-form';
 
@@ -56,8 +56,8 @@ export const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       isDisabled={isDisabled}
       data-semantic-name={componentName}
-      data-semantic-path={hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName}
-      data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
       data-hierarchy-depth={hierarchy.depth}
       data-semantic-role={role}
       data-category={category}

@@ -1,12 +1,17 @@
 import React, { ReactNode } from 'react';
 export interface HierarchyData {
-    parents: string[];
+    fullPath: string;
+    qualifiedParents: string[];
+    immediateParent: string;
     depth: number;
-    path: string;
+}
+interface ContextItem {
+    name: string;
+    isQualified: boolean;
 }
 interface SemanticContextType {
-    contextStack: string[];
-    addContext: (context: string) => void;
+    contextStack: ContextItem[];
+    addContext: (context: string, isQualified?: boolean) => void;
     removeContext: () => void;
     getHierarchy: () => HierarchyData;
     clearContext: () => void;

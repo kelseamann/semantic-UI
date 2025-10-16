@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { isVisualParent } from '../utils/inference';
 
 export interface HierarchyData {
-  parents: string[];
-  depth: number;
-  path: string;
+  fullPath: string;              // All components: "Modal > Form > Card"
+  qualifiedParents: string[];    // Only visual parents: ["Modal"]
+  immediateParent: string;       // Last qualified parent: "Modal"
+  depth: number;                 // Count of visual parents: 1
+}
+
+interface ContextItem {
+  name: string;
+  isQualified: boolean;
 }
 
 interface SemanticContextType {
-  contextStack: string[];
-  addContext: (context: string) => void;
+  contextStack: ContextItem[];
+  addContext: (context: string, isQualified?: boolean) => void;
   removeContext: () => void;
   getHierarchy: () => HierarchyData;
   clearContext: () => void;
@@ -29,10 +36,12 @@ interface SemanticProviderProps {
 }
 
 export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) => {
-  const [contextStack, setContextStack] = useState<string[]>([]);
+  const [contextStack, setContextStack] = useState<ContextItem[]>([]);
 
-  const addContext = (context: string) => {
-    setContextStack(prev => [...prev, context]);
+  const addContext = (context: string, isQualified?: boolean) => {
+    // Auto-detect if not specified
+    const qualified = isQualified !== undefined ? isQualified : isVisualParent(context);
+    setContextStack(prev => [...prev, { name: context, isQualified: qualified }]);
   };
 
   const removeContext = () => {
@@ -43,11 +52,17 @@ export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) 
     setContextStack([]);
   };
 
-  const getHierarchy = (): HierarchyData => ({
-    parents: [...contextStack],
-    depth: contextStack.length,
-    path: contextStack.length > 0 ? contextStack.join(' > ') : ''
-  });
+  const getHierarchy = (): HierarchyData => {
+    const allNames = contextStack.map(c => c.name);
+    const qualifiedOnly = contextStack.filter(c => c.isQualified).map(c => c.name);
+    
+    return {
+      fullPath: allNames.length > 0 ? allNames.join(' > ') : '',
+      qualifiedParents: qualifiedOnly,
+      immediateParent: qualifiedOnly.length > 0 ? qualifiedOnly[qualifiedOnly.length - 1] : '',
+      depth: qualifiedOnly.length
+    };
+  };
 
   return (
     <SemanticContext.Provider

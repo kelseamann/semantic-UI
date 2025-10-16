@@ -23,13 +23,13 @@ export const MenuToggle: React.FC<MenuToggleProps> = ({
     
     // Add "menu" context when this component mounts/renders
     React.useEffect(() => {
-      addContext('Menu');
+      addContext('Menu');  // Auto-detected as non-qualified (wrapper)
       return () => removeContext();
     }, [addContext, removeContext]);
     
     hierarchy = getHierarchy();
   } catch {
-    hierarchy = { parents: [], depth: 0, path: '' };
+    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
   }
 
   const componentName = semanticName || 'Toggle';
@@ -45,8 +45,8 @@ export const MenuToggle: React.FC<MenuToggleProps> = ({
     <PFMenuToggle
       {...props}
       data-semantic-name={componentName}
-      data-semantic-path={hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName}
-      data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
       data-semantic-role={semanticRole || 'menu-trigger'}
       data-ai-metadata={JSON.stringify(metadata)}
       data-target={target || 'menu'}

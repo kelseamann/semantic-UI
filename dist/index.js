@@ -10,6 +10,18 @@ var reactTable = require('@patternfly/react-table');
  * from PatternFly component props
  */
 /**
+ * Determine if a component is a visual parent (requires user action to see contents)
+ * vs a wrapper/structure (always visible)
+ */
+const isVisualParent = (componentName) => {
+    const visualParents = [
+        'modal', 'drawer', 'popover', 'tooltip', // Overlays
+        'wizardstep', 'wizard', 'tab', 'accordion', // Navigation containers
+        'expandable', 'dropdown', 'menu', 'menutoggle' // Expandable containers
+    ];
+    return visualParents.includes(componentName.toLowerCase());
+};
+/**
  * Infer button action from PatternFly variant and props
  * Returns both behavior (what it does) and styling (how it looks)
  */
@@ -360,8 +372,10 @@ const useSemanticContext = () => {
 };
 const SemanticProvider = ({ children }) => {
     const [contextStack, setContextStack] = React.useState([]);
-    const addContext = (context) => {
-        setContextStack(prev => [...prev, context]);
+    const addContext = (context, isQualified) => {
+        // Auto-detect if not specified
+        const qualified = isQualified !== undefined ? isQualified : isVisualParent(context);
+        setContextStack(prev => [...prev, { name: context, isQualified: qualified }]);
     };
     const removeContext = () => {
         setContextStack(prev => prev.slice(0, -1));
@@ -369,11 +383,16 @@ const SemanticProvider = ({ children }) => {
     const clearContext = () => {
         setContextStack([]);
     };
-    const getHierarchy = () => ({
-        parents: [...contextStack],
-        depth: contextStack.length,
-        path: contextStack.length > 0 ? contextStack.join(' > ') : ''
-    });
+    const getHierarchy = () => {
+        const allNames = contextStack.map(c => c.name);
+        const qualifiedOnly = contextStack.filter(c => c.isQualified).map(c => c.name);
+        return {
+            fullPath: allNames.length > 0 ? allNames.join(' > ') : '',
+            qualifiedParents: qualifiedOnly,
+            immediateParent: qualifiedOnly.length > 0 ? qualifiedOnly[qualifiedOnly.length - 1] : '',
+            depth: qualifiedOnly.length
+        };
+    };
     return (jsxRuntime.jsx(SemanticContext.Provider, { value: {
             contextStack,
             addContext,
@@ -392,7 +411,7 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
         hierarchy = semanticContext.getHierarchy();
     }
     catch {
-        hierarchy = { parents: [], depth: 0, path: '' };
+        hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
     }
     // Auto-infer semantic properties from PatternFly props
     const inferredAction = inferButtonAction(variant, props.href, onClick, target);
@@ -403,10 +422,10 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
     // Generate semantic role and queryable data attributes
     const role = semanticRole || `button-${actionType}-${inferredContext}`;
     const category = inferCategory('Button');
-    const description = `${actionType} action button (${actionVariant} style) for ${inferredContext} context`;
+    const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
     const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
     const affectsParent = target === 'parent-modal' || target === 'parent-form';
-    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-hierarchy-depth": hierarchy.depth, "data-semantic-role": role, "data-category": category, "data-description": description, "data-action-type": actionType, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, "data-context": inferredContext, children: children }));
+    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-hierarchy-depth": hierarchy.depth, "data-semantic-role": role, "data-category": category, "data-description": description, "data-action-type": actionType, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, "data-context": inferredContext, children: children }));
 };
 
 /** Link - HTML anchor wrapper with semantic metadata for AI tooling */
@@ -418,7 +437,7 @@ const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, target
         hierarchy = semanticContext.getHierarchy();
     }
     catch {
-        hierarchy = { parents: [], depth: 0, path: '' };
+        hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
     }
     // Auto-infer semantic properties from props
     const inferredPurpose = purpose || inferLinkPurpose(href, children);
@@ -436,7 +455,7 @@ const Link = ({ semanticName, semanticRole, aiMetadata, purpose, context, target
             target: target || 'default'
         }
     };
-    return (jsxRuntime.jsx("a", { ...props, href: href, onClick: onClick, target: htmlTarget, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-target": target || 'default', "data-context": inferredContext, children: children }));
+    return (jsxRuntime.jsx("a", { ...props, href: href, onClick: onClick, target: htmlTarget, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-target": target || 'default', "data-context": inferredContext, children: children }));
 };
 
 /** StarIcon - HTML span wrapper with semantic metadata for AI tooling */
@@ -913,13 +932,13 @@ const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, 
         const { addContext, removeContext, getHierarchy } = semanticContext;
         // Add "menu" context when this component mounts/renders
         React.useEffect(() => {
-            addContext('Menu');
+            addContext('Menu'); // Auto-detected as non-qualified (wrapper)
             return () => removeContext();
         }, [addContext, removeContext]);
         hierarchy = getHierarchy();
     }
     catch {
-        hierarchy = { parents: [], depth: 0, path: '' };
+        hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
     }
     const componentName = semanticName || 'Toggle';
     const metadata = aiMetadata || {
@@ -929,7 +948,7 @@ const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, 
             target: target || 'menu'
         }
     };
-    return (jsxRuntime.jsx(reactCore.MenuToggle, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": semanticRole || 'menu-trigger', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'menu', children: children }));
+    return (jsxRuntime.jsx(reactCore.MenuToggle, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-semantic-role": semanticRole || 'menu-trigger', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'menu', children: children }));
 };
 
 const DropdownItem = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
@@ -940,7 +959,7 @@ const DropdownItem = ({ semanticName, semanticRole, aiMetadata, target, children
         hierarchy = semanticContext.getHierarchy();
     }
     catch {
-        hierarchy = { parents: [], depth: 0, path: '' };
+        hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
     }
     const componentName = semanticName || 'Action';
     const metadata = aiMetadata || {
@@ -950,7 +969,7 @@ const DropdownItem = ({ semanticName, semanticRole, aiMetadata, target, children
             target: target || 'default'
         }
     };
-    return (jsxRuntime.jsx(reactCore.DropdownItem, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName, "data-semantic-hierarchy": JSON.stringify(hierarchy.parents), "data-semantic-role": semanticRole || 'menu-item', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'default', children: children }));
+    return (jsxRuntime.jsx(reactCore.DropdownItem, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-semantic-role": semanticRole || 'menu-item', "data-ai-metadata": JSON.stringify(metadata), "data-target": target || 'default', children: children }));
 };
 
 /**
@@ -1343,6 +1362,7 @@ exports.inferTextAreaContentType = inferTextAreaContentType;
 exports.inferTextAreaPurpose = inferTextAreaPurpose;
 exports.inferUsagePatterns = inferUsagePatterns;
 exports.inferValidationContext = inferValidationContext;
+exports.isVisualParent = isVisualParent;
 exports.logValidationResults = logValidationResults;
 exports.mergeMetadata = mergeMetadata;
 exports.runSemanticValidation = runSemanticValidation;

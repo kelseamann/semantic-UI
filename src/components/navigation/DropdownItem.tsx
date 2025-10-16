@@ -21,7 +21,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
   } catch {
-    hierarchy = { parents: [], depth: 0, path: '' };
+    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
   }
 
   const componentName = semanticName || 'Action';
@@ -37,8 +37,8 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
     <PFDropdownItem
       {...props}
       data-semantic-name={componentName}
-      data-semantic-path={hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName}
-      data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
       data-semantic-role={semanticRole || 'menu-item'}
       data-ai-metadata={JSON.stringify(metadata)}
       data-target={target || 'default'}

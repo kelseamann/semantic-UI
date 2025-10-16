@@ -33,7 +33,7 @@ export const Link: React.FC<LinkProps> = ({
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
   } catch {
-    hierarchy = { parents: [], depth: 0, path: '' };
+    hierarchy = { fullPath: '', qualifiedParents: [], immediateParent: '', depth: 0 };
   }
 
   // Auto-infer semantic properties from props
@@ -61,8 +61,8 @@ export const Link: React.FC<LinkProps> = ({
       onClick={onClick}
       target={htmlTarget}
       data-semantic-name={componentName}
-      data-semantic-path={hierarchy.path ? `${hierarchy.path} > ${componentName}` : componentName}
-      data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
       data-semantic-role={role}
       data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}

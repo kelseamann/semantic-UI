@@ -421,6 +421,11 @@ declare const runSemanticValidation: (highlightWarnings?: boolean) => Validation
  * from PatternFly component props
  */
 /**
+ * Determine if a component is a visual parent (requires user action to see contents)
+ * vs a wrapper/structure (always visible)
+ */
+declare const isVisualParent: (componentName: string) => boolean;
+/**
  * Infer button action from PatternFly variant and props
  * Returns both behavior (what it does) and styling (how it looks)
  */
@@ -565,13 +570,18 @@ declare const useAccessibility: (componentType: string, props?: Record<string, u
 };
 
 interface HierarchyData {
-    parents: string[];
+    fullPath: string;
+    qualifiedParents: string[];
+    immediateParent: string;
     depth: number;
-    path: string;
+}
+interface ContextItem {
+    name: string;
+    isQualified: boolean;
 }
 interface SemanticContextType {
-    contextStack: string[];
-    addContext: (context: string) => void;
+    contextStack: ContextItem[];
+    addContext: (context: string, isQualified?: boolean) => void;
     removeContext: () => void;
     getHierarchy: () => HierarchyData;
     clearContext: () => void;
@@ -582,4 +592,4 @@ interface SemanticProviderProps {
 }
 declare const SemanticProvider: React$1.FC<SemanticProviderProps>;
 
-export { ActionMetadata, Button, ButtonProps, Card, CardProps, Checkbox, CheckboxProps, ComponentMetadata, DropdownItem, Flex, FlexItem, FlexItemProps, FlexProps, HierarchyData, HierarchyMetadata, Link, LinkProps, MenuToggle, Modal, ModalProps, Radio, RadioProps, Select, SelectProps, SemanticComponent, SemanticComponentProps, SemanticProvider, StarIcon, StarIconProps, StatusBadge, StatusBadgeProps, Switch, SwitchProps, Tbody, TbodyProps, Td, TdProps, TextArea, TextAreaProps, TextInput, TextInputProps, Th, ThProps, Thead, TheadProps, Tr, TrProps, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+export { ActionMetadata, Button, ButtonProps, Card, CardProps, Checkbox, CheckboxProps, ComponentMetadata, DropdownItem, Flex, FlexItem, FlexItemProps, FlexProps, HierarchyData, HierarchyMetadata, Link, LinkProps, MenuToggle, Modal, ModalProps, Radio, RadioProps, Select, SelectProps, SemanticComponent, SemanticComponentProps, SemanticProvider, StarIcon, StarIconProps, StatusBadge, StatusBadgeProps, Switch, SwitchProps, Tbody, TbodyProps, Td, TdProps, TextArea, TextAreaProps, TextInput, TextInputProps, Th, ThProps, Thead, TheadProps, Tr, TrProps, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
