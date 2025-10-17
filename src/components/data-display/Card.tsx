@@ -2,6 +2,7 @@ import React from 'react';
 import { Card as PFCard } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../../types';
 import { inferCardPurpose, inferCardContentType, inferCategory } from '../../utils/inference';
+import { useSemanticContext } from '../../context/SemanticContext';
 
 export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
@@ -23,29 +24,44 @@ export const Card: React.FC<CardProps> = ({
   isClickable,
   ...props
 }) => {
+  // Register as wrapper (not a visual parent) in semantic context
+  const { addContext, removeContext } = useSemanticContext();
+  
+  React.useEffect(() => {
+    addContext('Card', false);  // false = wrapper (always visible)
+    return () => removeContext();
+  }, [addContext, removeContext]);
+
+  // Get hierarchy from context
+  let hierarchy;
+  try {
+    const semanticContext = useSemanticContext();
+    hierarchy = semanticContext.getHierarchy();
+  } catch {
+    hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+  }
+
   // Auto-infer semantic properties from PatternFly props and children
   const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable });
   const inferredContentType = contentType || inferCardContentType();
   
-  // Generate semantic role and AI metadata
+  // Generate semantic role
   const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
-  const metadata = aiMetadata || {
-    description: `${inferredPurpose} card containing ${inferredContentType} content`,
-    category: inferCategory('Card'),
-    usage: [`${inferredPurpose}-display`, 'content-organization']
-  };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Card';
+  const componentName = semanticName || 'Card';
 
   return (
     <PFCard
       {...props}
       isSelectable={isSelectable}
       isClickable={isClickable}
-      data-semantic-name={defaultSemanticName}
+      data-semantic-name={componentName}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
+      data-wrapper={hierarchy.immediateWrapper || 'none'}
+      data-num-parents={hierarchy.depth}
       data-semantic-role={role}
-      data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}
       data-content-type={inferredContentType}
     >

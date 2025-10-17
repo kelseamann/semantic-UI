@@ -1,5 +1,5 @@
 import React$1, { ReactNode } from 'react';
-import { Button as Button$1, Form as Form$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
+import { Button as Button$1, Form as Form$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, Drawer as Drawer$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
 import { Tbody as Tbody$1, Td as Td$1, Th as Th$1, Thead as Thead$1, Tr as Tr$1 } from '@patternfly/react-table';
 
 interface HierarchyMetadata {
@@ -338,6 +338,14 @@ interface ModalProps extends Omit<React$1.ComponentProps<typeof Modal$1>, 'child
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 declare const Modal: React$1.ForwardRefExoticComponent<Omit<ModalProps, "ref"> & React$1.RefAttributes<any>>;
 
+interface DrawerProps extends Omit<React$1.ComponentProps<typeof Drawer$1>, 'children'>, SemanticComponentProps {
+    children?: React$1.ReactNode;
+    /** The semantic purpose of this drawer */
+    purpose?: 'navigation' | 'filter' | 'details' | 'form' | 'settings';
+}
+/** Drawer - PatternFly Drawer wrapper with semantic metadata for AI tooling */
+declare const Drawer: React$1.FC<DrawerProps>;
+
 interface MenuToggleProps extends SemanticComponentProps, React$1.ComponentProps<typeof MenuToggle$1> {
 }
 declare const MenuToggle: React$1.FC<MenuToggleProps>;
@@ -602,4 +610,4 @@ interface SemanticProviderProps {
 }
 declare const SemanticProvider: React$1.FC<SemanticProviderProps>;
 
-export { ActionMetadata, Button, ButtonProps, Card, CardProps, Checkbox, CheckboxProps, ComponentMetadata, DropdownItem, Flex, FlexItem, FlexItemProps, FlexProps, Form, FormProps, HierarchyData, HierarchyMetadata, Link, LinkProps, MenuToggle, Modal, ModalProps, Radio, RadioProps, Select, SelectProps, SemanticComponent, SemanticComponentProps, SemanticProvider, StarIcon, StarIconProps, StatusBadge, StatusBadgeProps, Switch, SwitchProps, Tbody, TbodyProps, Td, TdProps, TextArea, TextAreaProps, TextInput, TextInputProps, Th, ThProps, Thead, TheadProps, Tr, TrProps, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+export { ActionMetadata, Button, ButtonProps, Card, CardProps, Checkbox, CheckboxProps, ComponentMetadata, Drawer, DrawerProps, DropdownItem, Flex, FlexItem, FlexItemProps, FlexProps, Form, FormProps, HierarchyData, HierarchyMetadata, Link, LinkProps, MenuToggle, Modal, ModalProps, Radio, RadioProps, Select, SelectProps, SemanticComponent, SemanticComponentProps, SemanticProvider, StarIcon, StarIconProps, StatusBadge, StatusBadgeProps, Switch, SwitchProps, Tbody, TbodyProps, Td, TdProps, TextArea, TextAreaProps, TextInput, TextInputProps, Th, ThProps, Thead, TheadProps, Tr, TrProps, ValidationResult, ValidationWarning, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };

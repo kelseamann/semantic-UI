@@ -719,19 +719,29 @@ const Switch = ({ semanticName, semanticRole, aiMetadata, purpose, context, togg
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, children, isSelectable, isClickable, ...props }) => {
+    // Register as wrapper (not a visual parent) in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Card', false); // false = wrapper (always visible)
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
     // Auto-infer semantic properties from PatternFly props and children
     const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable });
     const inferredContentType = contentType || inferCardContentType();
-    // Generate semantic role and AI metadata
+    // Generate semantic role
     const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} card containing ${inferredContentType} content`,
-        category: inferCategory('Card'),
-        usage: [`${inferredPurpose}-display`, 'content-organization']
-    };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Card';
-    return (jsxRuntime.jsx(reactCore.Card, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
+    const componentName = semanticName || 'Card';
+    return (jsxRuntime.jsx(reactCore.Card, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
 /** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
@@ -984,6 +994,32 @@ const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpos
     const componentName = semanticName || 'Modal';
     return (jsxRuntime.jsx(reactCore.Modal, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
+
+/** Drawer - PatternFly Drawer wrapper with semantic metadata for AI tooling */
+const Drawer = ({ semanticName, semanticRole, purpose, children, isExpanded, ...props }) => {
+    // Register as visual parent in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Drawer', true); // true = qualified visual parent
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
+    // Auto-infer purpose if not provided
+    const inferredPurpose = purpose || 'details';
+    // Generate semantic role
+    const role = semanticRole || `drawer-${inferredPurpose}`;
+    // Default semantic name if not provided
+    const componentName = semanticName || 'Drawer';
+    return (jsxRuntime.jsx(reactCore.Drawer, { ...props, isExpanded: isExpanded, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-is-expanded": isExpanded, children: children }));
+};
 
 const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
     // Get hierarchy from context (optional)
@@ -1371,6 +1407,7 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
 exports.Button = Button;
 exports.Card = Card;
 exports.Checkbox = Checkbox;
+exports.Drawer = Drawer;
 exports.DropdownItem = DropdownItem;
 exports.Flex = Flex;
 exports.FlexItem = FlexItem;

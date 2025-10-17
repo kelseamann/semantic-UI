@@ -1,5 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
-import { Button as Button$1, Form as Form$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
+import { Button as Button$1, Form as Form$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, Drawer as Drawer$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
 import React, { createContext, useContext, useState } from 'react';
 import { Tbody as Tbody$1, Td as Td$1, Th as Th$1, Thead as Thead$1, Tr as Tr$1 } from '@patternfly/react-table';
 
@@ -717,19 +717,29 @@ const Switch = ({ semanticName, semanticRole, aiMetadata, purpose, context, togg
 
 /** Card - PatternFly Card wrapper with semantic metadata for AI tooling */
 const Card = ({ semanticName, semanticRole, aiMetadata, purpose, contentType, children, isSelectable, isClickable, ...props }) => {
+    // Register as wrapper (not a visual parent) in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Card', false); // false = wrapper (always visible)
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
     // Auto-infer semantic properties from PatternFly props and children
     const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable });
     const inferredContentType = contentType || inferCardContentType();
-    // Generate semantic role and AI metadata
+    // Generate semantic role
     const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} card containing ${inferredContentType} content`,
-        category: inferCategory('Card'),
-        usage: [`${inferredPurpose}-display`, 'content-organization']
-    };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Card';
-    return (jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
+    const componentName = semanticName || 'Card';
+    return (jsx(Card$1, { ...props, isSelectable: isSelectable, isClickable: isClickable, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-content-type": inferredContentType, children: children }));
 };
 
 /** StatusBadge - HTML span wrapper with semantic metadata for AI tooling */
@@ -982,6 +992,32 @@ const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpos
     const componentName = semanticName || 'Modal';
     return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
+
+/** Drawer - PatternFly Drawer wrapper with semantic metadata for AI tooling */
+const Drawer = ({ semanticName, semanticRole, purpose, children, isExpanded, ...props }) => {
+    // Register as visual parent in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Drawer', true); // true = qualified visual parent
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
+    // Auto-infer purpose if not provided
+    const inferredPurpose = purpose || 'details';
+    // Generate semantic role
+    const role = semanticRole || `drawer-${inferredPurpose}`;
+    // Default semantic name if not provided
+    const componentName = semanticName || 'Drawer';
+    return (jsx(Drawer$1, { ...props, isExpanded: isExpanded, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-is-expanded": isExpanded, children: children }));
+};
 
 const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
     // Get hierarchy from context (optional)
@@ -1366,5 +1402,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Checkbox, DropdownItem, Flex, FlexItem, Form, Link, MenuToggle, Modal, Radio, Select, SemanticProvider, StarIcon, StatusBadge, Switch, Tbody, Td, TextArea, TextInput, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+export { Button, Card, Checkbox, Drawer, DropdownItem, Flex, FlexItem, Form, Link, MenuToggle, Modal, Radio, Select, SemanticProvider, StarIcon, StatusBadge, Switch, Tbody, Td, TextArea, TextInput, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
 //# sourceMappingURL=index.esm.js.map
