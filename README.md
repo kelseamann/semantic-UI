@@ -410,6 +410,133 @@ Every component uses similar inference patterns:
 // Infers: purpose="action-panel", contentType="interactive"
 ```
 
+## Testing & Consumption
+
+### Quick Start: Test the Library
+
+**1. Create a new React app**
+```bash
+npx create-react-app semantic-test-app
+cd semantic-test-app
+```
+
+**2. Install PatternFly peer dependencies**
+```bash
+npm install @patternfly/react-core @patternfly/react-icons
+```
+
+**3. Install semantic-ui-layer**
+
+Option A: Install from local path
+```bash
+npm install /path/to/semantic-ui-layer
+```
+
+Option B: Link for development
+```bash
+cd /path/to/semantic-ui-layer
+npm link
+cd /path/to/semantic-test-app
+npm link semantic-ui-layer
+```
+
+**4. Create a test component**
+
+```jsx
+// src/App.js
+import React from 'react';
+import { SemanticProvider, Modal, Form, Button } from 'semantic-ui-layer';
+import '@patternfly/react-core/dist/styles/base.css';
+
+function App() {
+  const [isModalOpen, setIsModalOpen] = React.useState(true);
+
+  return (
+    <SemanticProvider>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Test">
+        <Form>
+          <Button variant="primary" onClick={() => console.log('Submit')}>
+            Submit
+          </Button>
+          <Button variant="danger" onClick={() => console.log('Delete')}>
+            Delete Account
+          </Button>
+        </Form>
+      </Modal>
+    </SemanticProvider>
+  );
+}
+
+export default App;
+```
+
+**5. Run and inspect**
+```bash
+npm start
+# Open browser DevTools > Elements tab
+# Inspect the buttons to see data-* attributes
+```
+
+### Expected Attributes
+
+Every Button component should render with these `data-*` attributes:
+
+| Attribute | Example Value | Purpose |
+|-----------|---------------|---------|
+| `data-semantic-name` | `"Form Action"` | Human-readable name (wrapper/parent + action type) |
+| `data-semantic-path` | `"Modal > Form > Button"` | Full hierarchical path |
+| `data-parent` | `"Modal"` | Immediate visual parent (requires user action to see) |
+| `data-wrapper` | `"Form"` | Immediate wrapper (always visible structure) |
+| `data-num-parents` | `"1"` | Count of visual parents (depth) |
+| `data-semantic-role` | `"button-action-active"` | Component type + action + state |
+| `data-action-variant` | `"destructive"` | Visual styling variant |
+| `data-target` | `"default"` | What the action affects |
+| `data-consequence` | `"destructive-permanent"` | Impact level of action |
+| `data-affects-parent` | `"false"` | Whether it closes/dismisses parent |
+
+### Verifying Installation
+
+**Check 1: Imports work**
+```jsx
+import { Button } from 'semantic-ui-layer'; // Should not error
+```
+
+**Check 2: Components render**
+```jsx
+<Button variant="primary">Click Me</Button> // Should render
+```
+
+**Check 3: Attributes appear**
+Open DevTools and verify button has `data-semantic-role`, `data-parent`, etc.
+
+**Check 4: SemanticProvider works**
+```jsx
+<SemanticProvider>
+  <Modal><Button>Test</Button></Modal>
+</SemanticProvider>
+// Button should have data-parent="Modal"
+```
+
+### Troubleshooting
+
+**Missing attributes?**
+- Ensure `<SemanticProvider>` wraps your app
+- Check browser console for errors
+
+**Wrong parent/wrapper values?**
+- Verify component nesting in JSX
+- Only Modal, Drawer are "parents"
+- Form, Card are "wrappers"
+
+**TypeScript errors?**
+- Ensure `@patternfly/react-core` is installed
+- Check peer dependency versions
+
+**Import errors?**
+- Run `npm run build` in semantic-ui-layer
+- Verify dist/ folder exists
+- Try `npm link` again
+
 ## Component API
 
 ### Button
