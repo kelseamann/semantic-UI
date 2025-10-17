@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal as PFModal } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../../types';
 import { inferModalPurpose, inferModalInteractionType, inferCategory } from '../../utils/inference';
+import { useSemanticContext } from '../../context/SemanticContext';
 
 export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, 'children'>, SemanticComponentProps {
   children?: React.ReactNode;
@@ -23,20 +24,32 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   isOpen,
   ...props
 }, ref) => {
+  // Register as visual parent in semantic context
+  const { addContext, removeContext } = useSemanticContext();
+  
+  React.useEffect(() => {
+    addContext('Modal', true);  // true = qualified visual parent
+    return () => removeContext();
+  }, [addContext, removeContext]);
+
+  // Get hierarchy from context
+  let hierarchy;
+  try {
+    const semanticContext = useSemanticContext();
+    hierarchy = semanticContext.getHierarchy();
+  } catch {
+    hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+  }
+
   // Auto-infer semantic properties from PatternFly props
   const inferredPurpose = purpose || inferModalPurpose({ variant });
   const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
   
-  // Generate semantic role and AI metadata
+  // Generate semantic role
   const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
-  const metadata = aiMetadata || {
-    description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
-    category: inferCategory('Modal'),
-    usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
-  };
 
   // Default semantic name if not provided
-  const defaultSemanticName = semanticName || 'Modal';
+  const componentName = semanticName || 'Modal';
 
   return (
     <PFModal
@@ -44,9 +57,12 @@ export const Modal = React.forwardRef<any, ModalProps>(({
       ref={ref}
       variant={variant}
       isOpen={isOpen}
-      data-semantic-name={defaultSemanticName}
+      data-semantic-name={componentName}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
+      data-wrapper={hierarchy.immediateWrapper || 'none'}
+      data-num-parents={hierarchy.depth}
       data-semantic-role={role}
-      data-ai-metadata={JSON.stringify(metadata)}
       data-purpose={inferredPurpose}
       data-interaction-type={inferredInteractionType}
     >

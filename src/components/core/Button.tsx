@@ -68,7 +68,6 @@ export const Button: React.FC<ButtonProps> = ({
     // Otherwise just the action label
     return actionLabel;
   })();
-  const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
   const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
   const affectsParent = target === 'parent-modal' || target === 'parent-form';
 
@@ -84,7 +83,6 @@ export const Button: React.FC<ButtonProps> = ({
       data-wrapper={hierarchy.immediateWrapper || 'none'}
       data-num-parents={hierarchy.depth}
       data-semantic-role={role}
-      data-description={description}
       data-action-variant={actionVariant}
       data-target={target || 'default'}
       data-consequence={consequence}

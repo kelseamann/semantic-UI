@@ -448,10 +448,9 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
         // Otherwise just the action label
         return actionLabel;
     })();
-    const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
     const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
     const affectsParent = target === 'parent-modal' || target === 'parent-form';
-    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-description": description, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, children: children }));
+    return (jsxRuntime.jsx(reactCore.Button, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, children: children }));
 };
 
 /** Link - HTML anchor wrapper with semantic metadata for AI tooling */
@@ -500,6 +499,32 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
     // Default semantic name if not provided
     const defaultSemanticName = semanticName || 'Row Item';
     return (jsxRuntime.jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+};
+
+/** Form - PatternFly Form wrapper with semantic metadata for AI tooling */
+const Form = ({ semanticName, semanticRole, purpose, children, ...props }) => {
+    // Register as wrapper (not a visual parent) in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Form', false); // false = wrapper (always visible)
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
+    // Auto-infer purpose from context if not provided
+    const inferredPurpose = purpose || 'edit';
+    // Generate semantic role
+    const role = semanticRole || `form-${inferredPurpose}`;
+    // Default semantic name if not provided
+    const componentName = semanticName || 'Form';
+    return (jsxRuntime.jsx(reactCore.Form, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, children: children }));
 };
 
 /** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
@@ -935,19 +960,29 @@ const FlexItem = ({ semanticName, semanticRole, aiMetadata, contentType, positio
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
+    // Register as visual parent in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Modal', true); // true = qualified visual parent
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
     // Auto-infer semantic properties from PatternFly props
     const inferredPurpose = purpose || inferModalPurpose({ variant });
     const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
-    // Generate semantic role and AI metadata
+    // Generate semantic role
     const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
-        category: inferCategory('Modal'),
-        usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
-    };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Modal';
-    return (jsxRuntime.jsx(reactCore.Modal, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
+    const componentName = semanticName || 'Modal';
+    return (jsxRuntime.jsx(reactCore.Modal, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
 
 const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
@@ -1339,6 +1374,7 @@ exports.Checkbox = Checkbox;
 exports.DropdownItem = DropdownItem;
 exports.Flex = Flex;
 exports.FlexItem = FlexItem;
+exports.Form = Form;
 exports.Link = Link;
 exports.MenuToggle = MenuToggle;
 exports.Modal = Modal;

@@ -1,5 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
-import { Button as Button$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
+import { Button as Button$1, Form as Form$1, Checkbox as Checkbox$1, TextInput as TextInput$1, TextArea as TextArea$1, Select as Select$1, Radio as Radio$1, Switch as Switch$1, Card as Card$1, Flex as Flex$1, FlexItem as FlexItem$1, Modal as Modal$1, MenuToggle as MenuToggle$1, DropdownItem as DropdownItem$1 } from '@patternfly/react-core';
 import React, { createContext, useContext, useState } from 'react';
 import { Tbody as Tbody$1, Td as Td$1, Th as Th$1, Thead as Thead$1, Tr as Tr$1 } from '@patternfly/react-table';
 
@@ -446,10 +446,9 @@ const Button = ({ semanticRole, aiMetadata, action, context, target, semanticNam
         // Otherwise just the action label
         return actionLabel;
     })();
-    const description = `${actionType} button (${actionVariant} style) for ${inferredContext} context`;
     const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
     const affectsParent = target === 'parent-modal' || target === 'parent-form';
-    return (jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-description": description, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, children: children }));
+    return (jsx(Button$1, { ...props, variant: variant, onClick: onClick, isDisabled: isDisabled, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-action-variant": actionVariant, "data-target": target || 'default', "data-consequence": consequence, "data-affects-parent": affectsParent, children: children }));
 };
 
 /** Link - HTML anchor wrapper with semantic metadata for AI tooling */
@@ -498,6 +497,32 @@ const StarIcon = ({ semanticName, semanticRole, aiMetadata, purpose, context, ch
     // Default semantic name if not provided
     const defaultSemanticName = semanticName || 'Row Item';
     return (jsx("span", { ...props, onClick: onClick, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-context": inferredContext, "data-is-favorited": isFavorited, children: children }));
+};
+
+/** Form - PatternFly Form wrapper with semantic metadata for AI tooling */
+const Form = ({ semanticName, semanticRole, purpose, children, ...props }) => {
+    // Register as wrapper (not a visual parent) in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Form', false); // false = wrapper (always visible)
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
+    // Auto-infer purpose from context if not provided
+    const inferredPurpose = purpose || 'edit';
+    // Generate semantic role
+    const role = semanticRole || `form-${inferredPurpose}`;
+    // Default semantic name if not provided
+    const componentName = semanticName || 'Form';
+    return (jsx(Form$1, { ...props, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, children: children }));
 };
 
 /** Checkbox - PatternFly Checkbox wrapper with semantic metadata for AI tooling */
@@ -933,19 +958,29 @@ const FlexItem = ({ semanticName, semanticRole, aiMetadata, contentType, positio
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
 const Modal = React.forwardRef(({ semanticName, semanticRole, aiMetadata, purpose, interactionType, children, variant, isOpen, ...props }, ref) => {
+    // Register as visual parent in semantic context
+    const { addContext, removeContext } = useSemanticContext();
+    React.useEffect(() => {
+        addContext('Modal', true); // true = qualified visual parent
+        return () => removeContext();
+    }, [addContext, removeContext]);
+    // Get hierarchy from context
+    let hierarchy;
+    try {
+        const semanticContext = useSemanticContext();
+        hierarchy = semanticContext.getHierarchy();
+    }
+    catch {
+        hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    }
     // Auto-infer semantic properties from PatternFly props
     const inferredPurpose = purpose || inferModalPurpose({ variant });
     const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
-    // Generate semantic role and AI metadata
+    // Generate semantic role
     const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
-    const metadata = aiMetadata || {
-        description: `${inferredPurpose} modal with ${inferredInteractionType} interaction`,
-        category: inferCategory('Modal'),
-        usage: [`${inferredPurpose}-dialog`, 'user-interaction', 'workflow-step']
-    };
     // Default semantic name if not provided
-    const defaultSemanticName = semanticName || 'Modal';
-    return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": defaultSemanticName, "data-semantic-role": role, "data-ai-metadata": JSON.stringify(metadata), "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
+    const componentName = semanticName || 'Modal';
+    return (jsx(Modal$1, { ...props, ref: ref, variant: variant, isOpen: isOpen, "data-semantic-name": componentName, "data-semantic-path": hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName, "data-parent": hierarchy.immediateParent || 'none', "data-wrapper": hierarchy.immediateWrapper || 'none', "data-num-parents": hierarchy.depth, "data-semantic-role": role, "data-purpose": inferredPurpose, "data-interaction-type": inferredInteractionType, children: children }));
 });
 
 const MenuToggle = ({ semanticName, semanticRole, aiMetadata, target, children, ...props }) => {
@@ -1331,5 +1366,5 @@ const useAccessibility = (componentType, props = {}, context = {}) => {
     };
 };
 
-export { Button, Card, Checkbox, DropdownItem, Flex, FlexItem, Link, MenuToggle, Modal, Radio, Select, SemanticProvider, StarIcon, StatusBadge, Switch, Tbody, Td, TextArea, TextInput, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
+export { Button, Card, Checkbox, DropdownItem, Flex, FlexItem, Form, Link, MenuToggle, Modal, Radio, Select, SemanticProvider, StarIcon, StatusBadge, Switch, Tbody, Td, TextArea, TextInput, Th, Thead, Tr, clearValidationHighlights, generateAriaAttributes, generateComponentMetadata, generateKeyboardShortcuts, generateMetadataFromProps, highlightValidationWarnings, inferAccessibilityFeatures, inferAlertSeverity, inferButtonAction, inferCardContentType, inferCardPurpose, inferCategory, inferCheckboxPurpose, inferContext, inferFormContext, inferInputPurpose, inferLinkPurpose, inferModalInteractionType, inferModalPurpose, inferRadioGroupContext, inferRadioPurpose, inferSelectPurpose, inferSelectSelectionType, inferSettingsContext, inferStarIconPurpose, inferStatusBadgePurpose, inferStatusBadgeType, inferSwitchPurpose, inferSwitchToggleTarget, inferTextAreaContentType, inferTextAreaPurpose, inferUsagePatterns, inferValidationContext, isVisualParent, logValidationResults, mergeMetadata, runSemanticValidation, useAccessibility, useSemanticContext, useSemanticMetadata, validateAccessibility, validateMetadata, validateSemanticUsage };
 //# sourceMappingURL=index.esm.js.map
