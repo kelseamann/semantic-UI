@@ -10,6 +10,8 @@ export interface ModalProps extends Omit<React.ComponentProps<typeof PFModal>, '
   purpose?: 'confirmation' | 'form' | 'information' | 'selection' | 'workflow';
   /** The type of interaction this modal facilitates (auto-inferred from props if not provided) */
   interactionType?: 'blocking' | 'non-blocking' | 'progressive' | 'multi-step';
+  /** The component that triggered this modal to open (auto-inferred from context if not provided) */
+  triggeredBy?: string;
 }
 
 /** Modal - PatternFly Modal wrapper with semantic metadata for AI tooling */
@@ -19,6 +21,7 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   aiMetadata,
   purpose,
   interactionType,
+  triggeredBy,
   children,
   variant,
   isOpen,
@@ -45,6 +48,9 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   const inferredPurpose = purpose || inferModalPurpose({ variant });
   const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
   
+  // Auto-infer triggeredBy from current hierarchy context
+  const inferredTriggeredBy = triggeredBy || (hierarchy.fullPath ? hierarchy.fullPath : 'unknown');
+  
   // Generate semantic role
   const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
 
@@ -62,6 +68,7 @@ export const Modal = React.forwardRef<any, ModalProps>(({
       data-parent={hierarchy.immediateParent || 'none'}
       data-wrapper={hierarchy.immediateWrapper || 'none'}
       data-num-parents={hierarchy.depth}
+      data-triggered-by={inferredTriggeredBy}
       data-semantic-role={role}
       data-purpose={inferredPurpose}
       data-interaction-type={inferredInteractionType}
