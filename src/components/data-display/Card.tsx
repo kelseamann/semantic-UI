@@ -24,21 +24,18 @@ export const Card: React.FC<CardProps> = ({
   isClickable,
   ...props
 }) => {
-  // Register as wrapper (not a visual parent) in semantic context
-  const { addContext, removeContext } = useSemanticContext();
-  
-  React.useEffect(() => {
-    addContext('Card', false);  // false = wrapper (always visible)
-    return () => removeContext();
-  }, [addContext, removeContext]);
-
-  // Get hierarchy from context
+  // Get hierarchy from context (optional - gracefully handles no provider)
   let hierarchy;
+  let addContext, removeContext;
   try {
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
+    addContext = semanticContext.addContext;
+    removeContext = semanticContext.removeContext;
   } catch {
     hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    addContext = () => {};
+    removeContext = () => {};
   }
 
   // Auto-infer semantic properties from PatternFly props and children
@@ -48,8 +45,25 @@ export const Card: React.FC<CardProps> = ({
   // Generate semantic role
   const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
 
-  // Default semantic name if not provided
-  const componentName = semanticName || 'Card';
+  // Generate semantic name: wrapper > parent > standalone
+  // Card acts on wrapper (if exists), otherwise parent, otherwise standalone
+  const componentName = semanticName || (() => {
+    // Priority: wrapper (immediate context) > parent > standalone
+    if (hierarchy.immediateWrapper) {
+      return `${hierarchy.immediateWrapper} Card`;
+    } else if (hierarchy.immediateParent) {
+      return `${hierarchy.immediateParent} Card`;
+    }
+    
+    // Otherwise just "Card"
+    return 'Card';
+  })();
+
+  // Register card with its semantic name in context
+  React.useEffect(() => {
+    addContext('Card', componentName, false);  // false = wrapper (always visible)
+    return () => removeContext();
+  }, [addContext, removeContext, componentName]);
 
   return (
     <PFCard
