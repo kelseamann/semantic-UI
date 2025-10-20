@@ -49,7 +49,9 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
   
   // Auto-infer triggeredBy from current hierarchy context
-  const inferredTriggeredBy = triggeredBy || (hierarchy.fullPath ? hierarchy.fullPath : 'unknown');
+  // Extract just the last component name from the path (usually the triggering button)
+  const inferredTriggeredBy = triggeredBy || (hierarchy.fullPath ? 
+    hierarchy.fullPath.split(' > ').pop() || 'unknown' : 'unknown');
   
   // Generate semantic role
   const role = semanticRole || `modal-${inferredPurpose}-${inferredInteractionType}`;
