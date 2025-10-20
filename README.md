@@ -517,25 +517,119 @@ Open DevTools and verify button has `data-semantic-role`, `data-parent`, etc.
 // Button should have data-parent="Modal"
 ```
 
+### Complete Testing Workflow
+
+**Initial Setup (Do Once)**
+
+```bash
+# 1. In a separate directory (playground/test machine)
+npx create-react-app semantic-test-app
+cd semantic-test-app
+
+# 2. Install PatternFly
+npm install @patternfly/react-core @patternfly/react-icons
+
+# 3. Link to semantic-ui-layer
+# (from the semantic-ui-layer project directory)
+cd /path/to/semantic-ui-layer
+npm run build
+npm link
+
+# (back to test app)
+cd /path/to/semantic-test-app
+npm link semantic-ui-layer
+```
+
+**After Making Changes (Repeat Every Time)**
+
+```bash
+# 1. In semantic-ui-layer directory
+npm run build        # Rebuild the library
+# npm link is already active from initial setup
+
+# 2. In semantic-test-app directory
+# No need to re-link, changes are automatically available
+npm start            # Restart dev server to see changes
+```
+
+**What Should Happen**
+
+When you run `npm start` in the test app:
+1. Browser opens to `http://localhost:3000`
+2. You see a Modal with a form and two buttons
+3. Right-click any button → "Inspect" or "Inspect Element"
+4. In DevTools Elements tab, you should see the button HTML with data-* attributes
+
+**Example: Delete Account Button Should Show**
+```html
+<button 
+  class="pf-c-button pf-m-danger"
+  type="button"
+  data-semantic-name="Form Action"
+  data-semantic-path="Modal > Form > Button"
+  data-parent="Modal"
+  data-wrapper="Form"
+  data-num-parents="1"
+  data-semantic-role="button-action-active"
+  data-action-variant="destructive"
+  data-target="default"
+  data-consequence="destructive-permanent"
+  data-affects-parent="false"
+>
+  Delete Account
+</button>
+```
+
+**Success Criteria**
+- ✅ All buttons render and are clickable
+- ✅ Every button has ALL 10 data-* attributes (see table above)
+- ✅ `data-parent="Modal"` (not "none")
+- ✅ `data-wrapper="Form"` (not "none")  
+- ✅ `data-semantic-name="Form Action"` (wrapper prioritized over parent)
+- ✅ No console errors in browser DevTools Console tab
+
+**If Something's Wrong**
+
+Document what you see and bring back to development:
+1. Which attribute is missing or wrong?
+2. What value did you expect vs what you got?
+3. Copy the full button HTML from DevTools
+4. Screenshot if helpful
+
 ### Troubleshooting
 
 **Missing attributes?**
 - Ensure `<SemanticProvider>` wraps your app
 - Check browser console for errors
+- Verify `npm run build` completed successfully
+- Try unlinking and re-linking: `npm unlink semantic-ui-layer && npm link semantic-ui-layer`
 
 **Wrong parent/wrapper values?**
 - Verify component nesting in JSX
-- Only Modal, Drawer are "parents"
-- Form, Card are "wrappers"
+- Only Modal, Drawer are "visual parents" (qualified)
+- Form, Card are "wrappers" (not qualified, always visible)
+- Check `data-semantic-path` to see full hierarchy
+
+**Button shows data-parent="none"?**
+- SemanticProvider might not be wrapping the components
+- Modal/Drawer might not be registering context
+- Check console for SemanticContext errors
+
+**Changes not appearing?**
+- Run `npm run build` in semantic-ui-layer after every code change
+- Restart dev server in test app: Ctrl+C, then `npm start`
+- Clear browser cache and hard refresh (Cmd+Shift+R or Ctrl+Shift+R)
 
 **TypeScript errors?**
 - Ensure `@patternfly/react-core` is installed
-- Check peer dependency versions
+- Check peer dependency versions match
 
-**Import errors?**
+**Import errors ("Cannot find module 'semantic-ui-layer'")?**
 - Run `npm run build` in semantic-ui-layer
-- Verify dist/ folder exists
-- Try `npm link` again
+- Verify dist/ folder exists and has index.js
+- Run `npm link` in semantic-ui-layer
+- Run `npm link semantic-ui-layer` in test app
+- Check package.json "name" field matches import
 
 ## Component API
 
