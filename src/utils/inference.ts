@@ -239,17 +239,18 @@ export const generateMetadataFromProps = (
  * Infer card content type from PatternFly props and children
  */
 export const inferCardContentType = (props: Record<string, unknown>): string => {
-  // Interactive content
-  if (props.isSelectable || props.isClickable) return 'interactive';
+  // Interactive states - keep them separate
+  if (props.isSelectable) return 'selectable';
+  if (props.isClickable) return 'clickable';
   if (props.isExpanded !== undefined) return 'expandable';
   
   // Content analysis based on children
   if (props.children) {
     const childrenStr = props.children.toString().toLowerCase();
     
-    // Media content
-    if (childrenStr.includes('img') || childrenStr.includes('image') || childrenStr.includes('logo')) {
-      return 'media';
+    // Logo content (media cards should only contain logos)
+    if (childrenStr.includes('logo') || childrenStr.includes('brand')) {
+      return 'logo';
     }
     
     // Data content
@@ -270,6 +271,30 @@ export const inferCardContentType = (props: Record<string, unknown>): string => 
   }
   
   return 'mixed'; // Default fallback
+};
+
+/**
+ * Infer card interactive state from PatternFly props
+ */
+export const inferCardInteractiveState = (props: Record<string, unknown>): string => {
+  // Interactive states
+  if (props.isSelectable) {
+    if (props.isSelected) return 'selected';
+    return 'selectable';
+  }
+  
+  if (props.isClickable) {
+    if (props.isDisabled) return 'disabled-clickable';
+    return 'clickable';
+  }
+  
+  if (props.isExpanded !== undefined) {
+    if (props.isExpanded) return 'expanded';
+    return 'collapsed';
+  }
+  
+  // Default state
+  return 'static';
 };
 
 /**

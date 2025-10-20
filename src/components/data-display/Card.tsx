@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card as PFCard } from '@patternfly/react-core';
 import { SemanticComponentProps } from '../../types';
-import { inferCardPurpose, inferCardContentType, inferCategory } from '../../utils/inference';
+import { inferCardPurpose, inferCardContentType, inferCardInteractiveState, inferCategory } from '../../utils/inference';
 import { useSemanticContext } from '../../context/SemanticContext';
 
 export interface CardProps extends Omit<React.ComponentProps<typeof PFCard>, 'children'>, SemanticComponentProps {
@@ -25,6 +25,8 @@ export const Card: React.FC<CardProps> = ({
   isExpanded,
   isCompact,
   isFlat,
+  isSelected,
+  isDisabled,
   ...props
 }) => {
   // Get hierarchy from context (optional - gracefully handles no provider)
@@ -44,6 +46,7 @@ export const Card: React.FC<CardProps> = ({
   // Auto-infer semantic properties from PatternFly props and children
   const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable, isExpanded, isCompact, isFlat, children });
   const inferredContentType = contentType || inferCardContentType({ isSelectable, isClickable, isExpanded, children });
+  const inferredInteractiveState = inferCardInteractiveState({ isSelectable, isClickable, isExpanded, isSelected, isDisabled });
   
   // Generate semantic role
   const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
@@ -76,6 +79,8 @@ export const Card: React.FC<CardProps> = ({
       isExpanded={isExpanded}
       isCompact={isCompact}
       isFlat={isFlat}
+      isSelected={isSelected}
+      isDisabled={isDisabled}
       data-semantic-name={componentName}
       data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
       data-parent={hierarchy.immediateParent || 'none'}
@@ -84,6 +89,7 @@ export const Card: React.FC<CardProps> = ({
       data-semantic-role={role}
       data-purpose={inferredPurpose}
       data-content-type={inferredContentType}
+      data-interactive-state={inferredInteractiveState}
     >
       {children}
     </PFCard>
