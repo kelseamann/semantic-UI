@@ -49,7 +49,7 @@ export const Modal = React.forwardRef<any, ModalProps>(({
   const inferredInteractionType = interactionType || inferModalInteractionType(isOpen);
   
   // Auto-infer triggeredBy from current hierarchy context
-  // Extract just the last component name from the path (usually the triggering button)
+  // Extract the semantic name of the last component (usually the triggering button)
   const inferredTriggeredBy = triggeredBy || (hierarchy.fullPath ? 
     hierarchy.fullPath.split(' > ').pop() || 'unknown' : 'unknown');
   

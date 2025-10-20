@@ -11,13 +11,14 @@ export interface HierarchyData {
 }
 
 interface ContextItem {
-  name: string;
+  name: string;           // Component type: "Button", "Modal", etc.
+  semanticName: string;   // Semantic name: "Table Action", "Build New", etc.
   isQualified: boolean;
 }
 
 interface SemanticContextType {
   contextStack: ContextItem[];
-  addContext: (context: string, isQualified?: boolean) => void;
+  addContext: (context: string, semanticName?: string, isQualified?: boolean) => void;
   removeContext: () => void;
   getHierarchy: () => HierarchyData;
   clearContext: () => void;
@@ -40,10 +41,14 @@ interface SemanticProviderProps {
 export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) => {
   const [contextStack, setContextStack] = useState<ContextItem[]>([]);
 
-  const addContext = (context: string, isQualified?: boolean) => {
+  const addContext = (context: string, semanticName?: string, isQualified?: boolean) => {
     // Auto-detect if not specified
     const qualified = isQualified !== undefined ? isQualified : isVisualParent(context);
-    setContextStack(prev => [...prev, { name: context, isQualified: qualified }]);
+    setContextStack(prev => [...prev, { 
+      name: context, 
+      semanticName: semanticName || context,  // Use semantic name if provided, otherwise fallback to context
+      isQualified: qualified 
+    }]);
   };
 
   const removeContext = () => {
@@ -55,12 +60,12 @@ export const SemanticProvider: React.FC<SemanticProviderProps> = ({ children }) 
   };
 
   const getHierarchy = (): HierarchyData => {
-    const allNames = contextStack.map(c => c.name);
-    const qualifiedOnly = contextStack.filter(c => c.isQualified).map(c => c.name);
-    const wrappersOnly = contextStack.filter(c => !c.isQualified).map(c => c.name);
+    const allSemanticNames = contextStack.map(c => c.semanticName);
+    const qualifiedOnly = contextStack.filter(c => c.isQualified).map(c => c.semanticName);
+    const wrappersOnly = contextStack.filter(c => !c.isQualified).map(c => c.semanticName);
     
     return {
-      fullPath: allNames.length > 0 ? allNames.join(' > ') : '',
+      fullPath: allSemanticNames.length > 0 ? allSemanticNames.join(' > ') : '',
       qualifiedParents: qualifiedOnly,
       wrappers: wrappersOnly,
       immediateParent: qualifiedOnly.length > 0 ? qualifiedOnly[qualifiedOnly.length - 1] : '',

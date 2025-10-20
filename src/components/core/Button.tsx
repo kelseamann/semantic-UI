@@ -28,11 +28,16 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   // Get hierarchy from context (optional - gracefully handles no provider)
   let hierarchy;
+  let addContext, removeContext;
   try {
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
+    addContext = semanticContext.addContext;
+    removeContext = semanticContext.removeContext;
   } catch {
     hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    addContext = () => {};
+    removeContext = () => {};
   }
 
   // Auto-infer semantic properties from PatternFly props
@@ -68,6 +73,13 @@ export const Button: React.FC<ButtonProps> = ({
     // Otherwise just the action label
     return actionLabel;
   })();
+  
+  // Register button with its semantic name in context (for modal triggering)
+  React.useEffect(() => {
+    addContext('Button', componentName, false);  // false = not a visual parent
+    return () => removeContext();
+  }, [addContext, removeContext, componentName]);
+  
   const consequence = actionVariant === 'destructive' ? 'destructive-permanent' : 'safe';
   const affectsParent = target === 'parent-modal' || target === 'parent-form';
 
