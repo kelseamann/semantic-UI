@@ -123,11 +123,27 @@ export const inferContext = (props: Record<string, unknown>): string => {
 };
 
 /**
- * Infer card purpose from props
+ * Infer card purpose from PatternFly props
  */
 export const inferCardPurpose = (props: Record<string, unknown>): string => {
-  if (props.isSelectable || props.isClickable) return 'action-panel';
+  // Interactive cards
+  if (props.isSelectable) return 'selection-panel';
+  if (props.isClickable) return 'action-panel';
+  if (props.isExpanded !== undefined) return 'expandable-content';
+  
+  // Layout-based cards
   if (props.isCompact) return 'data-summary';
+  if (props.isFlat) return 'content-display';
+  
+  // Content-based cards (based on children analysis)
+  if (props.children) {
+    const childrenStr = props.children.toString().toLowerCase();
+    if (childrenStr.includes('logo') || childrenStr.includes('brand')) return 'brand-display';
+    if (childrenStr.includes('chart') || childrenStr.includes('graph')) return 'data-visualization';
+    if (childrenStr.includes('form') || childrenStr.includes('input')) return 'form-container';
+    if (childrenStr.includes('table') || childrenStr.includes('list')) return 'data-display';
+  }
+  
   return 'content-display';
 };
 
@@ -220,10 +236,40 @@ export const generateMetadataFromProps = (
 };
 
 /**
- * Infer card content type
+ * Infer card content type from PatternFly props and children
  */
-export const inferCardContentType = (): string => {
-  return 'mixed'; // Default to mixed, can be enhanced with children analysis
+export const inferCardContentType = (props: Record<string, unknown>): string => {
+  // Interactive content
+  if (props.isSelectable || props.isClickable) return 'interactive';
+  if (props.isExpanded !== undefined) return 'expandable';
+  
+  // Content analysis based on children
+  if (props.children) {
+    const childrenStr = props.children.toString().toLowerCase();
+    
+    // Media content
+    if (childrenStr.includes('img') || childrenStr.includes('image') || childrenStr.includes('logo')) {
+      return 'media';
+    }
+    
+    // Data content
+    if (childrenStr.includes('table') || childrenStr.includes('chart') || childrenStr.includes('graph') || 
+        childrenStr.includes('metric') || childrenStr.includes('stat')) {
+      return 'data';
+    }
+    
+    // Form content
+    if (childrenStr.includes('form') || childrenStr.includes('input') || childrenStr.includes('button')) {
+      return 'interactive';
+    }
+    
+    // Text content
+    if (childrenStr.includes('text') || childrenStr.includes('description') || childrenStr.includes('paragraph')) {
+      return 'text';
+    }
+  }
+  
+  return 'mixed'; // Default fallback
 };
 
 /**

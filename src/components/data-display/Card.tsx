@@ -22,6 +22,9 @@ export const Card: React.FC<CardProps> = ({
   children,
   isSelectable,
   isClickable,
+  isExpanded,
+  isCompact,
+  isFlat,
   ...props
 }) => {
   // Get hierarchy from context (optional - gracefully handles no provider)
@@ -39,8 +42,8 @@ export const Card: React.FC<CardProps> = ({
   }
 
   // Auto-infer semantic properties from PatternFly props and children
-  const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable });
-  const inferredContentType = contentType || inferCardContentType();
+  const inferredPurpose = purpose || inferCardPurpose({ isSelectable, isClickable, isExpanded, isCompact, isFlat, children });
+  const inferredContentType = contentType || inferCardContentType({ isSelectable, isClickable, isExpanded, children });
   
   // Generate semantic role
   const role = semanticRole || `card-${inferredPurpose}-${inferredContentType}`;
@@ -70,6 +73,9 @@ export const Card: React.FC<CardProps> = ({
       {...props}
       isSelectable={isSelectable}
       isClickable={isClickable}
+      isExpanded={isExpanded}
+      isCompact={isCompact}
+      isFlat={isFlat}
       data-semantic-name={componentName}
       data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
       data-parent={hierarchy.immediateParent || 'none'}
