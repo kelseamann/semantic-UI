@@ -115,6 +115,154 @@ function ConfirmationModal({ isOpen, onClose, onConfirm }) {
 }
 ```
 
+## Codemod: Add Semantic Attributes to PatternFly Components
+
+**For users who want to add semantic attributes directly to their PatternFly components** (without using the wrapper library), we provide a codemod that automatically injects standardized `data-*` attributes into your existing PatternFly code.
+
+### Quick Start
+
+```bash
+# Install jscodeshift (if not already installed)
+npm install -g jscodeshift
+
+# Run the codemod on your codebase
+jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
+```
+
+Or use the provided script:
+
+```bash
+# If you have semantic-ui-layer installed
+./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
+```
+
+### What It Does
+
+The codemod transforms your PatternFly components from:
+
+```tsx
+<Card isClickable>
+  <CardBody>
+    <Button variant="danger">Cancel</Button>
+  </CardBody>
+</Card>
+```
+
+Into:
+
+```tsx
+<Card 
+  isClickable
+  data-role="card"
+  data-purpose="action-panel"
+  data-variant="default"
+  data-context="default"
+  data-state="active"
+>
+  <CardBody
+    data-role="card-body"
+    data-purpose="display"
+    data-variant="default"
+    data-context="default"
+    data-state="default"
+  >
+    <Button 
+      variant="danger"
+      data-role="button"
+      data-purpose="action"
+      data-variant="danger"
+      data-context="default"
+      data-state="active"
+    >
+      Cancel
+    </Button>
+  </CardBody>
+</Card>
+```
+
+**These attributes appear on the rendered DOM elements** in your browser, making them queryable by AI tools:
+
+```html
+<div class="pf-c-card" data-role="card" data-purpose="action-panel" ...>
+  <div class="pf-c-card__body" data-role="card-body" data-purpose="display" ...>
+    <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" ...>
+      Cancel
+    </button>
+  </div>
+</div>
+```
+
+### Standardized Attributes
+
+Every PatternFly component gets the same 5 attributes:
+
+| Attribute | Description | Example Values |
+|-----------|-------------|----------------|
+| `data-role` | What the component IS | `button`, `card`, `input`, `modal` |
+| `data-purpose` | What it DOES | `action`, `display`, `input`, `navigation` |
+| `data-variant` | How it LOOKS | `primary`, `danger`, `secondary`, `text` |
+| `data-context` | Where it's USED | `form`, `modal`, `table`, `toolbar` |
+| `data-state` | Current STATE | `active`, `disabled`, `selected`, `readonly` |
+
+### Features
+
+- ✅ **Automatic Detection**: Identifies PatternFly components by analyzing import statements
+- ✅ **Smart Inference**: Automatically infers semantic properties from component props
+- ✅ **Non-Destructive**: Preserves all existing code, formatting, and comments
+- ✅ **Idempotent**: Safe to run multiple times (skips components that already have attributes)
+- ✅ **DOM-Ready**: Attributes appear on rendered HTML elements (React forwards `data-*` attributes)
+
+### Usage Examples
+
+**Transform entire directory:**
+```bash
+jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js src/
+```
+
+**Transform specific file:**
+```bash
+jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js src/components/MyComponent.tsx
+```
+
+**Preview changes (dry run):**
+```bash
+jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --dry src/
+```
+
+### Supported PatternFly Packages
+
+- `@patternfly/react-core`
+- `@patternfly/react-table`
+- `@patternfly/react-icons`
+- `@patternfly/react-charts`
+- `@patternfly/react-topology`
+
+### How It Works
+
+1. **Component Detection**: Scans import statements to identify PatternFly components
+2. **Static Inference**: Analyzes component props to infer semantic properties (variant, onClick, isDisabled, etc.)
+3. **Attribute Injection**: Adds standardized attributes without modifying existing code
+4. **DOM Rendering**: React automatically forwards `data-*` attributes to rendered DOM elements
+
+### Querying Attributes in Browser
+
+Once attributes are added, you can query them in the browser:
+
+```javascript
+// Find all action buttons
+document.querySelectorAll('[data-purpose="action"]')
+
+// Find all form inputs
+document.querySelectorAll('[data-context="form"]')
+
+// Find all danger variants
+document.querySelectorAll('[data-variant="danger"]')
+```
+
+### Documentation
+
+For detailed documentation, examples, and customization options, see [`codemod/README.md`](./codemod/README.md).
+
 ## How Semantic Metadata Works
 
 Your components use an **intelligent inference system** to automatically generate rich metadata for AI tooling, plus a **hierarchical context system** to track visual parents and wrappers. Let's break down exactly how it works.
@@ -682,6 +830,7 @@ MIT License - see LICENSE file for details
 
 - [x] Core semantic components (Button, Card, Modal, Flex, Table components)
 - [x] AI metadata system
+- [x] Codemod for adding semantic attributes to PatternFly components
 - [ ] Additional PatternFly component wrappers
 - [ ] Storybook documentation
 - [ ] AI tooling integration examples

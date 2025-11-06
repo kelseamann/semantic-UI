@@ -25,7 +25,9 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
     "generate:component": "node scripts/generate-component.js",
-    "prebuild": "npm run clean && npm run type-check"
+    "prebuild": "npm run clean && npm run type-check",
+    "codemod": "./codemod/add-semantic-attributes.sh",
+    "codemod:dry": "jscodeshift -t codemod/transform.js --dry --extensions=ts,tsx,js,jsx --parser=tsx"
   },
   "keywords": [
     "react",
@@ -56,6 +58,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "^30.0.0",
+    "@types/jscodeshift": "^17.3.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -66,6 +69,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
+    "jscodeshift": "^17.3.0",
     "rollup": "^3.0.0",
     "rollup-plugin-dts": "^5.0.0",
     "ts-jest": "^29.4.5",
