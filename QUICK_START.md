@@ -125,15 +125,6 @@ import { SemanticProvider } from 'semantic-ui-layer';
 </SemanticProvider>
 ```
 
-### Validation
-```tsx
-import { runSemanticValidation } from 'semantic-ui-layer';
-
-// Check for native HTML elements that should use semantic components
-const issues = runSemanticValidation(true); // true = highlight
-console.log(issues);
-```
-
 ## Examples
 
 ### Form with Validation
@@ -329,18 +320,6 @@ import { Button, Card, Modal } from 'semantic-ui-layer';
 >
   Save
 </Button>
-```
-
-### Step 4: Use Validation
-```typescript
-import { runSemanticValidation } from 'semantic-ui-layer';
-
-// Find places where you could use semantic components
-useEffect(() => {
-  if (process.env.NODE_ENV === 'development') {
-    runSemanticValidation(true);
-  }
-}, []);
 ```
 
 ## Best Practices

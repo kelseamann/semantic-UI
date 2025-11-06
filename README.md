@@ -10,7 +10,6 @@ Semantic UI Layer enhances PatternFly components by adding:
 - **AI Metadata**: Rich metadata including descriptions, complexity levels, and usage patterns
 - **Context Awareness**: Components understand their usage context and adapt accordingly
 - **AI-Friendly Documentation**: Structured data that helps AI tools provide better suggestions
-- **Validation Utilities**: Tools to help developers identify when they're using native HTML elements instead of semantic components
 
 ## Features
 
@@ -39,16 +38,9 @@ Each component includes structured, queryable data attributes:
 >
 ```
 
-### 🔍 Validation Utilities
-- `runSemanticValidation()` - Validates DOM for native HTML elements that should use semantic components
-- `clearValidationHighlights()` - Removes validation highlights from elements
-- `highlightValidationWarnings()` - Highlights elements with validation warnings
-- `logValidationResults()` - Logs validation results to console
-
 ### 🔧 Developer Experience
 - TypeScript support with full type safety
 - Comprehensive prop interfaces
-- Built-in validation and error handling
 - Easy customization and extension
 
 ## Installation
@@ -119,30 +111,6 @@ function ConfirmationModal({ isOpen, onClose, onConfirm }) {
         Cancel
       </Button>
     </Modal>
-  );
-}
-```
-
-### Using Validation Utilities
-
-```tsx
-import { runSemanticValidation, clearValidationHighlights } from 'semantic-ui-layer';
-
-function ValidationExample() {
-  const handleValidate = () => {
-    const result = runSemanticValidation(true); // true = highlight warnings
-    console.log('Validation result:', result);
-  };
-
-  const handleClearHighlights = () => {
-    clearValidationHighlights();
-  };
-
-  return (
-    <div>
-      <Button onClick={handleValidate}>Validate Semantic Usage</Button>
-      <Button onClick={handleClearHighlights}>Clear Highlights</Button>
-    </div>
   );
 }
 ```
@@ -714,7 +682,6 @@ MIT License - see LICENSE file for details
 
 - [x] Core semantic components (Button, Card, Modal, Flex, Table components)
 - [x] AI metadata system
-- [x] Validation utilities for semantic usage
 - [ ] Additional PatternFly component wrappers
 - [ ] Storybook documentation
 - [ ] AI tooling integration examples
