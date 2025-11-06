@@ -123,11 +123,15 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 
 ## Supported PatternFly Packages
 
-- `@patternfly/react-core`
-- `@patternfly/react-table`
-- `@patternfly/react-icons`
-- `@patternfly/react-charts`
-- `@patternfly/react-topology`
+The codemod works with **ALL components** imported from these PatternFly packages:
+
+- `@patternfly/react-core` - All core components (Button, Card, Modal, Form, Input, Select, etc.)
+- `@patternfly/react-table` - All table components (Table, Th, Td, Tr, Thead, Tbody, etc.)
+- `@patternfly/react-icons` - Icon components
+- `@patternfly/react-charts` - Chart components
+- `@patternfly/react-topology` - Topology components
+
+**Important**: The codemod processes **any component** imported from these packages, not just the ones we've wrapped. It uses intelligent inference with fallbacks for unknown components.
 
 ## Inference Examples
 
