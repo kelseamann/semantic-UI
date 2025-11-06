@@ -2,6 +2,9 @@
 
 > **⚠️ Important**: This is a **codemod tool only**. You do NOT need to import or use any library components. Simply install the package and run the codemod to transform your existing PatternFly components. The library code in this repository is for reference/development purposes only.
 
+**📦 Install from npm**: `npm install @kelseamann/semantic-ui-layer`  
+**🔗 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
+
 A codemod tool that automatically adds standardized semantic `data-*` attributes to **all PatternFly components** in your codebase, making them AI-friendly and easier for AI tools to understand.
 
 ## Overview
@@ -19,9 +22,15 @@ This tool transforms your existing PatternFly components by adding semantic meta
 
 ### Step 1: Install the Package
 
+Install from npm (recommended):
+
 ```bash
 npm install @kelseamann/semantic-ui-layer
 ```
+
+**📦 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
+
+> **Note**: The package is published to npm and ready to use. You don't need to clone the repository or install from GitHub.
 
 ### Step 2: Install jscodeshift (if not already installed)
 
@@ -133,11 +142,18 @@ Every PatternFly component gets the same 5 attributes that appear on rendered DO
 
 ## Installation
 
+Install the package from npm:
+
 ```bash
 npm install @kelseamann/semantic-ui-layer
 ```
 
-**Note**: This installs the codemod tool. You do NOT need to import any components from this package. Simply run the codemod to transform your existing PatternFly components.
+**📦 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
+
+**Note**: 
+- This installs the codemod tool from npm. You do NOT need to import any components from this package.
+- Simply run the codemod to transform your existing PatternFly components.
+- Works with both PatternFly v5 and v6 (no peer dependency conflicts).
 
 ## Updates
 
@@ -521,11 +537,15 @@ If you're using this package, you should only use the codemod tool - ignore any 
 
 ## Development
 
+> **For Users**: If you just want to use the codemod, install it from npm (see [Installation](#installation) above). You don't need to clone this repository.
+
+**For Contributors**: This section is for developing the package itself.
+
 ### Setup
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/kelseamann/semantic-UI.git
 cd semantic-ui-layer
 
 # Install dependencies
