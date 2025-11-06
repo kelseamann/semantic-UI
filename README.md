@@ -13,13 +13,23 @@ Semantic UI Layer enhances PatternFly components by adding:
 
 ## Features
 
-### 🎯 Semantic Components
-- `Button` - Buttons with action context (primary, secondary, destructive, etc.)
-- `Card` - Cards with content purpose (data-display, action-panel, etc.)
-- `Modal` - Modals with interaction type (confirmation, form, workflow, etc.)
-- `Flex` / `FlexItem` - Layout components with semantic purpose
-- `Th`, `Td`, `Tr`, `Thead`, `Tbody` - Table components with data context
-- `Checkbox`, `Link`, `StatusBadge`, `StarIcon` - Form and UI components
+### 🎯 Two Ways to Add Semantic Attributes
+
+**Option 1: Wrapper Library** (Recommended for new projects)
+Use our semantic wrapper components that extend PatternFly with automatic inference:
+- `Button`, `Card`, `Modal`, `Form` - Core components with enhanced semantic metadata
+- `TextInput`, `Select`, `Checkbox`, `Radio`, `Switch` - Form components
+- `Flex`, `FlexItem` - Layout components
+- `Th`, `Td`, `Tr`, `Thead`, `Tbody` - Table components
+- `Link`, `Drawer`, `StatusBadge`, `StarIcon` - Additional UI components
+- **23 total wrapped components** with full semantic support
+
+**Option 2: Codemod** (For existing projects)
+Automatically add semantic attributes to **ALL PatternFly components** in your codebase:
+- Works with **any component** from `@patternfly/react-core`, `@patternfly/react-table`, etc.
+- Enhanced inference for wrapped components (Button, Card, Modal, etc.)
+- Generic inference with fallbacks for all other PF components (Alert, Breadcrumb, Tabs, Accordion, etc.)
+- See [Codemod section](#codemod-add-semantic-attributes-to-patternfly-components) below for details
 
 ### 🤖 AI Metadata
 Each component includes structured, queryable data attributes:
