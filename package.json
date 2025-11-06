@@ -14,7 +14,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "codemod"
   ],
   "scripts": {
     "build": "rollup -c",
