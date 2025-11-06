@@ -1,5 +1,7 @@
 # Semantic UI Layer - Codemod
 
+> **⚠️ Important**: This is a **codemod tool only**. You do NOT need to import or use any library components. Simply install the package and run the codemod to transform your existing PatternFly components. The library code in this repository is for reference/development purposes only.
+
 A codemod tool that automatically adds standardized semantic `data-*` attributes to **all PatternFly components** in your codebase, making them AI-friendly and easier for AI tools to understand.
 
 ## Overview
@@ -15,20 +17,42 @@ This tool transforms your existing PatternFly components by adding semantic meta
 
 ## Quick Start
 
-```bash
-# Install jscodeshift (if not already installed)
-npm install -g jscodeshift
+### Step 1: Install the Package
 
-# Run the codemod on your codebase
+```bash
+npm install semantic-ui-layer
+```
+
+### Step 2: Install jscodeshift (if not already installed)
+
+```bash
+npm install -g jscodeshift
+```
+
+### Step 3: Run the Codemod
+
+You have two options:
+
+**Option A: Using the provided script (recommended)**
+```bash
+./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
+```
+
+**Option B: Using jscodeshift directly**
+```bash
 jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 ```
 
-Or use the provided script:
+### Setup on a New Computer
 
-```bash
-# If you have semantic-ui-layer installed
-./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
-```
+If you're setting up the codemod on a new computer:
+
+1. **Install Node.js** (if not already installed)
+2. **Install jscodeshift globally**: `npm install -g jscodeshift`
+3. **Install semantic-ui-layer** in your project: `npm install semantic-ui-layer`
+4. **Run the codemod** using one of the methods above
+
+The codemod is a standalone tool - you don't need to import or use any library components. It simply transforms your existing PatternFly components by adding semantic attributes.
 
 ## What It Does
 
@@ -112,6 +136,8 @@ Every PatternFly component gets the same 5 attributes that appear on rendered DO
 ```bash
 npm install semantic-ui-layer
 ```
+
+**Note**: This installs the codemod tool. You do NOT need to import any components from this package. Simply run the codemod to transform your existing PatternFly components.
 
 ## Usage
 
@@ -436,18 +462,15 @@ document.querySelectorAll('[data-variant="danger"]')
 
 For detailed documentation, examples, and customization options, see [`codemod/README.md`](./codemod/README.md).
 
-## Alternative: Wrapper Library
+## Note About Library Code
 
-This repository also contains a React wrapper library that provides semantic components. The wrapper library is available for reference but the codemod is the recommended approach for adding semantic attributes to existing PatternFly codebases.
+This repository contains both:
+1. **The codemod** (recommended) - Transforms your existing PatternFly components
+2. **Wrapper library code** (reference only) - Example implementations in `src/components/`
 
-The wrapper library includes 23 components with enhanced semantic metadata:
-- Core: Button, Card, Modal, Form, Link, Drawer
-- Forms: TextInput, TextArea, Select, Checkbox, Radio, Switch
-- Data Display: StatusBadge, Table components (Th, Td, Tr, Thead, Tbody)
-- Layout: Flex, FlexItem
-- Navigation: MenuToggle, DropdownItem
+**Important**: The wrapper library code is included for reference and development purposes only. You do NOT need to import or use any components from this package. The codemod is the recommended way to add semantic attributes to your existing PatternFly codebase.
 
-See the source code in `src/components/` for implementation details.
+If you're using this package, you should only use the codemod tool - ignore any library/component exports.
 
 ## Development
 
@@ -464,9 +487,9 @@ npm install
 
 ### Available Scripts
 
-- `npm run codemod` - Run the codemod transform
+- `npm run codemod` - Run the codemod transform on the current directory
 - `npm run codemod:dry` - Preview changes without modifying files
-- `npm run build` - Build the wrapper library (if needed)
+- `npm run build` - Build the library (for development/testing only)
 - `npm run test` - Run tests
 - `npm run lint` - Run ESLint
 
