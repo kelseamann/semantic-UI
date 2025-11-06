@@ -139,6 +139,51 @@ npm install semantic-ui-layer
 
 **Note**: This installs the codemod tool. You do NOT need to import any components from this package. Simply run the codemod to transform your existing PatternFly components.
 
+## Updates
+
+### Checking for Updates
+
+The codemod is distributed as an npm package. To check if you have the latest version:
+
+```bash
+npm outdated semantic-ui-layer
+```
+
+### Updating the Codemod
+
+```bash
+npm update semantic-ui-layer
+# or
+npm install semantic-ui-layer@latest
+```
+
+### When to Re-run the Codemod
+
+You should re-run the codemod after updating if:
+
+- **New inference improvements** - Better attribute inference for components
+- **New PatternFly package support** - Support for additional PatternFly packages
+- **Bug fixes** - Fixes to incorrect attribute inference
+- **New features** - Additional semantic attributes or capabilities
+
+The codemod is **idempotent**, meaning you can run it multiple times safely without causing issues. Specifically:
+- ✅ **Skips components that already have semantic attributes** - Won't duplicate or modify existing attributes
+- ✅ **Adds attributes to new components** - If you've added new PatternFly components since the last run, it will add attributes to those
+- ✅ **Safe to re-run** - Running it again won't break anything or create duplicates
+
+This means you can re-run the codemod after updating the package to benefit from improved inference rules without worrying about breaking your code.
+
+### Checking What Changed
+
+Check the commit history or GitHub releases to see what improvements were made in each version. This will help you decide if you need to re-run the codemod.
+
+### Recommended Workflow
+
+1. **Initial setup**: Install and run the codemod once on your codebase
+2. **Periodic updates**: Check for updates monthly or when you add new PatternFly components
+3. **After major updates**: Re-run the codemod to benefit from improved inference
+4. **Review changes**: Use `git diff` to review what changed before committing
+
 ## Usage
 
 ### Transform Entire Directory
