@@ -20,7 +20,7 @@ This tool transforms your existing PatternFly components by adding semantic meta
 ### Step 1: Install the Package
 
 ```bash
-npm install semantic-ui-layer
+npm install @kelseamann/semantic-ui-layer
 ```
 
 ### Step 2: Install jscodeshift (if not already installed)
@@ -35,12 +35,12 @@ You have two options:
 
 **Option A: Using the provided script (recommended)**
 ```bash
-./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
+./node_modules/@kelseamann/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
 ```
 
 **Option B: Using jscodeshift directly**
 ```bash
-jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
+jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 ```
 
 ### Setup on a New Computer
@@ -49,7 +49,7 @@ If you're setting up the codemod on a new computer:
 
 1. **Install Node.js** (if not already installed)
 2. **Install jscodeshift globally**: `npm install -g jscodeshift`
-3. **Install semantic-ui-layer** in your project: `npm install semantic-ui-layer`
+3. **Install @kelseamann/semantic-ui-layer** in your project: `npm install @kelseamann/semantic-ui-layer`
 4. **Run the codemod** using one of the methods above
 
 The codemod is a standalone tool - you don't need to import or use any library components. It simply transforms your existing PatternFly components by adding semantic attributes.
@@ -134,7 +134,7 @@ Every PatternFly component gets the same 5 attributes that appear on rendered DO
 ## Installation
 
 ```bash
-npm install semantic-ui-layer
+npm install @kelseamann/semantic-ui-layer
 ```
 
 **Note**: This installs the codemod tool. You do NOT need to import any components from this package. Simply run the codemod to transform your existing PatternFly components.
@@ -146,15 +146,15 @@ npm install semantic-ui-layer
 The codemod is distributed as an npm package. To check if you have the latest version:
 
 ```bash
-npm outdated semantic-ui-layer
+npm outdated @kelseamann/semantic-ui-layer
 ```
 
 ### Updating the Codemod
 
 ```bash
-npm update semantic-ui-layer
+npm update @kelseamann/semantic-ui-layer
 # or
-npm install semantic-ui-layer@latest
+npm install @kelseamann/semantic-ui-layer@latest
 ```
 
 ### When to Re-run the Codemod
@@ -189,29 +189,29 @@ Check the commit history or GitHub releases to see what improvements were made i
 ### Transform Entire Directory
 
 ```bash
-jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
+jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 ```
 
 ### Transform Specific File
 
 ```bash
-jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js src/components/MyComponent.tsx
+jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js src/components/MyComponent.tsx
 ```
 
 ### Preview Changes (Dry Run)
 
 ```bash
-jscodeshift -t node_modules/semantic-ui-layer/codemod/transform.js --dry src/
+jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --dry src/
 ```
 
 ### Using the Bash Script
 
 ```bash
 # Transform all files in src/
-./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
+./node_modules/@kelseamann/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
 
 # Transform a specific file
-./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh src/components/MyComponent.tsx
+./node_modules/@kelseamann/semantic-ui-layer/codemod/add-semantic-attributes.sh src/components/MyComponent.tsx
 
 # Transform current directory
 ./node_modules/semantic-ui-layer/codemod/add-semantic-attributes.sh
@@ -227,7 +227,9 @@ The codemod works with **ALL components** imported from these PatternFly package
 - `@patternfly/react-charts` - Chart components
 - `@patternfly/react-topology` - Topology components
 
-**Important**: The codemod processes **any component** imported from these packages, not just a limited subset. It uses intelligent inference with fallbacks for unknown components.
+**Important**: 
+- The codemod processes **any component** imported from these packages, not just a limited subset. It uses intelligent inference with fallbacks for unknown components.
+- **Works with both PatternFly v5 and v6** - The codemod uses static code analysis and doesn't require PatternFly as a runtime dependency, so it works with any version of PatternFly you're using.
 
 ## How It Works
 
