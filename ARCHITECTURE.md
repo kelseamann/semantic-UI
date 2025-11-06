@@ -22,6 +22,7 @@ semantic-ui-layer/
 │       │   └── StarIcon.tsx
 │       ├── forms/                        # Form components
 │       │   ├── Checkbox.tsx
+│       │   ├── Form.tsx
 │       │   ├── TextInput.tsx
 │       │   ├── TextArea.tsx
 │       │   ├── Select.tsx
@@ -39,10 +40,17 @@ semantic-ui-layer/
 │       │   ├── Flex.tsx
 │       │   └── FlexItem.tsx
 │       ├── overlay/                      # Overlay components
-│       │   └── Modal.tsx
+│       │   ├── Modal.tsx
+│       │   └── Drawer.tsx
 │       └── navigation/                   # Navigation components
 │           ├── MenuToggle.tsx
 │           └── DropdownItem.tsx
+├── codemod/                              # Codemod for adding attributes to PF components
+│   ├── transform.js                      # JSCodeShift transform
+│   ├── static-inference.js               # Static inference utilities
+│   ├── add-semantic-attributes.sh        # User-friendly script
+│   └── README.md                         # Codemod documentation
+└── dist/                                 # Built output
 ```
 
 ---
@@ -106,7 +114,14 @@ Component Render
     ├─► 1. Get Hierarchy (optional)
     │       │
     │       └─► useSemanticContext().getHierarchy()
-    │           Returns: { parents: string[], depth: number, path: string }
+    │           Returns: { 
+    │             fullPath: string,
+    │             qualifiedParents: string[],
+    │             wrappers: string[],
+    │             immediateParent: string,
+    │             immediateWrapper: string,
+    │             depth: number
+    │           }
     │
     ├─► 2. Infer Semantic Properties
     │       │
@@ -138,9 +153,9 @@ Component Render
                   data-wrapper="Form"
                   data-num-parents="1"
                   data-semantic-role="button-action-active"
-                  data-action-variant="primary"
+                  data-action-variant="destructive"
                   data-target="user-record"
-                  data-consequence="safe"
+                  data-consequence="destructive-permanent"
                   data-affects-parent="false"
                 />
 ```
@@ -155,7 +170,9 @@ Component Render
 HierarchyData {
   fullPath: string              // "Modal > Form > Card" (ALL components)
   qualifiedParents: string[]    // ["Modal"] (only visual parents)
+  wrappers: string[]            // ["Form", "Card"] (only wrappers)
   immediateParent: string       // "Modal" (last visual parent)
+  immediateWrapper: string      // "Card" (last wrapper)
   depth: number                 // 1 (count of visual parents only)
 }
 // Visual Parents = require user action to see (Modal, Drawer, Tab, Wizard Step)
@@ -175,6 +192,14 @@ SemanticComponentProps {
   target?: string        // What the component affects
   action?: string        // What it does (inferred or explicit)
   context?: string       // State context (inferred or explicit)
+  aiMetadata?: {
+    description?: string
+    category?: string
+    accessibility?: string[]
+    usage?: string[]
+    hierarchy?: HierarchyMetadata
+    action?: ActionMetadata
+  }
 }
 ```
 
@@ -187,39 +212,46 @@ SemanticComponentProps {
 All components import inference logic from this file:
 
 ```typescript
+// Component type detection
+isVisualParent(componentName) → boolean
+
 // Button inference
 inferButtonAction(variant, href, onClick, target) → { type: string, variant: string }
 inferContext(props) → string
 inferCategory(componentName) → string
 
 // Card inference
-inferCardPurpose(isClickable, isCompact, children) → string
-inferCardContentType(children) → string
+inferCardPurpose(props) → string
+inferCardContentType(props) → string
+inferCardInteractiveState(props) → string
 
 // Form inference
-inferInputPurpose(type, name, id) → string
-inferSelectPurpose(isCreatable, isMulti) → string
-inferRadioPurpose(props) → string
-inferSwitchPurpose(label, isReversed) → string
-inferCheckboxPurpose(props) → string
-inferTextAreaPurpose(rows, placeholder) → string
+inferInputPurpose(type) → string
+inferSelectPurpose() → string
+inferSelectSelectionType(variant) → string
+inferRadioPurpose() → string
+inferRadioGroupContext(name) → string
+inferSwitchPurpose() → string
+inferSwitchToggleTarget() → string
+inferTextAreaPurpose() → string
+inferTextAreaContentType() → string
+inferCheckboxPurpose(isChecked) → string
 
-// Modal inference
-inferModalPurpose(variant, title) → string
-inferModalInteractionType(hasForm, title) → string
+// Modal/Drawer inference
+inferModalPurpose(props) → string
+inferModalInteractionType(isOpen) → string
 
 // Link inference
 inferLinkPurpose(href, children) → string
 
 // Status inference
-inferStatusBadgeType(status) → string
-inferStatusBadgePurpose(isRead) → string
+inferStatusBadgeType(content) → string
+inferStatusBadgePurpose() → string
 
 // Context inference
-inferFormContext(props) → string
-inferValidationContext(validated, isInvalid, isValid) → string
-inferSettingsContext(props) → string
-
+inferFormContext() → string
+inferValidationContext(isRequired) → string
+inferSettingsContext() → string
 
 // Category inference
 inferCategory(componentType) → "forms" | "navigation" | "overlay" | ...
@@ -243,35 +275,51 @@ Manages hierarchical component relationships:
 ```typescript
 SemanticProvider
     │
-    ├─ State: contextStack: string[]
+    ├─ State: contextStack: ContextItem[]
     │
     └─ Methods:
-        ├─ addContext(name: string)        // Push to stack
-        ├─ removeContext()                 // Pop from stack
-        ├─ clearContext()                  // Reset stack
-        └─ getHierarchy(): HierarchyData   // Get current hierarchy
+        ├─ addContext(name, semanticName?, isQualified?)  // Push to stack
+        ├─ removeContext()                                 // Pop from stack
+        ├─ clearContext()                                  // Reset stack
+        └─ getHierarchy(): HierarchyData                  // Get current hierarchy
                 │
                 └─ Returns:
                     {
-                      parents: [...contextStack],
-                      depth: contextStack.length,
-                      path: contextStack.join(' > ')
+                      fullPath: string,
+                      qualifiedParents: string[],
+                      wrappers: string[],
+                      immediateParent: string,
+                      immediateWrapper: string,
+                      depth: number
                     }
 ```
 
 **Usage Pattern:**
 
 ```typescript
-// In Modal component
+// In Modal component (visual parent)
 React.useEffect(() => {
-  addContext('Modal');
+  addContext('Modal', 'Modal', true);  // true = qualified visual parent
+  return () => removeContext();
+}, []);
+
+// In Form component (wrapper)
+React.useEffect(() => {
+  addContext('Form', 'Form', false);  // false = wrapper
   return () => removeContext();
 }, []);
 
 // In Button component
 const hierarchy = getHierarchy();
-// If contextStack = ['Modal', 'Form']:
-// hierarchy = { parents: ['Modal', 'Form'], depth: 2, path: 'Modal > Form' }
+// If contextStack = [{name: 'Modal', isQualified: true}, {name: 'Form', isQualified: false}]:
+// hierarchy = { 
+//   fullPath: "Modal > Form",
+//   qualifiedParents: ["Modal"],
+//   wrappers: ["Form"],
+//   immediateParent: "Modal",
+//   immediateWrapper: "Form",
+//   depth: 1
+// }
 ```
 
 ---
@@ -335,47 +383,6 @@ document.querySelectorAll('[data-num-parents="3"]')
 
 ---
 
-## How AI Understands Components
-
-### Without Structured Metadata:
-```html
-<button>Delete</button>
-```
-```
-❌ "A button that deletes something, but where? What context? What consequences?"
-```
-
-### With Individual Queryable Attributes:
-```html
-<button 
-  data-semantic-name="Form Action"
-  data-semantic-path="Modal > Form > Button"
-  data-parent="Modal"
-  data-wrapper="Form"
-  data-num-parents="1"
-  data-semantic-role="button-action-active"
-  data-action-variant="destructive"
-  data-target="user-record"
-  data-consequence="destructive-permanent"
-  data-affects-parent="false"
->
-  Delete
-</button>
-```
-```
-✅ "This is a 'Form Action' button" (data-semantic-name: wrapper + action type, prioritizes wrapper over parent)
-✅ "It's a button-action-active" (data-semantic-role: category + what it does + state)
-✅ "It's destructive" (data-action-variant)
-✅ "It's INSIDE Modal (1 visual parent), wrapped by Form" (data-parent, data-wrapper, data-num-parents)
-✅ "Full path includes all containers" (data-semantic-path: "Modal > Form > Button")
-✅ "It deletes user-record" (data-target)
-✅ "It does NOT close the parent modal" (data-affects-parent: false)
-✅ "It's a destructive-permanent action" (data-consequence)
-✅ "AI parses attributes to understand complete context and behavior"
-```
-
----
-
 ## Component Implementation Pattern
 
 Every component follows this pattern:
@@ -391,47 +398,82 @@ export const Component = ({
 }) => {
   // 1. Get hierarchy (optional - graceful fallback)
   let hierarchy;
+  let addContext, removeContext;
   try {
     const semanticContext = useSemanticContext();
     hierarchy = semanticContext.getHierarchy();
+    addContext = semanticContext.addContext;
+    removeContext = semanticContext.removeContext;
   } catch {
-    hierarchy = { parents: [], depth: 0, path: '' };
+    hierarchy = { fullPath: '', qualifiedParents: [], wrappers: [], immediateParent: '', immediateWrapper: '', depth: 0 };
+    addContext = () => {};
+    removeContext = () => {};
   }
 
   // 2. Infer semantic properties using DRY utilities
   const inferredAction = action || inferX(props);
   const inferredContext = context || inferY(props);
   
-  // 3. Build metadata with hierarchy + action
-  const metadata = aiMetadata || {
-    description: `${inferredAction} for ${inferredContext}`,
-    category: 'forms',
-    complexity: 'simple',
-    hierarchy,
-    action: {
-      type: inferredAction,
-      target: target || 'default',
-      consequence: inferredAction === 'destructive' ? 'destructive-permanent' : 'safe',
-      affectsParent: target === 'parent-modal' || target === 'parent-form'
-    }
-  };
+  // 3. Generate semantic role and name
+  const role = semanticRole || `component-${inferredAction}-${inferredContext}`;
+  const componentName = semanticName || generateName(hierarchy, inferredAction);
+  
+  // 4. Register in context (if needed)
+  React.useEffect(() => {
+    addContext('Component', componentName, isQualified);
+    return () => removeContext();
+  }, [addContext, removeContext, componentName]);
 
-  // 4. Render with structured data attributes
+  // 5. Render with structured data attributes
   return (
     <PatternFlyComponent
       {...props}
-      data-semantic-name={semanticName || 'Component'}
-      data-semantic-path={hierarchy.path ? `${hierarchy.path} > ${semanticName}` : semanticName}
-      data-semantic-hierarchy={JSON.stringify(hierarchy.parents)}
-      data-semantic-role={semanticRole}
-      data-ai-metadata={JSON.stringify(metadata)}
-      data-action={inferredAction}
+      data-semantic-name={componentName}
+      data-semantic-path={hierarchy.fullPath ? `${hierarchy.fullPath} > ${componentName}` : componentName}
+      data-parent={hierarchy.immediateParent || 'none'}
+      data-wrapper={hierarchy.immediateWrapper || 'none'}
+      data-num-parents={hierarchy.depth}
+      data-semantic-role={role}
+      data-action-variant={inferredAction.variant}
       data-target={target || 'default'}
-      data-context={inferredContext}
+      data-consequence={consequence}
+      data-affects-parent={affectsParent}
     />
   );
 };
 ```
+
+---
+
+## Codemod Architecture
+
+### `codemod/` - Static Code Transformation
+
+For users who want to add semantic attributes directly to PatternFly components (without using wrapper components), we provide a codemod:
+
+```
+codemod/
+├── transform.js              # JSCodeShift transform
+├── static-inference.js       # Static inference (no runtime deps)
+├── add-semantic-attributes.sh # User-friendly script
+└── README.md                 # Documentation
+```
+
+**How it works:**
+
+1. **Component Detection**: Scans import statements to identify PatternFly components
+2. **Static Inference**: Analyzes component props to infer semantic properties
+3. **Attribute Injection**: Adds standardized `data-*` attributes to JSX
+4. **DOM Rendering**: React forwards attributes to rendered DOM elements
+
+**Standardized Attributes Added:**
+- `data-role` - What the component IS
+- `data-purpose` - What it DOES
+- `data-variant` - How it LOOKS
+- `data-context` - Where it's USED
+- `data-state` - Current STATE
+
+See [`codemod/README.md`](./codemod/README.md) for detailed documentation.
 
 ---
 
@@ -463,6 +505,43 @@ export * from './hooks';
 
 ---
 
+## Component Categories
+
+### Core Components (3)
+- `Button` - Actions and interactions
+- `Link` - Navigation links
+- `StarIcon` - Rating/favorite icons
+
+### Form Components (7)
+- `Form` - Form container
+- `TextInput` - Text input fields
+- `TextArea` - Multi-line text input
+- `Select` - Dropdown selection
+- `Checkbox` - Checkbox input
+- `Radio` - Radio button input
+- `Switch` - Toggle switch
+
+### Data Display Components (7)
+- `Card` - Content containers
+- `StatusBadge` - Status indicators
+- `Th`, `Td`, `Tr`, `Thead`, `Tbody` - Table components
+
+### Layout Components (2)
+- `Flex` - Flexbox container
+- `FlexItem` - Flexbox item
+
+### Overlay Components (2)
+- `Modal` - Modal dialogs
+- `Drawer` - Side drawers
+
+### Navigation Components (2)
+- `MenuToggle` - Menu toggle button
+- `DropdownItem` - Dropdown menu item
+
+**Total: 23 components**
+
+---
+
 ## Summary
 
 | Layer | Location | Purpose |
@@ -473,8 +552,13 @@ export * from './hooks';
 | **Components** | `src/components/` | PatternFly wrappers with metadata |
 | **Hooks** | `src/hooks/` | Reusable React hooks |
 | **Utils** | `src/utils/` | Helper functions |
+| **Codemod** | `codemod/` | Static code transformation tool |
 
-**Key Principle**: All inference logic lives in `utils/inference.ts` (DRY), and all components import from it.
+**Key Principles:**
+- ✅ All inference logic lives in `utils/inference.ts` (DRY)
+- ✅ All components import from single source of truth
+- ✅ Graceful degradation (works without SemanticProvider)
+- ✅ Type-safe throughout
+- ✅ Attributes appear on rendered DOM elements
 
 **Data Flow**: Props → Inference → Hierarchy → Metadata → Data Attributes → AI Consumption
-
