@@ -1,7 +1,7 @@
 {
   "name": "semantic-ui-layer",
   "version": "1.0.0",
-  "description": "A standalone React library that wraps PatternFly design system components with semantic meaning and additional metadata for AI tooling",
+  "description": "Codemod tool that automatically adds semantic data-* attributes to all PatternFly components, making them AI-friendly",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
