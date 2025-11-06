@@ -206,8 +206,9 @@ Every PatternFly component gets the same 5 attributes:
 
 ### Features
 
+- ✅ **Universal Coverage**: Works with **ALL PatternFly components**, not just wrapped ones
 - ✅ **Automatic Detection**: Identifies PatternFly components by analyzing import statements
-- ✅ **Smart Inference**: Automatically infers semantic properties from component props
+- ✅ **Smart Inference**: Enhanced inference for wrapped components, generic inference with fallbacks for others
 - ✅ **Non-Destructive**: Preserves all existing code, formatting, and comments
 - ✅ **Idempotent**: Safe to run multiple times (skips components that already have attributes)
 - ✅ **DOM-Ready**: Attributes appear on rendered HTML elements (React forwards `data-*` attributes)
@@ -244,9 +245,21 @@ The codemod works with **ALL components** imported from these PatternFly package
 ### How It Works
 
 1. **Component Detection**: Scans import statements to identify PatternFly components
-2. **Static Inference**: Analyzes component props to infer semantic properties (variant, onClick, isDisabled, etc.)
+   - Works for **ALL components** imported from PatternFly packages
+   - Not limited to wrapped components - processes any PF component
+
+2. **Static Inference**: Analyzes component props to infer semantic properties
+   - **Enhanced inference** for wrapped components (Button, Card, Modal, Form, Input, Select, etc.)
+   - **Generic inference with fallbacks** for other PF components (Alert, Breadcrumb, Tabs, Accordion, etc.)
+   - Reads `variant`, `type`, `onClick`, `isDisabled`, etc.
+
 3. **Attribute Injection**: Adds standardized attributes without modifying existing code
+   - Preserves all existing props, formatting, and comments
+   - Idempotent - safe to run multiple times
+
 4. **DOM Rendering**: React automatically forwards `data-*` attributes to rendered DOM elements
+   - All attributes appear on the actual HTML elements in the browser
+   - Queryable via DevTools and JavaScript
 
 ### Querying Attributes in Browser
 
