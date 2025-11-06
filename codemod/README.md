@@ -105,8 +105,11 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
    - Recognizes imports from `@patternfly/react-core`, `@patternfly/react-table`, etc.
    - Handles both named and default imports
    - Handles aliased imports (e.g., `import { Button as PFButton }`)
+   - **Works for ALL PatternFly components**, not just wrapped ones
 
 2. **Static Inference**: Analyzes component props to infer semantic properties
+   - **Enhanced inference** for components with specific logic (Button, Card, Modal, Form, Input, Select, etc.)
+   - **Generic inference with fallbacks** for other PF components (Alert, Breadcrumb, Tabs, etc.)
    - Reads `variant`, `type`, `onClick`, `isDisabled`, etc.
    - Determines purpose from component name and props
    - Detects parent context for nested components
@@ -120,6 +123,18 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
    - React forwards all `data-*` attributes to DOM elements
    - PatternFly components respect React's attribute forwarding
    - Attributes are queryable in browser DevTools
+
+### Inference Quality
+
+**Components with Enhanced Inference:**
+- Button, Card, Modal, Form, TextInput, TextArea, Select, Checkbox, Radio, Switch
+- Flex, FlexItem, Table components (Th, Td, Tr, Thead, Tbody)
+- Link, Drawer, MenuToggle, DropdownItem
+
+**Components with Generic Inference:**
+- All other PatternFly components (Alert, Breadcrumb, Tabs, Accordion, etc.)
+- Uses heuristics and fallbacks to provide reasonable defaults
+- Still adds all 5 standardized attributes
 
 ## Supported PatternFly Packages
 
