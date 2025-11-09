@@ -77,6 +77,8 @@ function inferRole(componentName) {
     'alertgroup': 'alert-group',              // Container for multiple alerts
     // Avatar component
     'avatar': 'avatar',                       // User representation
+    // Banner component
+    'banner': 'banner',                       // Status/notification banner
   };
   
   return roleMap[name] || name;
@@ -165,6 +167,33 @@ function inferPurpose(componentName, props) {
     return 'user-representation';
   }
   
+  // Banner - basic (generic) or status (conveys severity/status)
+  if (name.includes('banner')) {
+    // Check if banner has a status color/variant (blue, red, green, gold, or info, danger, success, warning)
+    const statusColors = ['blue', 'red', 'green', 'gold'];
+    const statusVariants = ['info', 'danger', 'success', 'warning'];
+    
+    if (propsMap.has('color')) {
+      const colorValue = propsMap.get('color');
+      if (typeof colorValue === 'string' && statusColors.includes(colorValue.toLowerCase())) {
+        return 'status';
+      }
+    }
+    
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (statusColors.includes(val) || statusVariants.includes(val)) {
+          return 'status';
+        }
+      }
+    }
+    
+    // Default to 'basic' if no status color/variant
+    return 'basic';
+  }
+  
   return 'display';
 }
 
@@ -186,6 +215,36 @@ function inferVariant(componentName, props) {
       }
     }
     // Default to 'default' if no variant specified
+    return 'default';
+  }
+  
+  // Banner variants - color types (default, blue, red, green, gold)
+  // Purpose (basic/status) is determined by whether variant conveys status
+  if (name.includes('banner')) {
+    // Check for color prop first
+    if (propsMap.has('color')) {
+      const colorValue = propsMap.get('color');
+      if (typeof colorValue === 'string') {
+        return colorValue.toLowerCase();
+      }
+    }
+    // Check for variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        // If variant is a semantic value (info, danger, etc.), map to color
+        const semanticToColor = {
+          'info': 'blue',
+          'danger': 'red',
+          'success': 'green',
+          'warning': 'gold',
+        };
+        // Return color if it's a semantic variant, otherwise return as-is
+        return semanticToColor[val] || val;
+      }
+    }
+    // Default to 'default' if no variant/color specified
     return 'default';
   }
   
@@ -382,6 +441,13 @@ function inferContext(componentName, props, parentContext = null) {
     // Inline alerts can be in forms, modals, or page content
     // Context is usually inferred from parent components
     // For now, let parent context detection handle this
+  }
+  
+  // Banner context - typically at page level (top or bottom of page)
+  if (name.includes('banner')) {
+    // Banners are typically placed at top/bottom of page or above/below main content
+    // They're always at page level, not nested in forms/modals
+    return 'page';
   }
   
   // Display components are typically on the page
