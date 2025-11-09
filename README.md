@@ -82,7 +82,7 @@ Into:
 <Card 
   isClickable
   data-role="card"
-  data-purpose="action-panel"
+  data-purpose="clickable"
   data-variant="default"
   data-context="default"
   data-state="active"
@@ -111,7 +111,7 @@ Into:
 **These attributes appear on the rendered DOM elements** in your browser:
 
 ```html
-<div class="pf-c-card" data-role="card" data-purpose="action-panel" data-variant="default" data-context="default" data-state="active">
+<div class="pf-c-card" data-role="card" data-purpose="clickable" data-variant="default" data-context="default" data-state="active">
   <div class="pf-c-card__body" data-role="card-body" data-purpose="display" data-variant="default" data-context="default" data-state="default">
     <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" data-context="default" data-state="active">
       Cancel

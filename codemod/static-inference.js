@@ -76,29 +76,44 @@ function inferPurpose(componentName, props) {
   const name = componentName.toLowerCase();
   const propsMap = propsToMap(props);
   
-  // Check for interactive props first
-  if (propsMap.has('onClick') || propsMap.has('onSubmit')) {
-    if (name.includes('button') || name.includes('link')) {
+  // Buttons and Links - check for interactive props
+  if (name.includes('button') || name.includes('link')) {
+    if (propsMap.has('onClick') || propsMap.has('onSubmit')) {
       return 'action';
     }
-    if (name.includes('card') && propsMap.has('isClickable')) {
-      return 'action-panel';
+    // Button without onClick is likely disabled or read-only (handled by state)
+    // But purpose should still be 'action' since it's a button
+    if (name.includes('button')) {
+      return 'action';
     }
   }
   
+  // Links with href are navigation
   if (propsMap.has('href')) {
     return 'navigation';
+  }
+  
+  // Cards - can be selectable, clickable, both, or neither
+  if (name.includes('card')) {
+    const isSelectable = propsMap.has('isSelectable') || propsMap.has('isSelectableRaised');
+    const isClickable = propsMap.has('isClickable') || propsMap.has('onClick');
+    
+    if (isSelectable && isClickable) {
+      return 'clickable and selectable';
+    }
+    if (isSelectable) {
+      return 'selectable';
+    }
+    if (isClickable) {
+      return 'clickable';
+    }
+    // Card without interactive props is display (state will indicate disabled/read-only if applicable)
+    return 'display';
   }
   
   // Component-specific purposes
   if (name.includes('input') || name.includes('textarea') || name.includes('select')) {
     return 'input';
-  }
-  
-  if (name.includes('card')) {
-    if (propsMap.has('isSelectable')) return 'selection-panel';
-    if (propsMap.has('isClickable')) return 'action-panel';
-    return 'display';
   }
   
   if (name.includes('modal') || name.includes('drawer')) {
@@ -211,8 +226,10 @@ function inferContext(componentName, props, parentContext = null) {
  */
 function inferState(componentName, props) {
   const propsMap = propsToMap(props);
+  const name = componentName.toLowerCase();
   
-  if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+  // Check explicit state props first
+  if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
     return 'disabled';
   }
   
@@ -234,6 +251,28 @@ function inferState(componentName, props) {
   
   if (propsMap.has('isChecked') || propsMap.has('checked')) {
     return 'checked';
+  }
+  
+  // Buttons without onClick are likely disabled or read-only
+  // (explicit isDisabled/isReadOnly props are already handled above)
+  if (name.includes('button') && !propsMap.has('onClick') && !propsMap.has('onSubmit')) {
+    // Button without onClick and no explicit state props - likely disabled
+    // (buttons are interactive by nature, so no onClick suggests disabled)
+    return 'disabled';
+  }
+  
+  // Cards without interactive props are likely disabled or read-only
+  // (explicit isDisabled/isReadOnly props are already handled above)
+  if (name.includes('card')) {
+    const hasInteractiveProps = propsMap.has('isClickable') || 
+                                propsMap.has('isSelectable') || 
+                                propsMap.has('isSelectableRaised') ||
+                                propsMap.has('onClick');
+    if (!hasInteractiveProps) {
+      // Card without interactive props and no explicit state - likely read-only
+      // (cards can be display-only, so no interactive props suggests read-only rather than disabled)
+      return 'readonly';
+    }
   }
   
   // Check for interactive props (implies active)

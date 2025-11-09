@@ -8,7 +8,7 @@ function ExampleComponent() {
     <Card 
       isClickable
       data-role="card"
-      data-purpose="action-panel"
+      data-purpose="clickable"
       data-variant="default"
       data-context="default"
       data-state="active"
@@ -40,7 +40,7 @@ function ExampleComponent() {
 export default ExampleComponent;
 
 // Rendered HTML in browser will look like:
-// <div class="pf-c-card" data-role="card" data-purpose="action-panel" ...>
+// <div class="pf-c-card" data-role="card" data-purpose="clickable" ...>
 //   <div class="pf-c-card__body" data-role="card-body" data-purpose="display" ...>
 //     I'm a card
 //     <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" ...>

@@ -21,7 +21,7 @@ Into:
 <Card 
   isClickable
   data-role="card"
-  data-purpose="action-panel"
+  data-purpose="clickable"
   data-variant="default"
   data-context="default"
   data-state="active"
@@ -50,7 +50,7 @@ Into:
 
 **Rendered HTML in Browser:**
 ```html
-<div class="pf-c-card" data-role="card" data-purpose="action-panel" data-variant="default" data-context="default" data-state="active">
+<div class="pf-c-card" data-role="card" data-purpose="clickable" data-variant="default" data-context="default" data-state="active">
   <div class="pf-c-card__body" data-role="card-body" data-purpose="display" data-variant="default" data-context="default" data-state="default">
     I'm a card
     <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" data-context="default" data-state="active">
@@ -195,7 +195,7 @@ The codemod works with **ALL components** imported from these PatternFly package
   isClickable 
   isSelected
   data-role="card"
-  data-purpose="action-panel"
+  data-purpose="clickable"
   data-variant="default"
   data-context="default"
   data-state="selected"
@@ -214,7 +214,7 @@ The codemod works with **ALL components** imported from these PatternFly package
 
 **Rendered HTML:**
 ```html
-<div class="pf-c-card" data-role="card" data-purpose="action-panel" data-variant="default" data-context="default" data-state="selected">
+<div class="pf-c-card" data-role="card" data-purpose="clickable" data-variant="default" data-context="default" data-state="selected">
   <div class="pf-c-card__body" data-role="card-body" data-purpose="display" data-variant="default" data-context="default" data-state="default">
     Content
   </div>
