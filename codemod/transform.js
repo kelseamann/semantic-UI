@@ -74,6 +74,7 @@ function findParentContext(path, imports) {
 
 /**
  * Create semantic data attributes
+ * Only adds attributes when we can infer meaningful values (not null)
  */
 function createSemanticAttributes(j, componentName, props, parentContext) {
   const role = inferRole(componentName);
@@ -82,13 +83,26 @@ function createSemanticAttributes(j, componentName, props, parentContext) {
   const context = inferContext(componentName, props, parentContext);
   const state = inferState(componentName, props);
   
-  return [
-    j.jsxAttribute(j.jsxIdentifier('data-role'), j.literal(role)),
-    j.jsxAttribute(j.jsxIdentifier('data-purpose'), j.literal(purpose)),
-    j.jsxAttribute(j.jsxIdentifier('data-variant'), j.literal(variant)),
-    j.jsxAttribute(j.jsxIdentifier('data-context'), j.literal(context)),
-    j.jsxAttribute(j.jsxIdentifier('data-state'), j.literal(state)),
-  ];
+  const attributes = [];
+  
+  // Always add role and purpose (they always have values)
+  attributes.push(j.jsxAttribute(j.jsxIdentifier('data-role'), j.literal(role)));
+  attributes.push(j.jsxAttribute(j.jsxIdentifier('data-purpose'), j.literal(purpose)));
+  
+  // Only add variant, context, and state if we inferred meaningful values
+  if (variant !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-variant'), j.literal(variant)));
+  }
+  
+  if (context !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-context'), j.literal(context)));
+  }
+  
+  if (state !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-state'), j.literal(state)));
+  }
+  
+  return attributes;
 }
 
 /**

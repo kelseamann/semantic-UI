@@ -145,12 +145,8 @@ function inferVariant(componentName, props) {
     return 'danger';
   }
   
-  // Default based on component
-  const name = componentName.toLowerCase();
-  if (name.includes('button')) return 'secondary';
-  if (name.includes('input') || name.includes('select')) return 'text';
-  
-  return 'default';
+  // If we can't detect variant from props, return null (attribute won't be added)
+  return null;
 }
 
 /**
@@ -182,7 +178,7 @@ function inferContext(componentName, props, parentContext = null) {
     return 'modal';
   }
   
-  if (name.includes('table')) {
+  if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
     return 'table';
   }
   
@@ -190,11 +186,22 @@ function inferContext(componentName, props, parentContext = null) {
     return 'toolbar';
   }
   
-  if (propsMap.has('navigation') || name.includes('nav')) {
+  if (propsMap.has('navigation') || name.includes('nav') || name.includes('menu') || name.includes('breadcrumb')) {
     return 'navigation';
   }
   
-  return 'default';
+  // Layout components are containers
+  if (name.includes('flex') || name.includes('grid') || name.includes('stack') || name.includes('card')) {
+    return 'container';
+  }
+  
+  // Display components are typically on the page
+  if (name.includes('alert') || name.includes('badge') || name.includes('title') || name.includes('heading')) {
+    return 'page';
+  }
+  
+  // If we can't infer a meaningful context, return null (attribute won't be added)
+  return null;
 }
 
 /**
@@ -232,7 +239,8 @@ function inferState(componentName, props) {
     return 'active';
   }
   
-  return 'default';
+  // If we can't infer a meaningful state, return null (attribute won't be added)
+  return null;
 }
 
 /**
