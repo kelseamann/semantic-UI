@@ -2,7 +2,7 @@
 
 > **⚠️ Important**: This is a **codemod tool only**. You do NOT need to import or use any library components. Simply install the package and run the codemod to transform your existing PatternFly components. The library code in this repository is for reference/development purposes only.
 
-**📦 Install from npm**: `npm install @kelseamann/semantic-ui-layer`  
+**📦 Install from npm**: `npm install -D @kelseamann/semantic-ui-layer`  
 **🔗 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
 
 A codemod tool that automatically adds standardized semantic `data-*` attributes to **all PatternFly components** in your codebase, making them AI-friendly and easier for AI tools to understand.
@@ -22,46 +22,47 @@ This tool transforms your existing PatternFly components by adding semantic meta
 
 ### Step 1: Install the Package
 
-Install from npm (recommended):
+Install from npm as a dev dependency (recommended):
 
 ```bash
-npm install @kelseamann/semantic-ui-layer
+npm install -D @kelseamann/semantic-ui-layer
 ```
 
 **📦 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
 
-> **Note**: The package is published to npm and ready to use. You don't need to clone the repository or install from GitHub.
+> **Note**:
+> - Installed as a dev dependency (`-D`) since it's only needed during development
+> - The package is published to npm and ready to use
+> - You don't need to clone the repository or install from GitHub
+> - No need to install jscodeshift globally - we'll use `npx` instead!
 
-### Step 2: Install jscodeshift (if not already installed)
-
-```bash
-npm install -g jscodeshift
-```
-
-### Step 3: Run the Codemod
+### Step 2: Run the Codemod
 
 You have two options:
 
-**Option A: Using the provided script (recommended)**
+**Option A: Using npx with jscodeshift (recommended)**
+```bash
+npx jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
+```
+
+**Option B: Using the provided script**
 ```bash
 ./node_modules/@kelseamann/semantic-ui-layer/codemod/add-semantic-attributes.sh src/
 ```
 
-**Option B: Using jscodeshift directly**
-```bash
-jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
-```
+> **Note**: Option A uses `npx` which automatically downloads and runs jscodeshift without requiring a global install!
 
 ### Setup on a New Computer
 
 If you're setting up the codemod on a new computer:
 
 1. **Install Node.js** (if not already installed)
-2. **Install jscodeshift globally**: `npm install -g jscodeshift`
-3. **Install @kelseamann/semantic-ui-layer** in your project: `npm install @kelseamann/semantic-ui-layer`
-4. **Run the codemod** using one of the methods above
+2. **Install @kelseamann/semantic-ui-layer** in your project: `npm install -D @kelseamann/semantic-ui-layer`
+3. **Run the codemod** using `npx jscodeshift` (see options above)
 
 The codemod is a standalone tool - you don't need to import or use any library components. It simply transforms your existing PatternFly components by adding semantic attributes.
+
+> **Note**: No need to install jscodeshift globally! Using `npx` automatically handles it for you.
 
 ## What It Does
 
@@ -142,18 +143,20 @@ Every PatternFly component gets the same 5 attributes that appear on rendered DO
 
 ## Installation
 
-Install the package from npm:
+Install the package from npm as a dev dependency:
 
 ```bash
-npm install @kelseamann/semantic-ui-layer
+npm install -D @kelseamann/semantic-ui-layer
 ```
 
 **📦 Package**: [@kelseamann/semantic-ui-layer on npm](https://www.npmjs.com/package/@kelseamann/semantic-ui-layer)
 
-**Note**: 
-- This installs the codemod tool from npm. You do NOT need to import any components from this package.
-- Simply run the codemod to transform your existing PatternFly components.
-- Works with both PatternFly v5 and v6 (no peer dependency conflicts).
+**Note**:
+- This installs the codemod tool as a dev dependency since it's only needed during development
+- You do NOT need to import any components from this package
+- Simply run the codemod to transform your existing PatternFly components
+- Works with both PatternFly v5 and v6 (no peer dependency conflicts)
+- No need to install jscodeshift globally - use `npx jscodeshift` instead!
 
 ## Updates
 
@@ -169,8 +172,8 @@ npm outdated @kelseamann/semantic-ui-layer
 
 ```bash
 npm update @kelseamann/semantic-ui-layer
-# or
-npm install @kelseamann/semantic-ui-layer@latest
+# or for latest version
+npm install -D @kelseamann/semantic-ui-layer@latest
 ```
 
 ### When to Re-run the Codemod
@@ -205,19 +208,19 @@ Check the commit history or GitHub releases to see what improvements were made i
 ### Transform Entire Directory
 
 ```bash
-jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
+npx jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 ```
 
 ### Transform Specific File
 
 ```bash
-jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js src/components/MyComponent.tsx
+npx jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js src/components/MyComponent.tsx
 ```
 
 ### Preview Changes (Dry Run)
 
 ```bash
-jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --dry src/
+npx jscodeshift -t node_modules/@kelseamann/semantic-ui-layer/codemod/transform.js --dry src/
 ```
 
 ### Using the Bash Script
