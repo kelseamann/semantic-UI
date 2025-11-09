@@ -140,13 +140,41 @@ function inferPurpose(componentName, props) {
  */
 function inferVariant(componentName, props) {
   const propsMap = propsToMap(props);
+  const name = componentName.toLowerCase();
   
   // Check variant prop (most common)
   if (propsMap.has('variant')) {
     const variantValue = propsMap.get('variant');
     if (typeof variantValue === 'string') {
+      // Handle special link variants
+      if (variantValue === 'link') {
+        // Check for inline link (has isInline prop or inline styling)
+        if (propsMap.has('isInline') || propsMap.has('inline')) {
+          return 'inline-link';
+        }
+        // Check for danger link (danger variant on link)
+        if (propsMap.has('isDanger') || propsMap.has('danger')) {
+          return 'danger-link';
+        }
+      }
+      // Return the variant value (includes 'warning' if set)
       return variantValue;
     }
+  }
+  
+  // Check for warning variant (when not set via variant prop)
+  if (propsMap.has('isWarning') || propsMap.has('warning')) {
+    return 'warning';
+  }
+  
+  // Check for stateful variant (buttons that change appearance based on data state)
+  if (propsMap.has('variant') && propsMap.get('variant') === 'stateful') {
+    return 'stateful';
+  }
+  if (propsMap.has('isRead') || propsMap.has('read') || 
+      propsMap.has('isUnread') || propsMap.has('unread') ||
+      propsMap.has('isAttention') || propsMap.has('attention') || propsMap.has('needsAttention')) {
+    return 'stateful';
   }
   
   // Check type prop for inputs
@@ -159,7 +187,16 @@ function inferVariant(componentName, props) {
   
   // Check danger/destructive patterns
   if (propsMap.has('isDanger') || propsMap.has('danger')) {
+    // If it's a link component, return danger-link
+    if (name.includes('link')) {
+      return 'danger-link';
+    }
     return 'danger';
+  }
+  
+  // Default to primary for buttons without variant (PatternFly default)
+  if (name.includes('button') && !propsMap.has('variant')) {
+    return 'primary';
   }
   
   // If we can't detect variant from props, return null (attribute won't be added)
@@ -251,6 +288,19 @@ function inferState(componentName, props) {
   
   if (propsMap.has('isChecked') || propsMap.has('checked')) {
     return 'checked';
+  }
+  
+  // Check for stateful button states (these work with stateful variant)
+  if (propsMap.has('isRead') || propsMap.has('read')) {
+    return 'read';
+  }
+  
+  if (propsMap.has('isUnread') || propsMap.has('unread')) {
+    return 'unread';
+  }
+  
+  if (propsMap.has('isAttention') || propsMap.has('attention') || propsMap.has('needsAttention')) {
+    return 'attention';
   }
   
   // Buttons without onClick are likely disabled or read-only
