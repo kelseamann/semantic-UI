@@ -69,6 +69,9 @@ function inferRole(componentName) {
     'accordionitem': 'accordion-section',      // A section/item within an accordion
     'accordioncontent': 'accordion-panel',     // The content panel that expands/collapses
     'accordiontoggle': 'accordion-header',     // The clickable header that toggles the panel
+    // ActionList components - more descriptive roles
+    'actionlist': 'action-group',             // Container for grouping action buttons
+    'actionlistitem': 'action-item',           // Individual action item within the group
   };
   
   return roleMap[name] || name;
@@ -140,6 +143,11 @@ function inferPurpose(componentName, props) {
   // Accordion - collapsible content sections
   if (name.includes('accordion')) {
     return 'collapsible-content';
+  }
+  
+  // ActionList - container for grouping action buttons with proper spacing
+  if (name.includes('actionlist')) {
+    return 'action-group';
   }
   
   return 'display';
@@ -249,6 +257,9 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // ActionList variants - handled separately via children analysis
+  // See inferActionListVariant() function below
+  
   // Default to primary for buttons without variant (PatternFly default)
   if (name.includes('button') && !propsMap.has('variant')) {
     return 'primary';
@@ -297,6 +308,14 @@ function inferContext(componentName, props, parentContext = null) {
   
   if (propsMap.has('navigation') || name.includes('nav') || name.includes('menu') || name.includes('breadcrumb')) {
     return 'navigation';
+  }
+  
+  // ActionList context - where it's used (modal, wizard, toolbar, form, etc.)
+  // This is typically inferred from parent components, but we can also check props
+  if (name.includes('actionlist')) {
+    // Context is usually inferred from parent (modal, wizard, toolbar, form)
+    // But if we can't infer from parent, we can check if it's in a specific context
+    // For now, let parent context detection handle this
   }
   
   // Layout components are containers
@@ -579,6 +598,51 @@ function isPatternFlyComponent(componentName, imports) {
   return false;
 }
 
+/**
+ * Infer ActionList variant from children analysis
+ * Analyzes what types of actions are in the list (primary button, secondary button, icon, etc.)
+ * Icons are overflow when 2+ buttons are present; single icon-only cases are valid.
+ */
+function inferActionListVariant(children) {
+  if (!children || children.length === 0) {
+    return 'button-group'; // Default
+  }
+  
+  const hasPrimary = children.some(c => c === 'primary');
+  const hasSecondary = children.some(c => c === 'secondary' || c === 'button');
+  const hasDanger = children.some(c => c === 'danger');
+  
+  // Count icons (kebab, menu toggle, or other icon buttons)
+  const icons = children.filter(c => c === 'kebab' || c === 'icon');
+  const iconCount = icons.length;
+  const hasIcons = iconCount > 0;
+  
+  // Count buttons (non-icon actions)
+  const buttonCount = children.filter(c => c !== 'kebab' && c !== 'icon').length;
+  const hasMultipleButtons = buttonCount >= 2;
+  
+  // Icons are overflow when 2+ buttons present (primary + secondary mix)
+  if (hasMultipleButtons && hasIcons && hasPrimary && hasSecondary) {
+    return iconCount >= 2 ? 'primary-secondary-icons' : 'primary-secondary-icon';
+  }
+  
+  // Button-only cases (ActionList only used for multiple buttons)
+  if (hasPrimary && hasSecondary) {
+    return 'primary-secondary';
+  }
+  
+  // Icon-only cases (ActionList only used for multiple icons)
+  if (hasIcons && buttonCount === 0 && iconCount >= 2) {
+    return 'icons-only';
+  }
+  
+  if (hasDanger) {
+    return 'danger-group';
+  }
+  
+  return 'button-group'; // Default fallback
+}
+
 module.exports = {
   STANDARD_ATTRIBUTES,
   PF_PACKAGES,
@@ -589,6 +653,7 @@ module.exports = {
   inferState,
   inferActionType,
   inferSize,
+  inferActionListVariant,
   propsToMap,
   isPatternFlyComponent,
 };

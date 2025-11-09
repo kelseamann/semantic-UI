@@ -16,6 +16,7 @@ const {
   inferState,
   inferActionType,
   inferSize,
+  inferActionListVariant,
   isPatternFlyComponent,
   STANDARD_ATTRIBUTES,
 } = require('./static-inference');
@@ -75,13 +76,89 @@ function findParentContext(path, imports) {
 }
 
 /**
+ * Analyze ActionList children to infer grouping variant
+ * Traverses the AST to find ActionListItem children and their button/kebab contents
+ */
+function analyzeActionListChildren(j, path) {
+  const children = [];
+  
+  // Find the JSXElement that contains this opening element
+  // path.node is the JSXOpeningElement, we need the parent JSXElement
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return children;
+  }
+  
+  // Look through children for ActionListItem components
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName && childName.toLowerCase().includes('actionlistitem')) {
+        // Look for buttons or kebab inside ActionListItem
+        if (child.children) {
+          child.children.forEach(grandchild => {
+            if (grandchild.type === 'JSXElement' && grandchild.openingElement) {
+              const grandchildName = grandchild.openingElement.name?.name;
+              if (grandchildName) {
+                const name = grandchildName.toLowerCase();
+                if (name.includes('button')) {
+                  // Check button variant
+                  const buttonProps = grandchild.openingElement.attributes || [];
+                  const variantAttr = buttonProps.find(attr => 
+                    attr.name?.name === 'variant'
+                  );
+                  if (variantAttr && variantAttr.value) {
+                    const variant = variantAttr.value.type === 'StringLiteral' 
+                      ? variantAttr.value.value 
+                      : 'button';
+                    children.push(variant);
+                  } else {
+                    // No variant specified, default to 'button' (will be inferred as primary by button logic)
+                    children.push('button');
+                  }
+                } else if (name.includes('kebab') || name.includes('menutoggle') || name.includes('icon')) {
+                  // Generic "icon" instead of "kebab" to cover kebab and other icons
+                  children.push('icon');
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+  });
+  
+  return children;
+}
+
+/**
  * Create semantic data attributes
  * Only adds attributes when we can infer meaningful values (not null)
  */
-function createSemanticAttributes(j, componentName, props, parentContext) {
+function createSemanticAttributes(j, componentName, props, parentContext, path = null) {
   const role = inferRole(componentName);
   const purpose = inferPurpose(componentName, props);
-  const variant = inferVariant(componentName, props);
+  
+  // For ActionList, analyze children to infer grouping variant
+  let variant;
+  if (componentName.toLowerCase().includes('actionlist') && path) {
+    const children = analyzeActionListChildren(j, path);
+    variant = inferActionListVariant(children);
+  } else {
+    variant = inferVariant(componentName, props);
+  }
+  
   const context = inferContext(componentName, props, parentContext);
   const state = inferState(componentName, props);
   const actionType = inferActionType(componentName, props);
@@ -155,7 +232,7 @@ module.exports = function transformer(fileInfo, api) {
     const parentContext = findParentContext(path, imports);
     
     // Create and add semantic attributes
-    const newAttributes = createSemanticAttributes(j, componentName, existingAttrs, parentContext);
+    const newAttributes = createSemanticAttributes(j, componentName, existingAttrs, parentContext, path);
     node.attributes = [...existingAttrs, ...newAttributes];
   });
   
