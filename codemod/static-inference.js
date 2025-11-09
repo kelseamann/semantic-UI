@@ -36,7 +36,7 @@ const STANDARD_ATTRIBUTES = [
 function inferRole(componentName) {
   const name = componentName.toLowerCase();
   
-  // Direct mappings
+  // Direct mappings - roles should be MORE informative than just component names
   const roleMap = {
     'button': 'button',
     'card': 'card',
@@ -64,6 +64,11 @@ function inferRole(componentName) {
     'drawer': 'drawer',
     'menutoggle': 'menu-toggle',
     'dropdownitem': 'dropdown-item',
+    // Accordion components - more descriptive roles
+    'accordion': 'accordion',
+    'accordionitem': 'accordion-section',      // A section/item within an accordion
+    'accordioncontent': 'accordion-panel',     // The content panel that expands/collapses
+    'accordiontoggle': 'accordion-header',     // The clickable header that toggles the panel
   };
   
   return roleMap[name] || name;
@@ -132,6 +137,11 @@ function inferPurpose(componentName, props) {
     return 'layout';
   }
   
+  // Accordion - collapsible content sections
+  if (name.includes('accordion')) {
+    return 'collapsible-content';
+  }
+  
   return 'display';
 }
 
@@ -192,6 +202,51 @@ function inferVariant(componentName, props) {
       return 'danger-link';
     }
     return 'danger';
+  }
+  
+  // Accordion variants - single expand vs multiple expand, bordered, heading level
+  if (name.includes('accordion')) {
+    const variants = [];
+    
+    // Check for single expand behavior (only one section open at a time)
+    // This only applies to the parent Accordion component
+    if (name === 'accordion' && (propsMap.has('isSingleExpand') || propsMap.has('singleExpand') || 
+        propsMap.has('isExclusiveExpand') || propsMap.has('exclusiveExpand'))) {
+      variants.push('single-expand');
+    } else if (name === 'accordion') {
+      // Multiple expand is the default for parent Accordion
+      variants.push('multiple-expand');
+    }
+    
+    // Check for bordered variant (applies to parent Accordion)
+    if (name === 'accordion' && (propsMap.has('isBordered') || propsMap.has('bordered'))) {
+      variants.push('bordered');
+    }
+    
+    // Check for heading level (applies to parent Accordion, part of variant)
+    if (name === 'accordion' && (propsMap.has('headingLevel') || propsMap.has('heading'))) {
+      const headingLevel = propsMap.get('headingLevel') || propsMap.get('heading');
+      if (typeof headingLevel === 'string' && headingLevel.match(/^h[1-6]$/i)) {
+        variants.push(headingLevel.toLowerCase());
+      } else if (typeof headingLevel === 'number' && headingLevel >= 1 && headingLevel <= 6) {
+        variants.push(`h${headingLevel}`);
+      }
+    }
+    
+    // Check for fixed variant (only applies to children: AccordionItem, AccordionContent, AccordionToggle)
+    if (name !== 'accordion' && (propsMap.has('isFixed') || propsMap.has('fixed'))) {
+      variants.push('fixed');
+    }
+    
+    // Return combined variant or just the expand behavior if no other variants
+    if (variants.length > 1) {
+      return variants.join('-');
+    }
+    if (variants.length === 1) {
+      return variants[0];
+    }
+    // For accordion children without variants, return null
+    return null;
   }
   
   // Default to primary for buttons without variant (PatternFly default)
@@ -279,6 +334,15 @@ function inferState(componentName, props) {
   }
   
   if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+    // Check both props explicitly (can't use || because false is falsy)
+    const expandedValue = propsMap.has('isExpanded') 
+      ? propsMap.get('isExpanded') 
+      : propsMap.get('expanded');
+    // Check if it's explicitly false (collapsed)
+    if (expandedValue === false) {
+      return 'collapsed';
+    }
+    // Otherwise it's expanded (true or truthy)
     return 'expanded';
   }
   
@@ -375,7 +439,8 @@ function inferActionType(componentName, props) {
  */
 function inferSize(componentName, props) {
   const propsMap = propsToMap(props);
-  
+  const name = componentName.toLowerCase();
+
   // Check for explicit size prop
   if (propsMap.has('size')) {
     const sizeValue = propsMap.get('size');
@@ -383,23 +448,30 @@ function inferSize(componentName, props) {
       return sizeValue;
     }
   }
-  
+
+  // Check for displaySize prop (used in Accordion)
+  if (propsMap.has('displaySize')) {
+    const displaySizeValue = propsMap.get('displaySize');
+    if (typeof displaySizeValue === 'string') {
+      return displaySizeValue;
+    }
+  }
+
   // Check for compact prop (common in tables, cards)
   if (propsMap.has('isCompact') || propsMap.has('compact')) {
     return 'compact';
   }
-  
+
   // Check for large prop
   if (propsMap.has('isLarge') || propsMap.has('large')) {
     return 'large';
   }
-  
+
   // PatternFly tables use isCompact for compact spacing
-  const name = componentName.toLowerCase();
   if (name.includes('table') && propsMap.has('isCompact')) {
     return 'compact';
   }
-  
+
   // If we can't detect size from props, return null (attribute won't be added)
   return null;
 }
