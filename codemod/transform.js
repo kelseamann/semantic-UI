@@ -76,6 +76,50 @@ function findParentContext(path, imports) {
 }
 
 /**
+ * Analyze Breadcrumb children to infer variant (with-dropdown, with-heading)
+ * Traverses the AST to find BreadcrumbDropdown or BreadcrumbHeading children
+ */
+function analyzeBreadcrumbChildren(j, path) {
+  let hasDropdown = false;
+  let hasHeading = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasDropdown: false, hasHeading: false };
+  }
+  
+  // Look through children for BreadcrumbDropdown or BreadcrumbHeading
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName) {
+        const name = childName.toLowerCase();
+        if (name.includes('breadcrumbdropdown') || name.includes('dropdown')) {
+          hasDropdown = true;
+        }
+        if (name.includes('breadcrumbheading') || name.includes('heading')) {
+          hasHeading = true;
+        }
+      }
+    }
+  });
+  
+  return { hasDropdown, hasHeading };
+}
+
+/**
  * Analyze ActionList children to infer grouping variant
  * Traverses the AST to find ActionListItem children and their button/kebab contents
  */
@@ -151,10 +195,25 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   const purpose = inferPurpose(componentName, props);
   
   // For ActionList, analyze children to infer grouping variant
+  // For Breadcrumb, analyze children to detect dropdown/heading variants
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
     variant = inferActionListVariant(children);
+  } else if (componentName.toLowerCase().includes('breadcrumb') && 
+             !componentName.toLowerCase().includes('breadcrumbitem') && 
+             !componentName.toLowerCase().includes('breadcrumbheading') && 
+             path) {
+    const childrenInfo = analyzeBreadcrumbChildren(j, path);
+    // Override variant if children analysis detects dropdown or heading
+    const baseVariant = inferVariant(componentName, props);
+    if (childrenInfo.hasDropdown) {
+      variant = 'with-dropdown';
+    } else if (childrenInfo.hasHeading) {
+      variant = 'with-heading';
+    } else {
+      variant = baseVariant;
+    }
   } else {
     variant = inferVariant(componentName, props);
   }
@@ -221,6 +280,33 @@ module.exports = function transformer(fileInfo, api) {
     if (!isPatternFlyComponent(componentName, imports)) {
       return;
     }
+    
+    // Skip structural child components - they don't need separate semantic attributes
+    // The parent component has the attributes that describe the whole structure
+    // This applies to components that are always used as children of a parent component
+    const name = componentName.toLowerCase();
+    
+    // Structural children to skip:
+    // - Breadcrumb: BreadcrumbItem, BreadcrumbHeading
+    // - Accordion: AccordionItem, AccordionContent, AccordionToggle
+    // - Card: CardBody, CardHeader, CardTitle
+    // - ActionList: ActionListItem
+    // - Modal: ModalContent, ModalHeader
+    // - Form: FormGroup, FormSection (if they exist)
+    const structuralChildren = [
+      'breadcrumbitem', 'breadcrumbheading',
+      'accordionitem', 'accordioncontent', 'accordiontoggle',
+      'cardbody', 'cardheader', 'cardtitle',
+      'actionlistitem',
+      'modalcontent', 'modalheader',
+    ];
+    
+    if (structuralChildren.some(child => name.includes(child))) {
+      return;
+    }
+    
+    // Note: Independent components (Button, Link, etc.) keep their attributes
+    // even when nested, because they can be used independently
     
     // Skip if already has semantic attributes (don't duplicate)
     const existingAttrs = node.attributes || [];

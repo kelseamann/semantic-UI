@@ -79,6 +79,10 @@ function inferRole(componentName) {
     'avatar': 'avatar',                       // User representation
     // Banner component
     'banner': 'banner',                       // Status/notification banner
+    // Breadcrumb components
+    'breadcrumb': 'breadcrumb',               // Navigation breadcrumb
+    'breadcrumbitem': 'breadcrumb-item',      // Individual breadcrumb item
+    'breadcrumbheading': 'breadcrumb-heading', // Breadcrumb heading
   };
   
   return roleMap[name] || name;
@@ -192,6 +196,11 @@ function inferPurpose(componentName, props) {
     
     // Default to 'basic' if no status color/variant
     return 'basic';
+  }
+  
+  // Breadcrumb - navigation component
+  if (name.includes('breadcrumb')) {
+    return 'navigation';
   }
   
   return 'display';
@@ -355,6 +364,34 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // Breadcrumb variants - basic, without-home-link, with-heading, with-dropdown
+  // Variant detection will be enhanced by children analysis in transform.js
+  if (name.includes('breadcrumb') && name !== 'breadcrumbitem' && name !== 'breadcrumbheading') {
+    // Check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['basic', 'without-home-link', 'with-heading', 'with-dropdown'].includes(val)) {
+          return val;
+        }
+      }
+    }
+    // Check for props that indicate variants
+    if (propsMap.has('showHome') && propsMap.get('showHome') === false) {
+      return 'without-home-link';
+    }
+    if (propsMap.has('hideHome') || propsMap.has('isHomeHidden')) {
+      return 'without-home-link';
+    }
+    if (propsMap.has('heading') || propsMap.has('hasHeading')) {
+      return 'with-heading';
+    }
+    // Dropdown variant will be detected via children analysis in transform.js
+    // For now, default to basic
+    return 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -404,8 +441,13 @@ function inferContext(componentName, props, parentContext = null) {
     return 'toolbar';
   }
   
-  if (propsMap.has('navigation') || name.includes('nav') || name.includes('menu') || name.includes('breadcrumb')) {
+  if (propsMap.has('navigation') || name.includes('nav') || name.includes('menu')) {
     return 'navigation';
+  }
+  
+  // Breadcrumb context - typically at page level (under masthead)
+  if (name.includes('breadcrumb')) {
+    return 'page';
   }
   
   // ActionList context - where it's used (modal, wizard, toolbar, form, etc.)
