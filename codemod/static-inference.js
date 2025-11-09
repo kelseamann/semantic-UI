@@ -72,6 +72,9 @@ function inferRole(componentName) {
     // ActionList components - more descriptive roles
     'actionlist': 'action-group',             // Container for grouping action buttons
     'actionlistitem': 'action-item',           // Individual action item within the group
+    // Alert components
+    'alert': 'alert',                         // Alert notification
+    'alertgroup': 'alert-group',              // Container for multiple alerts
   };
   
   return roleMap[name] || name;
@@ -150,6 +153,11 @@ function inferPurpose(componentName, props) {
     return 'action-group';
   }
   
+  // Alert - communicates information/feedback to users
+  if (name.includes('alert')) {
+    return 'notification';
+  }
+  
   return 'display';
 }
 
@@ -159,6 +167,20 @@ function inferPurpose(componentName, props) {
 function inferVariant(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
+  
+  // Alert variants - severity only (default, info, warning, critical, success)
+  // Placement (toast/inline/plain) goes to data-size instead
+  if (name.includes('alert') && name !== 'alertgroup') {
+    // Severity variant (default, info, warning, critical, success)
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        return variantValue;
+      }
+    }
+    // Default to 'default' if no variant specified
+    return 'default';
+  }
   
   // Check variant prop (most common)
   if (propsMap.has('variant')) {
@@ -323,8 +345,30 @@ function inferContext(componentName, props, parentContext = null) {
     return 'container';
   }
   
+  // Alert context - where alerts are used (form, modal, page, alert-group, etc.)
+  // This is typically inferred from parent components, but we can also check props
+  if (name.includes('alert')) {
+    if (name === 'alertgroup') {
+      return 'alert-group';
+    }
+    // Alerts within AlertGroup have alert-group context
+    // (parent context detection will handle this, but we can also check for actionLinks)
+    // Toast alerts are typically at page level (upper-right corner)
+    if (propsMap.has('isToast') || propsMap.has('toast')) {
+      return 'page';
+    }
+    // Alerts with actionLinks might be in modals or forms
+    if (propsMap.has('actionLinks') || propsMap.has('actionLink')) {
+      // Could be modal or form context - let parent context detection handle this
+      // But we know it has interactive elements
+    }
+    // Inline alerts can be in forms, modals, or page content
+    // Context is usually inferred from parent components
+    // For now, let parent context detection handle this
+  }
+  
   // Display components are typically on the page
-  if (name.includes('alert') || name.includes('badge') || name.includes('title') || name.includes('heading')) {
+  if (name.includes('badge') || name.includes('title') || name.includes('heading')) {
     return 'page';
   }
   
@@ -408,6 +452,36 @@ function inferState(componentName, props) {
     }
   }
   
+  // Alert states - expandable alerts can be expanded/collapsed, transient alerts, dismissible alerts
+  if (name.includes('alert') && name !== 'alertgroup') {
+    // Expandable alerts
+    if (propsMap.has('isExpandable') || propsMap.has('expandable')) {
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      // Default to collapsed if expandable but no explicit state
+      return 'collapsed';
+    }
+    // Dismissible alerts (can be closed by user)
+    if (propsMap.has('onClose') || propsMap.has('isDismissible') || propsMap.has('dismissible') ||
+        propsMap.has('isToast') || propsMap.has('toast')) {
+      return 'dismissible';
+    }
+    // Transient alerts (show only once, auto-dismiss) - detected via timeout or hover handlers
+    if (propsMap.has('timeout') || propsMap.has('onTimeout') || 
+        propsMap.has('onMouseEnter') || propsMap.has('onMouseLeave')) {
+      return 'transient';
+    }
+    // Non-expandable alerts don't have a state (they're just visible)
+    return null;
+  }
+  
   // Check for interactive props (implies active)
   if (propsMap.has('onClick') || propsMap.has('onSubmit') || propsMap.has('onChange')) {
     return 'active';
@@ -436,6 +510,16 @@ function inferActionType(componentName, props) {
   // Check for navigation (links with href)
   if (propsMap.has('href')) {
     return 'navigation';
+  }
+  
+  // Alert action types - alerts with actionLinks are actionable (not navigation)
+  // Note: dismissible is handled as a state, not an action-type
+  if (name.includes('alert') && name !== 'alertgroup') {
+    // Alerts with actionLinks are actionable (have interactive elements for user actions)
+    // These are not navigation - they're for taking actions related to the alert
+    if (propsMap.has('actionLinks') || propsMap.has('actionLink')) {
+      return 'actionable';
+    }
   }
   
   // Check for cancel actions (link variant buttons, often in modals)
@@ -473,6 +557,20 @@ function inferSize(componentName, props) {
     const displaySizeValue = propsMap.get('displaySize');
     if (typeof displaySizeValue === 'string') {
       return displaySizeValue;
+    }
+  }
+
+  // Alert size - placement type (toast, inline, plain)
+  // These indicate placement/size rather than visual style
+  if (name.includes('alert') && name !== 'alertgroup') {
+    if (propsMap.has('isToast') || propsMap.has('toast')) {
+      return 'toast';
+    }
+    if (propsMap.has('isPlain') || propsMap.has('plain')) {
+      return 'plain';
+    }
+    if (propsMap.has('isInline') || propsMap.has('inline')) {
+      return 'inline';
     }
   }
 
