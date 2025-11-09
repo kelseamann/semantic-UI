@@ -130,11 +130,17 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 - Button, Card, Modal, Form, TextInput, TextArea, Select, Checkbox, Radio, Switch
 - Flex, FlexItem, Table components (Th, Td, Tr, Thead, Tbody)
 - Link, Drawer, MenuToggle, DropdownItem
+- Accordion, ActionList, Alert, Avatar
 
 **Components with Generic Inference:**
-- All other PatternFly components (Alert, Breadcrumb, Tabs, Accordion, etc.)
+- All other PatternFly components (Breadcrumb, Tabs, Popover, Tooltip, Wizard, etc.)
 - Uses heuristics and fallbacks to provide reasonable defaults
-- Still adds all 5 standardized attributes
+- Still adds all 7 standardized attributes
+
+**Components We Skip:**
+- Static components without meaningful variants, states, or interactive behavior
+- Specifically skipped: Backdrop, BackgroundImage, BackToTop, Brand
+- These components always behave the same and don't benefit from semantic attributes
 
 ## Supported PatternFly Packages
 
