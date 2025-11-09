@@ -14,6 +14,8 @@ const {
   inferVariant,
   inferContext,
   inferState,
+  inferActionType,
+  inferSize,
   isPatternFlyComponent,
   STANDARD_ATTRIBUTES,
 } = require('./static-inference');
@@ -82,6 +84,8 @@ function createSemanticAttributes(j, componentName, props, parentContext) {
   const variant = inferVariant(componentName, props);
   const context = inferContext(componentName, props, parentContext);
   const state = inferState(componentName, props);
+  const actionType = inferActionType(componentName, props);
+  const size = inferSize(componentName, props);
   
   const attributes = [];
   
@@ -89,7 +93,7 @@ function createSemanticAttributes(j, componentName, props, parentContext) {
   attributes.push(j.jsxAttribute(j.jsxIdentifier('data-role'), j.literal(role)));
   attributes.push(j.jsxAttribute(j.jsxIdentifier('data-purpose'), j.literal(purpose)));
   
-  // Only add variant, context, and state if we inferred meaningful values
+  // Only add variant, context, state, action-type, and size if we inferred meaningful values
   if (variant !== null) {
     attributes.push(j.jsxAttribute(j.jsxIdentifier('data-variant'), j.literal(variant)));
   }
@@ -100,6 +104,14 @@ function createSemanticAttributes(j, componentName, props, parentContext) {
   
   if (state !== null) {
     attributes.push(j.jsxAttribute(j.jsxIdentifier('data-state'), j.literal(state)));
+  }
+  
+  if (actionType !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-action-type'), j.literal(actionType)));
+  }
+  
+  if (size !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-size'), j.literal(size)));
   }
   
   return attributes;

@@ -21,11 +21,13 @@ const PF_PACKAGES = [
  * These will appear on the rendered DOM elements in the browser
  */
 const STANDARD_ATTRIBUTES = [
-  'data-role',      // What the component IS (button, card, input, etc.)
-  'data-purpose',   // What it DOES (action, display, input, navigation, etc.)
-  'data-variant',   // How it LOOKS (primary, danger, secondary, etc.)
-  'data-context',   // Where it's USED (form, modal, toolbar, etc.)
-  'data-state',     // Current STATE (active, disabled, readonly, etc.)
+  'data-role',        // What the component IS (button, card, input, etc.)
+  'data-purpose',     // What it DOES (action, display, input, navigation, etc.)
+  'data-variant',     // How it LOOKS (primary, danger, secondary, etc.)
+  'data-context',     // Where it's USED (form, modal, toolbar, etc.)
+  'data-state',       // Current STATE (active, disabled, readonly, etc.)
+  'data-action-type', // Type of action (destructive, confirmation, navigation, edit, cancel)
+  'data-size',        // Size/spacing (compact, default, large)
 ];
 
 /**
@@ -244,6 +246,76 @@ function inferState(componentName, props) {
 }
 
 /**
+ * Infer action type from component and props (static analysis)
+ * Helps LLMs understand the nature and consequences of actions
+ */
+function inferActionType(componentName, props) {
+  const propsMap = propsToMap(props);
+  const name = componentName.toLowerCase();
+  
+  // Check for destructive actions (danger variant, delete-related props)
+  if (propsMap.has('variant') && propsMap.get('variant') === 'danger') {
+    return 'destructive';
+  }
+  if (propsMap.has('isDanger') || propsMap.has('danger')) {
+    return 'destructive';
+  }
+  
+  // Check for navigation (links with href)
+  if (propsMap.has('href')) {
+    return 'navigation';
+  }
+  
+  // Check for cancel actions (link variant buttons, often in modals)
+  // PatternFly uses link buttons for cancel actions in modals
+  if (name.includes('button') && propsMap.has('variant') && propsMap.get('variant') === 'link') {
+    // Could be cancel, but we can't be 100% sure without text analysis
+    // Return null for now - can enhance with text analysis later
+  }
+  
+  // Check for confirmation actions (primary buttons in modals - future enhancement)
+  // Would need parent context analysis to detect modal context
+  
+  // If we can't detect action type from props, return null (attribute won't be added)
+  return null;
+}
+
+/**
+ * Infer size from props (static analysis)
+ * Helps LLMs understand component density and spacing
+ */
+function inferSize(componentName, props) {
+  const propsMap = propsToMap(props);
+  
+  // Check for explicit size prop
+  if (propsMap.has('size')) {
+    const sizeValue = propsMap.get('size');
+    if (typeof sizeValue === 'string') {
+      return sizeValue;
+    }
+  }
+  
+  // Check for compact prop (common in tables, cards)
+  if (propsMap.has('isCompact') || propsMap.has('compact')) {
+    return 'compact';
+  }
+  
+  // Check for large prop
+  if (propsMap.has('isLarge') || propsMap.has('large')) {
+    return 'large';
+  }
+  
+  // PatternFly tables use isCompact for compact spacing
+  const name = componentName.toLowerCase();
+  if (name.includes('table') && propsMap.has('isCompact')) {
+    return 'compact';
+  }
+  
+  // If we can't detect size from props, return null (attribute won't be added)
+  return null;
+}
+
+/**
  * Convert props array to Map for easier lookup
  */
 function propsToMap(props) {
@@ -354,6 +426,8 @@ module.exports = {
   inferVariant,
   inferContext,
   inferState,
+  inferActionType,
+  inferSize,
   propsToMap,
   isPatternFlyComponent,
 };
