@@ -75,6 +75,8 @@ function inferRole(componentName) {
     // Alert components
     'alert': 'alert',                         // Alert notification
     'alertgroup': 'alert-group',              // Container for multiple alerts
+    // Avatar component
+    'avatar': 'avatar',                       // User representation
   };
   
   return roleMap[name] || name;
@@ -156,6 +158,11 @@ function inferPurpose(componentName, props) {
   // Alert - communicates information/feedback to users
   if (name.includes('alert')) {
     return 'notification';
+  }
+  
+  // Avatar - represents a user
+  if (name.includes('avatar')) {
+    return 'user-representation';
   }
   
   return 'display';
@@ -276,6 +283,16 @@ function inferVariant(componentName, props) {
       return variants[0];
     }
     // For accordion children without variants, return null
+    return null;
+  }
+  
+  // Avatar variants - bordered
+  if (name.includes('avatar')) {
+    // Check for bordered variant (similar to Accordion)
+    if (propsMap.has('isBordered') || propsMap.has('bordered')) {
+      return 'bordered';
+    }
+    // No variant if not bordered
     return null;
   }
   
@@ -544,7 +561,32 @@ function inferSize(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
 
-  // Check for explicit size prop
+  // Avatar size - small (sm), medium (md), large (lg), extra large (xl)
+  // Must be checked BEFORE generic size check to normalize values
+  if (name.includes('avatar')) {
+    if (propsMap.has('size')) {
+      const sizeValue = propsMap.get('size');
+      if (typeof sizeValue === 'string') {
+        // Normalize size values (sm -> small, md -> medium, lg -> large, xl -> extra-large)
+        const sizeMap = {
+          'sm': 'small',
+          'md': 'medium',
+          'lg': 'large',
+          'xl': 'extra-large',
+          'small': 'small',
+          'medium': 'medium',
+          'large': 'large',
+          'extra-large': 'extra-large',
+          'extralarge': 'extra-large',
+        };
+        return sizeMap[sizeValue.toLowerCase()] || sizeValue.toLowerCase();
+      }
+    }
+    // Default to small if no size specified (PatternFly default)
+    return 'small';
+  }
+
+  // Check for explicit size prop (generic)
   if (propsMap.has('size')) {
     const sizeValue = propsMap.get('size');
     if (typeof sizeValue === 'string') {
