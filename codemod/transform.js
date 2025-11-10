@@ -360,6 +360,7 @@ module.exports = function transformer(fileInfo, api) {
     // - ActionList: ActionListItem
     // - Modal: ModalContent, ModalHeader
     // - DataList: DataListAction (only this one is skipped - others get full attributes)
+    // - DescriptionList: DescriptionListGroup, DescriptionListTerm, DescriptionListItem, DescriptionListDescription
     // - Form: FormGroup, FormSection (if they exist)
     const structuralChildren = [
       'breadcrumbitem', 'breadcrumbheading',
@@ -368,6 +369,7 @@ module.exports = function transformer(fileInfo, api) {
       'actionlistitem',
       'modalcontent', 'modalheader',
       'datalistaction', // Only DataListAction is skipped, other DataList children get attributes
+      'descriptionlistgroup', 'descriptionlistterm', 'descriptionlistitem', 'descriptionlistdescription',
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {

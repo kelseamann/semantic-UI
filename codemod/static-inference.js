@@ -97,6 +97,16 @@ function inferRole(componentName) {
     'datalistcontent': 'content-panel',        // Content area in data list (expandable)
     'datalistcontrol': 'control',              // Control element in data list
     'datalisttoggle': 'toggle',                // Toggle for expandable rows
+    // Date and Time components
+    'calendarmonth': 'calendar',               // Calendar month component
+    'datepicker': 'date-picker',                // Date picker component
+    'timepicker': 'time-picker',                // Time picker component
+    // DescriptionList component - roles should be meaningful, not redundant
+    'descriptionlist': 'description-list',      // List of term/definition pairs
+    'descriptionlistgroup': 'description-group', // Group within description list
+    'descriptionlistterm': 'description-label',  // Term/label in description list
+    'descriptionlistitem': 'description-pair',    // Container for term/description pair
+    'descriptionlistdescription': 'description-value', // Description/value for a term
   };
   
   return roleMap[name] || name;
@@ -155,6 +165,32 @@ function inferPurpose(componentName, props) {
   
   if (name.includes('form')) {
     return 'form-container';
+  }
+  
+  // Date and Time components - check BEFORE table (CalendarMonth contains "table")
+  if (name.includes('calendarmonth') || name.includes('datepicker')) {
+    return 'date-input';
+  }
+  if (name.includes('timepicker')) {
+    return 'time-input';
+  }
+  
+  // DescriptionList - displays term/description pairs
+  if (name.includes('descriptionlist')) {
+    if (name.includes('descriptionlistterm')) {
+      return 'term-label';
+    }
+    if (name.includes('descriptionlistdescription')) {
+      return 'term-value';
+    }
+    if (name.includes('descriptionlistitem')) {
+      return 'term-pair';
+    }
+    if (name.includes('descriptionlistgroup')) {
+      return 'term-group';
+    }
+    // DescriptionList container
+    return 'data-display';
   }
   
   if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
@@ -642,6 +678,78 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // Date and Time picker variants
+  // DatePicker variants - single, range, with-time
+  if (name.includes('datepicker')) {
+    // Check for range selection (two date pickers used together)
+    if (propsMap.has('rangeStart') || propsMap.has('rangeEnd') || 
+        propsMap.has('isRange') || propsMap.has('range')) {
+      // Check if combined with time picker
+      if (propsMap.has('includeTime') || propsMap.has('withTime') || 
+          propsMap.has('timePicker')) {
+        return 'range-with-time';
+      }
+      return 'range';
+    }
+    // Check if combined with time picker (single date + time)
+    if (propsMap.has('includeTime') || propsMap.has('withTime') || 
+        propsMap.has('timePicker')) {
+      return 'with-time';
+    }
+    // Default to single date selection
+    return 'single';
+  }
+  
+  // TimePicker variants - 12-hour, 24-hour
+  if (name.includes('timepicker')) {
+    if (propsMap.has('is24Hour') || propsMap.has('use24Hour') || 
+        propsMap.has('format') && propsMap.get('format') === '24') {
+      return '24-hour';
+    }
+    // Default to 12-hour format
+    return '12-hour';
+  }
+  
+  // CalendarMonth variants - inline, popover
+  if (name.includes('calendarmonth')) {
+    if (propsMap.has('isInline') || propsMap.has('inline')) {
+      return 'inline';
+    }
+    // Default to popover (used within DatePicker)
+    return 'popover';
+  }
+  
+  // DescriptionList variants - default (vertical), horizontal, with-columns
+  if (name.includes('descriptionlist') && !name.includes('descriptionlistgroup') && 
+      !name.includes('descriptionlistterm') && !name.includes('descriptionlistitem') && 
+      !name.includes('descriptionlistdescription')) {
+    const variants = [];
+    
+    // Check for horizontal variant
+    if (propsMap.has('isHorizontal') || propsMap.has('horizontal') || 
+        propsMap.has('orientation') && propsMap.get('orientation') === 'horizontal') {
+      variants.push('horizontal');
+    } else {
+      variants.push('vertical'); // Default is vertical
+    }
+    
+    // Check for columns
+    if (propsMap.has('columnModifier') || propsMap.has('columns') || 
+        propsMap.has('columnCount') || propsMap.has('cols')) {
+      variants.push('with-columns');
+    }
+    
+    // Return combined variant or just the main one
+    if (variants.length > 1) {
+      return variants.join('-');
+    }
+    if (variants.length === 1) {
+      return variants[0];
+    }
+    // Default to vertical
+    return 'vertical';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -745,6 +853,14 @@ function inferContext(componentName, props, parentContext = null) {
   // Display components are typically on the page
   if (name.includes('badge') || name.includes('title') || name.includes('heading')) {
     return 'page';
+  }
+  
+  // Date and Time pickers - can be in forms, toolbars, or modals
+  // Context is typically inferred from parent, but we can check for explicit props
+  if (name.includes('datepicker') || name.includes('timepicker') || name.includes('calendarmonth')) {
+    // Context is usually inferred from parent (form, toolbar, modal)
+    // But if we can't infer from parent, we can check if it's in a specific context
+    // For now, let parent context detection handle this
   }
   
   // If we can't infer a meaningful context, return null (attribute won't be added)
@@ -928,6 +1044,54 @@ function inferState(componentName, props) {
       return null;
     }
     // Other DataList children don't have states
+    return null;
+  }
+  
+  // Date and Time picker states
+  // DatePicker states - open/closed (popover), disabled, invalid
+  if (name.includes('datepicker')) {
+    if (propsMap.has('isOpen') || propsMap.has('open')) {
+      const openValue = propsMap.has('isOpen') 
+        ? propsMap.get('isOpen') 
+        : propsMap.get('open');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    if (propsMap.has('isInvalid') || propsMap.has('invalid') || 
+        propsMap.has('validated') && propsMap.get('validated') === 'error') {
+      return 'invalid';
+    }
+    // Disabled state is handled by generic check above
+    return null;
+  }
+  
+  // TimePicker states - open/closed (popover), disabled, invalid
+  if (name.includes('timepicker')) {
+    if (propsMap.has('isOpen') || propsMap.has('open')) {
+      const openValue = propsMap.has('isOpen') 
+        ? propsMap.get('isOpen') 
+        : propsMap.get('open');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    if (propsMap.has('isInvalid') || propsMap.has('invalid') || 
+        propsMap.has('validated') && propsMap.get('validated') === 'error') {
+      return 'invalid';
+    }
+    return null;
+  }
+  
+  // CalendarMonth states - selected date, today, disabled dates
+  if (name.includes('calendarmonth')) {
+    // Selected state is typically on individual date cells, not the calendar itself
+    // But we can check if calendar has a selected date
+    if (propsMap.has('selectedDate') || propsMap.has('value')) {
+      return 'has-selection';
+    }
     return null;
   }
   
