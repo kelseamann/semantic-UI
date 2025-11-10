@@ -446,7 +446,7 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   // For Breadcrumb, analyze children to detect dropdown/heading variants
   // For ClipboardCopy, analyze children to detect content type variants (array, json-object)
   // For DualListSelector, analyze children to detect sub-variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
-  // For form inputs (TextInput, TextArea, Select, etc.), analyze children to detect HelperText
+  // For form inputs (TextInput, TextArea, Select, etc.), check for HelperText as parent wrapper or sibling
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
