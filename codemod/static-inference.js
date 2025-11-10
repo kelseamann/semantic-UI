@@ -89,6 +89,14 @@ function inferRole(componentName) {
     'codeblock': 'code-block',                 // Code block display component
     // Content component
     'content': 'content',                      // Typography/content component
+    // DataList component - roles should be meaningful, not redundant
+    'datalist': 'data-list',                   // Data list container
+    'datalistitem': 'row',                     // Individual row/item in data list
+    'datalistcell': 'cell',                    // Cell within a data list row
+    'datalistcheck': 'checkbox',               // Checkbox for selecting rows
+    'datalistcontent': 'content-panel',        // Content area in data list (expandable)
+    'datalistcontrol': 'control',              // Control element in data list
+    'datalisttoggle': 'toggle',                // Toggle for expandable rows
   };
   
   return roleMap[name] || name;
@@ -220,8 +228,37 @@ function inferPurpose(componentName, props) {
   }
   
   // Content - typography/text content component
-  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent') {
+  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent' && name !== 'datalistcontent') {
     return 'text-display';
+  }
+  
+  // DataList - displays structured data in list format
+  if (name.includes('datalist') && name !== 'datalistaction') {
+    // DataList container
+    if (name === 'datalist') {
+      return 'data-display';
+    }
+    // DataList children
+    if (name.includes('datalistitem')) {
+      return 'data-row';
+    }
+    if (name.includes('datalistcell')) {
+      return 'data-cell';
+    }
+    if (name.includes('datalistcheck')) {
+      return 'selection-control';
+    }
+    if (name.includes('datalistcontent')) {
+      return 'data-content';
+    }
+    if (name.includes('datalistcontrol')) {
+      return 'data-control';
+    }
+    if (name.includes('datalisttoggle')) {
+      return 'expand-toggle';
+    }
+    // Default for DataList container
+    return 'data-display';
   }
   
   return 'display';
@@ -498,7 +535,7 @@ function inferVariant(componentName, props) {
   
   // Content variants - body, heading, editorial
   // Note: Content component should NOT have nested components - use component prop instead
-  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent') {
+  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent' && name !== 'datalistcontent') {
     // Check for component prop (h1, h2, h3, etc. for headings, p for body, etc.)
     if (propsMap.has('component')) {
       const componentValue = propsMap.get('component');
@@ -526,6 +563,83 @@ function inferVariant(componentName, props) {
     }
     // Default to body if no variant specified
     return 'body';
+  }
+  
+  // DataList variants - compact, default, selectable, clickable, expandable, draggable
+  if (name.includes('datalist') && name !== 'datalistaction') {
+    // DataList container variants
+    if (name === 'datalist') {
+      const variants = [];
+      
+      // Check for spacing variant (compact or default)
+      if (propsMap.has('isCompact') || propsMap.has('compact')) {
+        variants.push('compact');
+      } else {
+        variants.push('default'); // Default spacing
+      }
+      
+      // Check for capabilities
+      if (propsMap.has('onSelect') || propsMap.has('selectable') || propsMap.has('isSelectable')) {
+        variants.push('selectable');
+      }
+      if (propsMap.has('onRowClick') || propsMap.has('onClick') || propsMap.has('clickable') || propsMap.has('isClickable')) {
+        variants.push('clickable');
+      }
+      if (propsMap.has('onDrag') || propsMap.has('draggable') || propsMap.has('isDraggable')) {
+        variants.push('draggable');
+      }
+      if (propsMap.has('isExpanded') || propsMap.has('expandable') || propsMap.has('isExpandable')) {
+        variants.push('expandable');
+      }
+      
+      // Return combined variant
+      if (variants.length > 1) {
+        return variants.join('-');
+      }
+      if (variants.length === 1) {
+        return variants[0];
+      }
+      // Default to default spacing
+      return 'default';
+    }
+    
+    // DataListItem variants - can be clickable, selectable, draggable
+    if (name.includes('datalistitem')) {
+      const variants = [];
+      if (propsMap.has('onClick') || propsMap.has('clickable') || propsMap.has('isClickable')) {
+        variants.push('clickable');
+      }
+      if (propsMap.has('onSelect') || propsMap.has('selectable') || propsMap.has('isSelectable')) {
+        variants.push('selectable');
+      }
+      if (propsMap.has('onDrag') || propsMap.has('draggable') || propsMap.has('isDraggable')) {
+        variants.push('draggable');
+      }
+      if (propsMap.has('isExpanded') || propsMap.has('expandable') || propsMap.has('isExpandable')) {
+        variants.push('expandable');
+      }
+      if (variants.length > 0) {
+        return variants.join('-');
+      }
+      return null;
+    }
+    
+    // DataListToggle variants - expanded/collapsed state
+    if (name.includes('datalisttoggle')) {
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      return null;
+    }
+    
+    // Other DataList children don't have variants
+    return null;
   }
   
   // ActionList variants - handled separately via children analysis
@@ -772,6 +886,48 @@ function inferState(componentName, props) {
       return 'expanded';
     }
     // Non-expandable code block doesn't have a state
+    return null;
+  }
+  
+  // DataList states - items can be selected, expanded, dragged
+  if (name.includes('datalist') && name !== 'datalistaction') {
+    // DataListItem states
+    if (name.includes('datalistitem')) {
+      if (propsMap.has('isSelected') || propsMap.has('selected')) {
+        return 'selected';
+      }
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      return null;
+    }
+    // DataListCheck states
+    if (name.includes('datalistcheck')) {
+      if (propsMap.has('isChecked') || propsMap.has('checked')) {
+        return 'checked';
+      }
+      return null;
+    }
+    // DataListContent states
+    if (name.includes('datalistcontent')) {
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      return null;
+    }
+    // Other DataList children don't have states
     return null;
   }
   

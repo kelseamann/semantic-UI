@@ -359,6 +359,7 @@ module.exports = function transformer(fileInfo, api) {
     // - Card: CardBody, CardHeader, CardTitle
     // - ActionList: ActionListItem
     // - Modal: ModalContent, ModalHeader
+    // - DataList: DataListAction (only this one is skipped - others get full attributes)
     // - Form: FormGroup, FormSection (if they exist)
     const structuralChildren = [
       'breadcrumbitem', 'breadcrumbheading',
@@ -366,6 +367,7 @@ module.exports = function transformer(fileInfo, api) {
       'cardbody', 'cardheader', 'cardtitle',
       'actionlistitem',
       'modalcontent', 'modalheader',
+      'datalistaction', // Only DataListAction is skipped, other DataList children get attributes
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
