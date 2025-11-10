@@ -85,6 +85,8 @@ function inferRole(componentName) {
     'breadcrumbheading': 'breadcrumb-heading', // Breadcrumb heading
     // ClipboardCopy component
     'clipboardcopy': 'clipboard-copy',         // Copy to clipboard component
+    // CodeBlock component
+    'codeblock': 'code-block',                 // Code block display component
   };
   
   return roleMap[name] || name;
@@ -208,6 +210,11 @@ function inferPurpose(componentName, props) {
   // ClipboardCopy - allows users to copy content to clipboard
   if (name.includes('clipboardcopy')) {
     return 'copy-action';
+  }
+  
+  // CodeBlock - displays code snippets
+  if (name.includes('codeblock')) {
+    return 'code-display';
   }
   
   return 'display';
@@ -472,6 +479,16 @@ function inferVariant(componentName, props) {
     return 'editable';
   }
   
+  // CodeBlock variants - default (basic) or expandable
+  if (name.includes('codeblock')) {
+    // Check for expandable variant
+    if (propsMap.has('isExpanded') || propsMap.has('expandable') || propsMap.has('isExpandable')) {
+      return 'expandable';
+    }
+    // Default variant - no variant attribute needed (null)
+    return null;
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -700,6 +717,22 @@ function inferState(componentName, props) {
       return 'expanded';
     }
     // Non-expandable clipboard copy doesn't have a state
+    return null;
+  }
+  
+  // CodeBlock states - expandable code block can be expanded/collapsed
+  if (name.includes('codeblock')) {
+    // Expandable code block
+    if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const expandedValue = propsMap.has('isExpanded') 
+        ? propsMap.get('isExpanded') 
+        : propsMap.get('expanded');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    // Non-expandable code block doesn't have a state
     return null;
   }
   
