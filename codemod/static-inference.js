@@ -720,34 +720,59 @@ function inferVariant(componentName, props) {
   }
   
   // DescriptionList variants - default (vertical), horizontal, with-columns
-  if (name.includes('descriptionlist') && !name.includes('descriptionlistgroup') && 
-      !name.includes('descriptionlistterm') && !name.includes('descriptionlistitem') && 
-      !name.includes('descriptionlistdescription')) {
-    const variants = [];
-    
-    // Check for horizontal variant
-    if (propsMap.has('isHorizontal') || propsMap.has('horizontal') || 
-        propsMap.has('orientation') && propsMap.get('orientation') === 'horizontal') {
-      variants.push('horizontal');
-    } else {
-      variants.push('vertical'); // Default is vertical
+  if (name.includes('descriptionlist')) {
+    // DescriptionList container variants
+    if (name === 'descriptionlist' || (name.includes('descriptionlist') && 
+        !name.includes('descriptionlistgroup') && !name.includes('descriptionlistterm') && 
+        !name.includes('descriptionlistitem') && !name.includes('descriptionlistdescription'))) {
+      const variants = [];
+      
+      // Check for horizontal variant
+      if (propsMap.has('isHorizontal') || propsMap.has('horizontal') || 
+          propsMap.has('orientation') && propsMap.get('orientation') === 'horizontal') {
+        variants.push('horizontal');
+      } else {
+        variants.push('vertical'); // Default is vertical
+      }
+      
+      // Check for columns
+      if (propsMap.has('columnModifier') || propsMap.has('columns') || 
+          propsMap.has('columnCount') || propsMap.has('cols')) {
+        variants.push('with-columns');
+      }
+      
+      // Return combined variant or just the main one
+      if (variants.length > 1) {
+        return variants.join('-');
+      }
+      if (variants.length === 1) {
+        return variants[0];
+      }
+      // Default to vertical
+      return 'vertical';
     }
     
-    // Check for columns
-    if (propsMap.has('columnModifier') || propsMap.has('columns') || 
-        propsMap.has('columnCount') || propsMap.has('cols')) {
-      variants.push('with-columns');
+    // DescriptionListTerm variants - can have help text (popover)
+    if (name.includes('descriptionlistterm')) {
+      if (propsMap.has('helpText') || propsMap.has('popover') || propsMap.has('hasHelp')) {
+        return 'with-help-text';
+      }
+      return null;
     }
     
-    // Return combined variant or just the main one
-    if (variants.length > 1) {
-      return variants.join('-');
+    // DescriptionListDescription variants - can be editable or link
+    if (name.includes('descriptionlistdescription')) {
+      if (propsMap.has('isEditable') || propsMap.has('editable') || propsMap.has('onEdit')) {
+        return 'editable';
+      }
+      if (propsMap.has('href') || propsMap.has('to') || propsMap.has('link')) {
+        return 'link';
+      }
+      return null;
     }
-    if (variants.length === 1) {
-      return variants[0];
-    }
-    // Default to vertical
-    return 'vertical';
+    
+    // Other DescriptionList children don't have variants
+    return null;
   }
   
   // ActionList variants - handled separately via children analysis
@@ -1091,6 +1116,15 @@ function inferState(componentName, props) {
     // But we can check if calendar has a selected date
     if (propsMap.has('selectedDate') || propsMap.has('value')) {
       return 'has-selection';
+    }
+    return null;
+  }
+  
+  // DescriptionList states
+  // DescriptionListDescription states - can be editing (inline edit)
+  if (name.includes('descriptionlistdescription')) {
+    if (propsMap.has('isEditing') || propsMap.has('editing') || propsMap.has('editMode')) {
+      return 'editing';
     }
     return null;
   }
