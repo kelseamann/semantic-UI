@@ -123,6 +123,10 @@ function inferRole(componentName) {
     // ExpandableSection component
     'expandablesection': 'expandable-section',   // Expandable section container
     // ExpandableSectionToggle and ExpandableSectionContent are structural children - skipped
+    // FileUpload components
+    'fileupload': 'file-upload',                 // File upload component (single or multiple)
+    'multiplefileupload': 'file-upload',         // Multiple file upload (variant of file-upload)
+    'fileuploadfield': 'file-upload',            // File upload field (customizable variant)
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -178,6 +182,11 @@ function inferPurpose(componentName, props) {
     }
     // Card without interactive props is display (state will indicate disabled/read-only if applicable)
     return 'display';
+  }
+  
+  // FileUpload components - check before generic checks
+  if (name.includes('fileupload')) {
+    return 'file-input';
   }
   
   // ExpandableSection component - check before generic checks
@@ -910,6 +919,24 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // FileUpload variants - single (default), multiple, field
+  if (name.includes('fileupload')) {
+    // MultipleFileUpload component indicates multiple variant
+    if (name.includes('multiplefileupload')) {
+      return 'multiple';
+    }
+    // FileUploadField component indicates field variant
+    if (name.includes('fileuploadfield')) {
+      return 'field';
+    }
+    // Check for multiple prop on FileUpload
+    if (propsMap.has('multiple') || propsMap.has('isMultiple')) {
+      return 'multiple';
+    }
+    // Default to single for FileUpload
+    return 'single';
+  }
+  
   // ExpandableSection variants - disclosure (default), truncate, detached
   if (name.includes('expandablesection')) {
     const variants = [];
@@ -1148,6 +1175,29 @@ function inferState(componentName, props) {
   // Check explicit state props first
   if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
     return 'disabled';
+  }
+  
+  // FileUpload states - check before generic isReadOnly check
+  // (FileUpload uses isReadOnly to indicate non-editable state, not generic readonly)
+  if (name.includes('fileupload')) {
+    // Loading state (file is being uploaded) - check first as it's most specific
+    if (propsMap.has('isLoading') || propsMap.has('loading') || propsMap.has('isUploading')) {
+      return 'loading';
+    }
+    // Error state (upload failed) - check before editable/non-editable
+    if (propsMap.has('isError') || propsMap.has('error') || propsMap.has('hasError')) {
+      return 'error';
+    }
+    // Non-editable state (file uploaded but cannot be edited) - check before editable
+    if (propsMap.has('isReadOnly') || propsMap.has('readOnly') || propsMap.has('readonly')) {
+      return 'non-editable';
+    }
+    // Editable state (file uploaded and can be edited)
+    if (propsMap.has('isEditable') || propsMap.has('editable')) {
+      return 'editable';
+    }
+    // Default state (no file uploaded yet) - no state
+    return null;
   }
   
   if (propsMap.has('isReadOnly') || propsMap.has('readOnly')) {
