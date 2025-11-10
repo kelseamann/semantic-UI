@@ -107,6 +107,8 @@ function inferRole(componentName) {
     'descriptionlistterm': 'description-label',  // Term/label in description list
     'descriptionlistitem': 'description-pair',    // Container for term/description pair
     'descriptionlistdescription': 'description-value', // Description/value for a term
+    // Divider component
+    'divider': 'divider',                        // Visual separator component
   };
   
   return roleMap[name] || name;
@@ -191,6 +193,11 @@ function inferPurpose(componentName, props) {
     }
     // DescriptionList container
     return 'data-display';
+  }
+  
+  // Divider - visual separator
+  if (name.includes('divider')) {
+    return 'separator';
   }
   
   if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
@@ -773,6 +780,16 @@ function inferVariant(componentName, props) {
     
     // Other DescriptionList children don't have variants
     return null;
+  }
+  
+  // Divider variants - horizontal (default) or vertical
+  if (name.includes('divider')) {
+    if (propsMap.has('isVertical') || propsMap.has('vertical') || 
+        propsMap.has('orientation') && propsMap.get('orientation') === 'vertical') {
+      return 'vertical';
+    }
+    // Default to horizontal
+    return 'horizontal';
   }
   
   // ActionList variants - handled separately via children analysis
