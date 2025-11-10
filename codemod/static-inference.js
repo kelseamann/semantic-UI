@@ -141,6 +141,9 @@ function inferRole(componentName) {
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
+    // List components
+    'list': 'list',                               // List container (ordered or unordered)
+    'listitem': 'list-item',                      // Individual list item
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -281,6 +284,14 @@ function inferPurpose(componentName, props) {
     }
     // Default purpose for labels
     return 'tag';
+  }
+  
+  // List components - organize information in digestible format
+  if (name.includes('list') && !name.includes('datalist') && !name.includes('actionlist') && !name.includes('duallistselector')) {
+    if (name.includes('listitem')) {
+      return 'display'; // Individual list item displays content
+    }
+    return 'display'; // List container displays organized information
   }
   
   // Component-specific purposes
@@ -607,6 +618,41 @@ function inferVariant(componentName, props) {
     // Check for editable
     if (propsMap.has('isEditable') || propsMap.has('editable') || propsMap.has('addLabelControl')) {
       variants.push('editable');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : null;
+  }
+  
+  // List variants - ordered, unordered (default), with-icons, horizontal
+  // Variant detection will be enhanced by children analysis in transform.js for icon detection
+  if (name.includes('list') && !name.includes('listitem') && !name.includes('datalist') && 
+      !name.includes('actionlist') && !name.includes('duallistselector')) {
+    const variants = [];
+    
+    // Check for ordered list (numbered)
+    if (propsMap.has('isOrdered') || propsMap.has('ordered') || propsMap.has('type') && propsMap.get('type') === 'ol') {
+      variants.push('ordered');
+    } else {
+      // Default to unordered
+      variants.push('unordered');
+    }
+    
+    // Check for horizontal orientation
+    if (propsMap.has('isHorizontal') || propsMap.has('horizontal') || 
+        propsMap.has('orientation') && propsMap.get('orientation') === 'horizontal') {
+      variants.push('horizontal');
+    }
+    
+    // Icon detection will be done via children analysis in transform.js
+    // For now, check if there's an explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (val.includes('icon')) {
+          variants.push('with-icons');
+        }
+      }
     }
     
     return variants.length > 0 ? variants.join('-') : null;

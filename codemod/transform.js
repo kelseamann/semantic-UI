@@ -226,6 +226,74 @@ function analyzeInputGroupChildren(j, path) {
 }
 
 /**
+ * Analyze List children to infer variant (with-icons, small-icons, big-icons)
+ * Traverses the AST to find icons in ListItem children
+ */
+function analyzeListChildren(j, path) {
+  let hasIcons = false;
+  let hasSmallIcons = false;
+  let hasBigIcons = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasIcons: false, hasSmallIcons: false, hasBigIcons: false };
+  }
+  
+  // Look through children for ListItem components with icons
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName && childName.toLowerCase().includes('listitem')) {
+        // Check if ListItem has icon children
+        if (child.children) {
+          child.children.forEach(grandchild => {
+            if (grandchild.type === 'JSXElement' && grandchild.openingElement) {
+              const grandchildName = grandchild.openingElement.name?.name;
+              if (grandchildName) {
+                const name = grandchildName.toLowerCase();
+                // Check for icon components (ending with "icon" or "Icon")
+                if (name.endsWith('icon')) {
+                  hasIcons = true;
+                  // Check icon size if available
+                  const iconProps = grandchild.openingElement.attributes || [];
+                  const sizeAttr = iconProps.find(attr => 
+                    attr.name?.name === 'size'
+                  );
+                  if (sizeAttr && sizeAttr.value) {
+                    const size = sizeAttr.value.type === 'StringLiteral' 
+                      ? sizeAttr.value.value.toLowerCase()
+                      : null;
+                    if (size === 'sm' || size === 'small') {
+                      hasSmallIcons = true;
+                    } else if (size === 'lg' || size === 'large' || size === 'xl') {
+                      hasBigIcons = true;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+  });
+  
+  return { hasIcons, hasSmallIcons, hasBigIcons };
+}
+
+/**
  * Analyze Breadcrumb children to infer variant (with-dropdown, with-heading)
  * Traverses the AST to find BreadcrumbDropdown or BreadcrumbHeading children
  */
@@ -538,7 +606,8 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   // For DualListSelector, analyze children to detect sub-variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
   // For form inputs (TextInput, TextArea, Select, etc.), check for HelperText as parent wrapper or sibling
   // For InlineEdit, detect if it's in a table row context (row-editing variant)
-  // For InputGroup, analyze children to detect variant (with-button-left, with-button-right, with-buttons-both, with-text-prefix, with-text-suffix, search)
+  // For InputGroup, analyze children to detect variant (with-button-left, with-button-right, with-buttons-both, with-icon-before, with-icon-after, with-text-prefix, with-text-suffix, search)
+  // For List, analyze children to detect icon variants (with-icons, small-icons, big-icons)
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -647,6 +716,28 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
     } else {
       variant = baseVariant;
     }
+  } else if (componentName.toLowerCase().includes('list') && 
+             !componentName.toLowerCase().includes('listitem') &&
+             !componentName.toLowerCase().includes('datalist') &&
+             !componentName.toLowerCase().includes('actionlist') &&
+             !componentName.toLowerCase().includes('duallistselector') &&
+             path) {
+    const childrenInfo = analyzeListChildren(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    
+    // Add icon variants if detected
+    const variantParts = baseVariant ? baseVariant.split('-') : [];
+    if (childrenInfo.hasIcons) {
+      if (childrenInfo.hasBigIcons && !variantParts.includes('big-icons')) {
+        variantParts.push('big-icons');
+      } else if (childrenInfo.hasSmallIcons && !variantParts.includes('small-icons')) {
+        variantParts.push('small-icons');
+      } else if (!variantParts.includes('with-icons')) {
+        variantParts.push('with-icons');
+      }
+    }
+    
+    variant = variantParts.length > 0 ? variantParts.join('-') : baseVariant;
   } else if (componentName.toLowerCase().includes('clipboardcopy') && path) {
     const childrenInfo = analyzeClipboardCopyChildren(j, path);
     const baseVariant = inferVariant(componentName, props);
