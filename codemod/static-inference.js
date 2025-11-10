@@ -170,7 +170,14 @@ function inferPurpose(componentName, props) {
     return 'input';
   }
   
-  if (name.includes('modal') || name.includes('drawer')) {
+  if (name.includes('modal')) {
+    return 'overlay';
+  }
+  
+  // Drawer purpose - can be overlay, details, navigation, filter, form, settings
+  if (name.includes('drawer')) {
+    // Check for explicit purpose-related props or infer from context
+    // For now, default to 'overlay' (can be enhanced with context analysis)
     return 'overlay';
   }
   
@@ -805,6 +812,18 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // Drawer variants - overlay (default) or inline
+  if (name.includes('drawer')) {
+    if (propsMap.has('isInline') || propsMap.has('inline')) {
+      return 'inline';
+    }
+    if (propsMap.has('isStaticDrawer') || propsMap.has('staticDrawer')) {
+      return 'static';
+    }
+    // Default to overlay
+    return 'overlay';
+  }
+  
   // Divider variants - horizontal (default) or vertical
   if (name.includes('divider')) {
     if (propsMap.has('isVertical') || propsMap.has('vertical') || 
@@ -875,8 +894,9 @@ function inferContext(componentName, props, parentContext = null) {
     return 'form';
   }
   
+  // Modal and Drawer are both overlay components (large pop-ups/overlays)
   if (name.includes('modal') || name.includes('drawer')) {
-    return 'modal';
+    return 'overlay';
   }
   
   if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
@@ -1305,6 +1325,18 @@ function inferSize(componentName, props) {
     }
   }
 
+  // Drawer placement - right (default), left, bottom
+  if (name.includes('drawer')) {
+    if (propsMap.has('position')) {
+      const positionValue = propsMap.get('position');
+      if (typeof positionValue === 'string') {
+        return positionValue.toLowerCase(); // right, left, bottom
+      }
+    }
+    // Default to right if no position specified (PatternFly default)
+    return 'right';
+  }
+  
   // Check for displaySize prop (used in Accordion)
   if (propsMap.has('displaySize')) {
     const displaySizeValue = propsMap.get('displaySize');
