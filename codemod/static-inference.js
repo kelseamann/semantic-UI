@@ -138,6 +138,9 @@ function inferRole(componentName) {
     // JumpLinks components
     'jumplinks': 'jump-links',                    // Navigation component for jumping to page sections
     'jumplinksitem': 'jump-link-item',            // Individual jump link item
+    // Label components
+    'label': 'label',                             // Label/tag component
+    'labelgroup': 'label-group',                  // Container for multiple labels
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -254,6 +257,30 @@ function inferPurpose(componentName, props) {
       return 'navigation'; // Individual jump link item
     }
     return 'navigation'; // Main jump links container
+  }
+  
+  // Label - can be used for tagging, filtering, status indication, or display
+  if (name.includes('label') && !name.includes('descriptionlistterm')) {
+    if (name.includes('labelgroup')) {
+      return 'tag-group'; // Container for multiple labels
+    }
+    // Check if it's used for filtering (common use case)
+    if (propsMap.has('onClose') || propsMap.has('isDismissible') || propsMap.has('dismissible')) {
+      // Dismissible labels are often used in filters
+      return 'filter';
+    }
+    // Check if it's a status label (has status color)
+    if (propsMap.has('color')) {
+      const colorValue = propsMap.get('color');
+      if (typeof colorValue === 'string') {
+        const color = colorValue.toLowerCase();
+        if (['danger', 'warning', 'success', 'info', 'custom'].includes(color)) {
+          return 'status-indicator';
+        }
+      }
+    }
+    // Default purpose for labels
+    return 'tag';
   }
   
   // Component-specific purposes
@@ -516,6 +543,73 @@ function inferVariant(componentName, props) {
     }
     // Default variant - will be determined by children analysis in transform.js
     return null;
+  }
+  
+  // Label variants - color (status or non-status), filled/outlined, with-icon
+  // Efficiently combine overlapping options
+  if (name.includes('label') && !name.includes('labelgroup') && !name.includes('descriptionlistterm')) {
+    const variants = [];
+    
+    // Check for color (status or non-status)
+    if (propsMap.has('color')) {
+      const colorValue = propsMap.get('color');
+      if (typeof colorValue === 'string') {
+        const color = colorValue.toLowerCase();
+        // Status colors
+        if (['danger', 'warning', 'success', 'info', 'custom'].includes(color)) {
+          variants.push(color);
+        } else {
+          // Non-status colors
+          variants.push(color);
+        }
+      }
+    }
+    
+    // Check for filled variant (outlined is default, so only add if filled)
+    if (propsMap.has('isFilled') || propsMap.has('filled')) {
+      const filledValue = propsMap.has('isFilled') ? propsMap.get('isFilled') : propsMap.get('filled');
+      if (filledValue !== false) {
+        variants.push('filled');
+      }
+    } else {
+      // Status labels are typically filled by default
+      if (propsMap.has('color')) {
+        const colorValue = propsMap.get('color');
+        if (typeof colorValue === 'string') {
+          const color = colorValue.toLowerCase();
+          if (['danger', 'warning', 'success', 'info', 'custom'].includes(color)) {
+            variants.push('filled');
+          }
+        }
+      }
+    }
+    
+    // Check for icon (non-status labels can have icons)
+    if (propsMap.has('icon') || propsMap.has('iconComponent')) {
+      variants.push('with-icon');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : null;
+  }
+  
+  // LabelGroup variants - horizontal (default), vertical, editable
+  if (name.includes('labelgroup')) {
+    const variants = [];
+    
+    // Check for orientation
+    if (propsMap.has('orientation')) {
+      const orientationValue = propsMap.get('orientation');
+      if (typeof orientationValue === 'string' && orientationValue.toLowerCase() === 'vertical') {
+        variants.push('vertical');
+      }
+    }
+    
+    // Check for editable
+    if (propsMap.has('isEditable') || propsMap.has('editable') || propsMap.has('addLabelControl')) {
+      variants.push('editable');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : null;
   }
   
   // JumpLinks variants - vertical (default), horizontal-links, expandable
@@ -1292,6 +1386,26 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'page';
   }
   
+  // Label context - can be in table, card, filter, or page
+  if (name.includes('label') && !name.includes('descriptionlistterm')) {
+    // LabelGroup context
+    if (name.includes('labelgroup')) {
+      // Often used in filters
+      if (propsMap.has('addLabelControl') || propsMap.has('isEditable') || propsMap.has('editable')) {
+        return 'filter';
+      }
+      // Default to page context
+      return 'page';
+    }
+    // Individual Label context - infer from common use cases
+    // Labels in filters are often dismissible
+    if (propsMap.has('onClose') || propsMap.has('isDismissible') || propsMap.has('dismissible')) {
+      return 'filter';
+    }
+    // Default to page context (can be in tables, cards, or general page)
+    return 'page';
+  }
+  
   // InlineEdit context - can be in table rows (row editing) or pages/description lists (field-specific/full-page)
   if (name.includes('inlineedit')) {
     // If parent context is table, it's row editing
@@ -1479,6 +1593,28 @@ function inferState(componentName, props) {
       // (cards can be display-only, so no interactive props suggests read-only rather than disabled)
       return 'readonly';
     }
+  }
+  
+  // Label states - clickable, editable, dismissible, overflow
+  if (name.includes('label') && !name.includes('labelgroup') && !name.includes('descriptionlistterm')) {
+    // Check for overflow label (isOverflowLabel prop)
+    if (propsMap.has('isOverflowLabel') || propsMap.has('overflowLabel')) {
+      return 'overflow';
+    }
+    // Check for editable (isEditable prop or editableProps)
+    if (propsMap.has('isEditable') || propsMap.has('editable') || propsMap.has('editableProps')) {
+      return 'editable';
+    }
+    // Check for dismissible (onClose prop or close button)
+    if (propsMap.has('onClose') || propsMap.has('isDismissible') || propsMap.has('dismissible') || 
+        propsMap.has('closeBtnAriaLabel')) {
+      return 'dismissible';
+    }
+    // Check for clickable (onClick prop or href)
+    if (propsMap.has('onClick') || propsMap.has('href')) {
+      return 'clickable';
+    }
+    return null;
   }
   
   // JumpLinks states - expanded/collapsed (for expandable), active (for items)
@@ -1837,6 +1973,16 @@ function inferSize(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
 
+  // Label size - compact (smaller) or default
+  // Must be checked BEFORE generic size check
+  if (name.includes('label') && !name.includes('labelgroup') && !name.includes('descriptionlistterm')) {
+    if (propsMap.has('isCompact') || propsMap.has('compact')) {
+      return 'compact';
+    }
+    // Default size
+    return 'default';
+  }
+  
   // Icon size - sm (0.75rem, 12px), md (0.875rem, 14px), lg (1rem, 16px), xl (1.375rem, 22px), 2xl (3.5rem, 56px), 3xl (6rem, 96px)
   // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
   // Must be checked BEFORE generic size check to normalize values
