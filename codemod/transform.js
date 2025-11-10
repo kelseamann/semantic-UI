@@ -45,6 +45,7 @@ function hasSemanticAttributes(attributes) {
 
 /**
  * Find parent context by traversing up the AST
+ * Returns an object with { context, purpose } if parent is Form, or just context string for others
  */
 function findParentContext(path, imports) {
   let current = path.parent;
@@ -61,8 +62,16 @@ function findParentContext(path, imports) {
         if (parentName && isPatternFlyComponent(parentName, imports)) {
           const parentProps = node.openingElement.attributes || [];
           const purpose = inferPurpose(parentName, parentProps);
-          if (purpose === 'form-container' || purpose === 'overlay') {
-            return inferContext(parentName, parentProps);
+          const context = inferContext(parentName, parentProps);
+          
+          // For Form, return both context and purpose so children can inherit purpose
+          if (purpose === 'form-container') {
+            return { context, purpose };
+          }
+          
+          // For overlay components, just return context
+          if (purpose === 'overlay') {
+            return context;
           }
         }
       }
@@ -238,6 +247,82 @@ function analyzeActionListChildren(j, path) {
 }
 
 /**
+ * Check if a form input is wrapped by HelperText (parent)
+ * HelperText is state-dependent (error, warning, success, indeterminate) and should be a variant of the input
+ * We traverse UP the AST to find if HelperText is a parent wrapper
+ */
+function checkIfWrappedByHelperText(j, path) {
+  let hasHelperText = false;
+  let helperTextState = null; // 'error', 'warning', 'success', 'indeterminate' (default)
+  
+  // Traverse up the AST to find if HelperText is a parent
+  let current = path.parent;
+  let depth = 0;
+  const maxDepth = 10; // Prevent infinite loops
+  
+  while (current && depth < maxDepth) {
+    if (current.value) {
+      const node = current.value;
+      
+      // Check if parent is a JSX element
+      if (node.type === 'JSXElement' && node.openingElement) {
+        const parentName = node.openingElement.name?.name;
+        if (parentName) {
+          const name = parentName.toLowerCase();
+          // Check if this parent is HelperText
+          if (name.includes('helpertext') || name.includes('helper-text')) {
+            hasHelperText = true;
+            
+            // Check HelperText props for state (isError, isWarning, isSuccess, isIndeterminate)
+            const helperTextProps = node.openingElement.attributes || [];
+            const propsMap = new Map();
+            helperTextProps.forEach(attr => {
+              if (attr.name && attr.name.name) {
+                let value = true; // Boolean shorthand
+                if (attr.value) {
+                  if (attr.value.type === 'StringLiteral' || attr.value.type === 'Literal') {
+                    value = attr.value.value;
+                  } else if (attr.value.type === 'JSXExpressionContainer' && attr.value.expression) {
+                    if (attr.value.expression.type === 'BooleanLiteral') {
+                      value = attr.value.expression.value;
+                    }
+                  } else if (attr.value.type === 'BooleanLiteral') {
+                    value = attr.value.value;
+                  }
+                }
+                propsMap.set(attr.name.name, value);
+              }
+            });
+            
+            // Determine state from HelperText props (priority: error > warning > success > indeterminate)
+            if (propsMap.has('isError') && propsMap.get('isError')) {
+              helperTextState = 'error';
+            } else if (propsMap.has('isWarning') && propsMap.get('isWarning')) {
+              helperTextState = 'warning';
+            } else if (propsMap.has('isSuccess') && propsMap.get('isSuccess')) {
+              helperTextState = 'success';
+            } else if (propsMap.has('isIndeterminate') && propsMap.get('isIndeterminate')) {
+              helperTextState = 'indeterminate';
+            } else {
+              // Default state if no explicit state prop
+              helperTextState = 'indeterminate';
+            }
+            
+            // Found HelperText parent, stop traversing
+            break;
+          }
+        }
+      }
+    }
+    
+    current = current.parent;
+    depth++;
+  }
+  
+  return { hasHelperText, helperTextState };
+}
+
+/**
  * Analyze DualListSelector children to infer variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
  * Traverses the AST to find search inputs, action menus, tooltips, and multiple drop zones
  */
@@ -301,15 +386,27 @@ function analyzeDualListSelectorChildren(j, path) {
 /**
  * Create semantic data attributes
  * Only adds attributes when we can infer meaningful values (not null)
+ * parentContext can be a string (context) or an object { context, purpose } for Form parents
  */
 function createSemanticAttributes(j, componentName, props, parentContext, path = null) {
   const role = inferRole(componentName);
   const purpose = inferPurpose(componentName, props);
   
+  // Extract parent context and purpose if parentContext is an object (Form case)
+  let parentContextValue = null;
+  let parentPurpose = null;
+  if (typeof parentContext === 'object' && parentContext !== null) {
+    parentContextValue = parentContext.context;
+    parentPurpose = parentContext.purpose;
+  } else {
+    parentContextValue = parentContext;
+  }
+  
   // For ActionList, analyze children to infer grouping variant
   // For Breadcrumb, analyze children to detect dropdown/heading variants
   // For ClipboardCopy, analyze children to detect content type variants (array, json-object)
   // For DualListSelector, analyze children to detect sub-variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
+  // For form inputs (TextInput, TextArea, Select, etc.), analyze children to detect HelperText
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -325,6 +422,25 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
       variant = 'with-dropdown';
     } else if (childrenInfo.hasHeading) {
       variant = 'with-heading';
+    } else {
+      variant = baseVariant;
+    }
+  } else if ((componentName.toLowerCase().includes('textinput') || 
+              componentName.toLowerCase().includes('textarea') || 
+              componentName.toLowerCase().includes('select') ||
+              componentName.toLowerCase().includes('checkbox') ||
+              componentName.toLowerCase().includes('radio') ||
+              componentName.toLowerCase().includes('switch')) && 
+             path) {
+    // Form inputs wrapped by HelperText get "with-helper-text" variant
+    const helperTextInfo = checkIfWrappedByHelperText(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    if (helperTextInfo.hasHelperText) {
+      const variantParts = baseVariant ? baseVariant.split('-') : [];
+      if (!variantParts.includes('with-helper-text')) {
+        variantParts.push('with-helper-text');
+      }
+      variant = variantParts.length > 0 ? variantParts.join('-') : 'with-helper-text';
     } else {
       variant = baseVariant;
     }
@@ -370,8 +486,33 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
     variant = inferVariant(componentName, props);
   }
   
-  const context = inferContext(componentName, props, parentContext);
-  const state = inferState(componentName, props);
+  const context = inferContext(componentName, props, parentContextValue, parentPurpose);
+  
+  // For form inputs, check if HelperText state should be incorporated into the input's state
+  let state = inferState(componentName, props);
+  if ((componentName.toLowerCase().includes('textinput') || 
+       componentName.toLowerCase().includes('textarea') || 
+       componentName.toLowerCase().includes('select') ||
+       componentName.toLowerCase().includes('checkbox') ||
+       componentName.toLowerCase().includes('radio') ||
+       componentName.toLowerCase().includes('switch')) && 
+      path) {
+    const helperTextInfo = checkIfWrappedByHelperText(j, path);
+    // HelperText state (error, warning, success) should be reflected in the input's state
+    if (helperTextInfo.hasHelperText && helperTextInfo.helperTextState) {
+      // Only add meaningful states (not indeterminate)
+      if (helperTextInfo.helperTextState !== 'indeterminate') {
+        // Combine states: if input already has a state, combine them; otherwise use helper text state
+        if (state) {
+          // Combine existing state with helper text state (e.g., "disabled error")
+          state = `${state} ${helperTextInfo.helperTextState}`;
+        } else {
+          state = helperTextInfo.helperTextState;
+        }
+      }
+    }
+  }
+  
   const actionType = inferActionType(componentName, props);
   const size = inferSize(componentName, props);
   
@@ -474,6 +615,8 @@ module.exports = function transformer(fileInfo, api) {
       'expandablesectiontoggle', 'expandablesectioncontent',
       // ExpandableSection structural children - role and purpose handled by parent ExpandableSection
       // Structural children: ExpandableSectionToggle, ExpandableSectionContent
+      'helpertext', 'helper-text',
+      // HelperText is a structural child of form inputs - its state is reflected in the input's variant/state
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
