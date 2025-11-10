@@ -120,6 +120,9 @@ function inferRole(componentName) {
     // EmptyState component
     'emptystate': 'empty-state',                 // Empty state container
     // EmptyStateHeader, EmptyStateIcon, EmptyStateBody, EmptyStateFooter, EmptyStateActions are structural children - skipped
+    // ExpandableSection component
+    'expandablesection': 'expandable-section',   // Expandable section container
+    // ExpandableSectionToggle and ExpandableSectionContent are structural children - skipped
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -175,6 +178,11 @@ function inferPurpose(componentName, props) {
     }
     // Card without interactive props is display (state will indicate disabled/read-only if applicable)
     return 'display';
+  }
+  
+  // ExpandableSection component - check before generic checks
+  if (name.includes('expandablesection')) {
+    return 'collapsible-content';
   }
   
   // EmptyState component - check before generic checks
@@ -902,6 +910,24 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // ExpandableSection variants - disclosure (default), truncate, detached
+  if (name.includes('expandablesection')) {
+    const variants = [];
+    
+    // Check for truncate variant (for truncated text expansion)
+    if (propsMap.has('isTruncate') || propsMap.has('truncate') || propsMap.has('isTruncated')) {
+      variants.push('truncate');
+    }
+    
+    // Check for detached variant (toggle and content are separated)
+    if (propsMap.has('isDetached') || propsMap.has('detached')) {
+      variants.push('detached');
+    }
+    
+    // Default to disclosure if no variant specified
+    return variants.length > 0 ? variants.join('-') : 'disclosure';
+  }
+  
   // EmptyState variants - size variants (xs, sm, lg, xl, full) and use case variants
   if (name.includes('emptystate')) {
     const variants = [];
@@ -1232,6 +1258,21 @@ function inferState(componentName, props) {
     }
     // Non-expandable clipboard copy doesn't have a state
     return null;
+  }
+  
+  // ExpandableSection states - can be expanded/collapsed
+  if (name.includes('expandablesection')) {
+    if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const expandedValue = propsMap.has('isExpanded') 
+        ? propsMap.get('isExpanded') 
+        : propsMap.get('expanded');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    // Default to collapsed if no explicit state
+    return 'collapsed';
   }
   
   // CodeBlock states - expandable code block can be expanded/collapsed

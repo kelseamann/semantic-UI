@@ -471,6 +471,9 @@ module.exports = function transformer(fileInfo, api) {
       // Structural children: EmptyStateHeader, EmptyStateIcon, EmptyStateBody, EmptyStateFooter, EmptyStateActions
       // Note: Nested components like Button and Spinner are NOT skipped - they get their own attributes
       // (they are independent components used within EmptyState, not structural children)
+      'expandablesectiontoggle', 'expandablesectioncontent',
+      // ExpandableSection structural children - role and purpose handled by parent ExpandableSection
+      // Structural children: ExpandableSectionToggle, ExpandableSectionContent
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
