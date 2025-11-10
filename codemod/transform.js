@@ -238,6 +238,67 @@ function analyzeActionListChildren(j, path) {
 }
 
 /**
+ * Analyze DualListSelector children to infer variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
+ * Traverses the AST to find search inputs, action menus, tooltips, and multiple drop zones
+ */
+function analyzeDualListSelectorChildren(j, path) {
+  let hasTooltips = false;
+  let hasSearch = false;
+  let hasActions = false;
+  let hasMultipleDropZones = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasTooltips: false, hasSearch: false, hasActions: false, hasMultipleDropZones: false };
+  }
+  
+  let dropZoneCount = 0;
+  
+  // Look through children for search, actions, tooltips, and drop zones
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName) {
+        const name = childName.toLowerCase();
+        // Check for search/filter components
+        if (name.includes('search') || name.includes('filter') || name.includes('input')) {
+          hasSearch = true;
+        }
+        // Check for action menus (kebab, menu, actions)
+        if (name.includes('kebab') || name.includes('menutoggle') || name.includes('actionmenu') || 
+            name.includes('actions')) {
+          hasActions = true;
+        }
+        // Check for tooltips
+        if (name.includes('tooltip')) {
+          hasTooltips = true;
+        }
+        // Check for drop zones (Droppable components)
+        if (name.includes('droppable')) {
+          dropZoneCount++;
+        }
+      }
+    }
+  });
+  
+  hasMultipleDropZones = dropZoneCount > 1;
+  
+  return { hasTooltips, hasSearch, hasActions, hasMultipleDropZones };
+}
+
+/**
  * Create semantic data attributes
  * Only adds attributes when we can infer meaningful values (not null)
  */
@@ -248,6 +309,7 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   // For ActionList, analyze children to infer grouping variant
   // For Breadcrumb, analyze children to detect dropdown/heading variants
   // For ClipboardCopy, analyze children to detect content type variants (array, json-object)
+  // For DualListSelector, analyze children to detect sub-variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -281,6 +343,29 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
       variantParts.push('json-object');
     }
     variant = variantParts.length > 0 ? variantParts.join('-') : baseVariant;
+  } else if (componentName.toLowerCase().includes('duallistselector') && 
+             !componentName.toLowerCase().includes('duallistselectorpane') && 
+             !componentName.toLowerCase().includes('duallistselectorlist') && 
+             !componentName.toLowerCase().includes('duallistselectorlistitem') && 
+             path) {
+    const childrenInfo = analyzeDualListSelectorChildren(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    // Add sub-variants if detected via children analysis
+    const variantParts = baseVariant ? baseVariant.split('-') : ['basic'];
+    if (childrenInfo.hasTooltips && !variantParts.includes('with-tooltips')) {
+      variantParts.push('with-tooltips');
+    }
+    if (childrenInfo.hasSearch && !variantParts.includes('with-search')) {
+      variantParts.push('with-search');
+    }
+    if (childrenInfo.hasActions && !variantParts.includes('with-actions')) {
+      variantParts.push('with-actions');
+    }
+    if (childrenInfo.hasMultipleDropZones && variantParts.includes('draggable') && 
+        !variantParts.includes('multiple-drop-zones')) {
+      variantParts.push('multiple-drop-zones');
+    }
+    variant = variantParts.join('-');
   } else {
     variant = inferVariant(componentName, props);
   }
@@ -378,6 +463,8 @@ module.exports = function transformer(fileInfo, api) {
       'drawermain', 'drawerpanel', 'drawercontent', 'drawerbody', 
       'drawerhead', 'draweractions', 'drawersection', 'drawersectiongroup',
       // Drawer structural children - role and purpose handled by parent Drawer
+      'duallistselectorlist', // DualListSelectorList is purely structural - skipped
+      // DualListSelectorPane and DualListSelectorListItem get attributes (they have meaningful variants/states)
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {

@@ -113,10 +113,19 @@ function inferRole(componentName) {
     'dragdropcontainer': 'drag-drop-container',  // Container for drag and drop
     'dragdropsort': 'drag-drop-sort',           // Sortable drag and drop
     // Droppable and Draggable don't get roles - they're structural children, role handled by parent
+    // DualListSelector components
+    'duallistselector': 'dual-list-selector',    // Main dual list selector container
+    // DualListSelectorPane and DualListSelectorListItem don't get roles - they're structural children
+    // DualListSelectorList is purely structural - skipped
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
   if (name.includes('droppable') || name.includes('draggable')) {
+    return null;
+  }
+  
+  // DualListSelectorPane and DualListSelectorListItem don't get roles - they're structural children
+  if (name.includes('duallistselectorpane') || name.includes('duallistselectorlistitem')) {
     return null;
   }
   
@@ -163,6 +172,18 @@ function inferPurpose(componentName, props) {
     }
     // Card without interactive props is display (state will indicate disabled/read-only if applicable)
     return 'display';
+  }
+  
+  // DualListSelector components - check before generic input check
+  if (name.includes('duallistselector')) {
+    if (name.includes('duallistselectorpane')) {
+      return 'selection-pane';
+    }
+    if (name.includes('duallistselectorlistitem')) {
+      return 'selectable-item';
+    }
+    // Main DualListSelector container
+    return 'select-from-options';
   }
   
   // Component-specific purposes
@@ -824,6 +845,55 @@ function inferVariant(componentName, props) {
     return 'overlay';
   }
   
+  // DualListSelector variants - handled via children analysis in transform.js
+  // Base variants: basic, with-tree, draggable
+  // Sub-variants detected from children: with-tooltips, with-search, with-actions, multiple-drop-zones
+  if (name.includes('duallistselector') && !name.includes('duallistselectorpane') && 
+      !name.includes('duallistselectorlist') && !name.includes('duallistselectorlistitem')) {
+    // Main DualListSelector - variant will be determined by children analysis
+    // Base variant detection
+    const variants = [];
+    if (propsMap.has('isTree') || propsMap.has('tree') || propsMap.has('isExpandable')) {
+      variants.push('with-tree');
+    }
+    if (propsMap.has('isDraggable') || propsMap.has('draggable') || propsMap.has('onDrag')) {
+      variants.push('draggable');
+    }
+    // Default to basic if no variants detected
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // DualListSelectorPane variants - available or chosen
+  if (name.includes('duallistselectorpane')) {
+    const variants = [];
+    // Check for available vs chosen (status prop or similar)
+    if (propsMap.has('status')) {
+      const statusValue = propsMap.get('status');
+      if (typeof statusValue === 'string') {
+        variants.push(statusValue.toLowerCase()); // available or chosen
+      }
+    }
+    // Check for sub-variants
+    if (propsMap.has('hasSearch') || propsMap.has('search') || propsMap.has('onFilter')) {
+      variants.push('with-search');
+    }
+    if (propsMap.has('hasActions') || propsMap.has('actions') || propsMap.has('onAction')) {
+      variants.push('with-actions');
+    }
+    if (propsMap.has('hasSort') || propsMap.has('sort') || propsMap.has('onSort')) {
+      variants.push('with-sort');
+    }
+    return variants.length > 0 ? variants.join('-') : null;
+  }
+  
+  // DualListSelectorListItem variants - folder (if it's a folder/group in tree view)
+  if (name.includes('duallistselectorlistitem')) {
+    if (propsMap.has('isFolder') || propsMap.has('folder') || propsMap.has('hasChildren')) {
+      return 'folder';
+    }
+    return null;
+  }
+  
   // Divider variants - horizontal (default) or vertical
   if (name.includes('divider')) {
     if (propsMap.has('isVertical') || propsMap.has('vertical') || 
@@ -1208,6 +1278,32 @@ function inferState(componentName, props) {
   if (name.includes('descriptionlistdescription')) {
     if (propsMap.has('isEditing') || propsMap.has('editing') || propsMap.has('editMode')) {
       return 'editing';
+    }
+    return null;
+  }
+  
+  // DualListSelector states
+  if (name.includes('duallistselectorlistitem')) {
+    // List items can be selected
+    if (propsMap.has('isSelected') || propsMap.has('selected')) {
+      return 'selected';
+    }
+    // Items can be expanded/collapsed if they're folders
+    if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const expandedValue = propsMap.has('isExpanded') 
+        ? propsMap.get('isExpanded') 
+        : propsMap.get('expanded');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    return null;
+  }
+  if (name.includes('duallistselectorpane')) {
+    // Panes can be disabled
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
     }
     return null;
   }
