@@ -136,6 +136,96 @@ function analyzeClipboardCopyChildren(j, path) {
 }
 
 /**
+ * Analyze InputGroup children to infer variant (with-button-left, with-button-right, with-buttons-both, with-icon-before, with-icon-after, with-text-prefix, with-text-suffix, search)
+ * Traverses the AST to find buttons, text, icons, or search icons in InputGroup
+ */
+function analyzeInputGroupChildren(j, path) {
+  let hasButtonLeft = false;
+  let hasButtonRight = false;
+  let hasIconLeft = false;
+  let hasIconRight = false;
+  let hasTextLeft = false;
+  let hasTextRight = false;
+  let hasSearch = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasButtonLeft: false, hasButtonRight: false, hasIconLeft: false, hasIconRight: false, hasTextLeft: false, hasTextRight: false, hasSearch: false };
+  }
+  
+  // Look through children for buttons, text, or search icons
+  // InputGroup children are typically in order: [left element, input, right element]
+  let foundInput = false;
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName) {
+        const name = childName.toLowerCase();
+        // Check if this is the input (middle element)
+        if (name.includes('input') || name.includes('textinput') || name.includes('textarea') || name.includes('select')) {
+          foundInput = true;
+          return; // Skip input itself
+        }
+        
+        // If we haven't found the input yet, this is a left element
+        // If we've found the input, this is a right element
+        const isLeft = !foundInput;
+        
+        // Check for buttons
+        if (name.includes('button')) {
+          if (isLeft) {
+            hasButtonLeft = true;
+          } else {
+            hasButtonRight = true;
+          }
+        }
+        // Check for icons (components ending with "icon" or "Icon")
+        if (name.endsWith('icon')) {
+          if (isLeft) {
+            hasIconLeft = true;
+          } else {
+            hasIconRight = true;
+          }
+        }
+        // Check for InputGroupText (text prefix/suffix, not icon)
+        if (name.includes('inputgrouptext')) {
+          if (isLeft) {
+            hasTextLeft = true;
+          } else {
+            hasTextRight = true;
+          }
+        }
+        // Check for search icon/button
+        if (name.includes('search') || name.includes('searchicon')) {
+          hasSearch = true;
+          // Search button is typically on the right
+          if (!isLeft) {
+            hasButtonRight = true;
+            hasIconRight = true;
+          } else {
+            hasIconLeft = true;
+          }
+        }
+      }
+    }
+  });
+  
+  return { hasButtonLeft, hasButtonRight, hasIconLeft, hasIconRight, hasTextLeft, hasTextRight, hasSearch };
+}
+
+/**
  * Analyze Breadcrumb children to infer variant (with-dropdown, with-heading)
  * Traverses the AST to find BreadcrumbDropdown or BreadcrumbHeading children
  */
@@ -447,6 +537,8 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   // For ClipboardCopy, analyze children to detect content type variants (array, json-object)
   // For DualListSelector, analyze children to detect sub-variants (with-tooltips, with-search, with-actions, multiple-drop-zones)
   // For form inputs (TextInput, TextArea, Select, etc.), check for HelperText as parent wrapper or sibling
+  // For InlineEdit, detect if it's in a table row context (row-editing variant)
+  // For InputGroup, analyze children to detect variant (with-button-left, with-button-right, with-buttons-both, with-text-prefix, with-text-suffix, search)
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -481,6 +573,77 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
         variantParts.push('with-helper-text');
       }
       variant = variantParts.length > 0 ? variantParts.join('-') : 'with-helper-text';
+    } else {
+      variant = baseVariant;
+    }
+  } else if (componentName.toLowerCase().includes('inlineedit') && 
+             !componentName.toLowerCase().includes('inlineedittoggle') && 
+             !componentName.toLowerCase().includes('inlineeditactiongroup') && 
+             !componentName.toLowerCase().includes('inlineeditinput') && 
+             path) {
+    // Detect if InlineEdit is in a table row context (row-editing variant)
+    // Traverse up the AST to find if parent is a table row (Tr)
+    let isInTableRow = false;
+    let current = path.parent;
+    let depth = 0;
+    const maxDepth = 10;
+    
+    while (current && depth < maxDepth) {
+      if (current.value) {
+        const node = current.value;
+        if (node.type === 'JSXElement' && node.openingElement) {
+          const parentName = node.openingElement.name?.name;
+          if (parentName) {
+            const parentNameLower = parentName.toLowerCase();
+            // Check if parent is a table row (Tr)
+            if (parentNameLower === 'tr' || parentNameLower.includes('tablerow')) {
+              isInTableRow = true;
+              break;
+            }
+            // If we hit a table or tbody, we're in table context but not necessarily a row
+            // Continue searching for Tr
+            if (parentNameLower.includes('table') || parentNameLower.includes('tbody') || 
+                parentNameLower.includes('thead')) {
+              // Continue searching
+            } else if (!parentNameLower.includes('td') && !parentNameLower.includes('th')) {
+              // If we hit something that's not a table-related component, stop searching
+              break;
+            }
+          }
+        }
+      }
+      current = current.parent;
+      depth++;
+    }
+    
+    const baseVariant = inferVariant(componentName, props);
+    // If in table row context and no explicit variant, set to row-editing
+    if (isInTableRow && !baseVariant) {
+      variant = 'row-editing';
+    } else {
+      variant = baseVariant;
+    }
+  } else if (componentName.toLowerCase().includes('inputgroup') && path) {
+    const childrenInfo = analyzeInputGroupChildren(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    
+    // Determine variant based on children analysis
+    if (childrenInfo.hasSearch) {
+      variant = 'search';
+    } else if (childrenInfo.hasButtonLeft && childrenInfo.hasButtonRight) {
+      variant = 'with-buttons-both';
+    } else if (childrenInfo.hasButtonLeft) {
+      variant = 'with-button-left';
+    } else if (childrenInfo.hasButtonRight) {
+      variant = 'with-button-right';
+    } else if (childrenInfo.hasIconLeft) {
+      variant = 'with-icon-before';
+    } else if (childrenInfo.hasIconRight) {
+      variant = 'with-icon-after';
+    } else if (childrenInfo.hasTextLeft) {
+      variant = 'with-text-prefix';
+    } else if (childrenInfo.hasTextRight) {
+      variant = 'with-text-suffix';
     } else {
       variant = baseVariant;
     }

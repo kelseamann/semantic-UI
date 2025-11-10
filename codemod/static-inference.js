@@ -128,6 +128,13 @@ function inferRole(componentName) {
     'fileupload': 'file-upload',                 // File upload component (single or multiple)
     'multiplefileupload': 'file-upload',         // Multiple file upload (variant of file-upload)
     'fileuploadfield': 'file-upload',            // File upload field (customizable variant)
+    // InlineEdit components
+    'inlineedit': 'inline-edit',                 // Inline edit container
+    'inlineedittoggle': 'edit-trigger',          // Pencil icon that triggers edit mode
+    'inlineeditactiongroup': 'button-group',     // Save/cancel action buttons
+    'inlineeditinput': 'editable-input',         // Editable input field
+    // InputGroup component
+    'inputgroup': 'input-group',                  // Container that combines input with buttons/text
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -216,6 +223,26 @@ function inferPurpose(componentName, props) {
     }
     // Main DualListSelector container
     return 'select-from-options';
+  }
+  
+  // InlineEdit components - enable editing of content inline
+  if (name.includes('inlineedit')) {
+    if (name.includes('inlineedittoggle')) {
+      return 'toggle-trigger'; // Pencil icon that toggles edit mode on/off
+    }
+    if (name.includes('inlineeditactiongroup')) {
+      return 'action'; // Save/cancel action buttons
+    }
+    if (name.includes('inlineeditinput')) {
+      return 'input'; // Editable input field
+    }
+    // Main InlineEdit container
+    return 'editing';
+  }
+  
+  // InputGroup - combines input with buttons/text on sides
+  if (name.includes('inputgroup')) {
+    return 'input';
   }
   
   // Component-specific purposes
@@ -461,6 +488,53 @@ function inferVariant(componentName, props) {
   // Hint is treated as a variant of Alert
   if (name.includes('hint')) {
     return 'hint';
+  }
+  
+  // InputGroup variants - with-button-left, with-button-right, with-buttons-both, with-icon-before, with-icon-after, with-text-prefix, with-text-suffix, search
+  // Variant detection will be enhanced by children analysis in transform.js
+  if (name.includes('inputgroup')) {
+    // Check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['with-button-left', 'with-button-right', 'with-buttons-both', 'with-icon-before', 'with-icon-after', 'with-text-prefix', 'with-text-suffix', 'search'].includes(val)) {
+          return val;
+        }
+      }
+    }
+    // Default variant - will be determined by children analysis in transform.js
+    return null;
+  }
+  
+  // InlineEdit variants - field-specific (single field), full-page (multiple fields), row-editing (table row)
+  if (name.includes('inlineedit') && !name.includes('inlineedittoggle') && 
+      !name.includes('inlineeditactiongroup') && !name.includes('inlineeditinput')) {
+    // Check if it's in a table row context (row editing)
+    // This will be enhanced by parent context detection in transform.js
+    // For now, check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['field-specific', 'full-page', 'row-editing', 'row', 'field', 'page'].includes(val)) {
+          // Normalize variant names
+          if (val === 'row' || val === 'row-editing') {
+            return 'row-editing';
+          }
+          if (val === 'field' || val === 'field-specific') {
+            return 'field-specific';
+          }
+          if (val === 'page' || val === 'full-page') {
+            return 'full-page';
+          }
+          return val;
+        }
+      }
+    }
+    // Default variant - will be determined by context (table row vs page)
+    // Context detection in transform.js will help determine this
+    return null;
   }
   
   // Icon variants - extract icon name from component name (e.g., "StarIcon" -> "star", "CheckIcon" -> "check")
@@ -1178,6 +1252,19 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'overlay';
   }
   
+  // InlineEdit context - can be in table rows (row editing) or pages/description lists (field-specific/full-page)
+  if (name.includes('inlineedit')) {
+    // If parent context is table, it's row editing
+    // Otherwise, it's page/description-list context
+    // Parent context detection will handle this, but we can also check props
+    if (propsMap.has('isTableRow') || propsMap.has('tableRow') || propsMap.has('rowEditing')) {
+      return 'table';
+    }
+    // Default to page context (field-specific or full-page)
+    // Parent context detection will refine this
+    return 'page';
+  }
+  
   if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
     return 'table';
   }
@@ -1352,6 +1439,29 @@ function inferState(componentName, props) {
       // (cards can be display-only, so no interactive props suggests read-only rather than disabled)
       return 'readonly';
     }
+  }
+  
+  // InlineEdit states - read-only (default) or edit (editing mode)
+  if (name.includes('inlineedit')) {
+    // Check if in edit mode
+    if (propsMap.has('isEditable') || propsMap.has('editable') || propsMap.has('isEditing') || 
+        propsMap.has('editing') || propsMap.has('isActive') || propsMap.has('active')) {
+      const editableValue = propsMap.has('isEditable') ? propsMap.get('isEditable') :
+                           propsMap.has('editable') ? propsMap.get('editable') :
+                           propsMap.has('isEditing') ? propsMap.get('isEditing') :
+                           propsMap.has('editing') ? propsMap.get('editing') :
+                           propsMap.has('isActive') ? propsMap.get('isActive') :
+                           propsMap.get('active');
+      
+      if (editableValue === false) {
+        return 'read-only';
+      }
+      
+      return 'edit';
+    }
+    
+    // Default to read-only mode
+    return 'read-only';
   }
   
   // Icon states - status colors (danger, warning, success, info)
