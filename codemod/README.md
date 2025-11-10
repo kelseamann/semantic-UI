@@ -130,7 +130,7 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 - Button, Card, Modal, Form, TextInput, TextArea, Select, Checkbox, Radio, Switch
 - Flex, FlexItem, Table components (Th, Td, Tr, Thead, Tbody)
 - Link, Drawer, MenuToggle, DropdownItem
-- Accordion, ActionList, Alert, Avatar, Banner, Breadcrumb, ClipboardCopy, CodeBlock
+- Accordion, ActionList, Alert, Avatar, Banner, Breadcrumb, ClipboardCopy, CodeBlock, Content
 
 **Components with Generic Inference:**
 - All other PatternFly components (Breadcrumb, Tabs, Popover, Tooltip, Wizard, etc.)
@@ -144,6 +144,9 @@ jscodeshift -t codemod/transform.js --extensions=ts,tsx,js,jsx --parser=tsx src/
 
 **Components Not Currently Supported:**
 - CodeEditor - Not currently supported (may be added in the future)
+
+**Component Nesting Restrictions:**
+- Content - PatternFly recommends using the `component` prop (e.g., `component="h1"`) instead of nesting other components within `<Content>`. The codemod will add semantic attributes to Content components, but developers should follow PatternFly's nesting guidelines.
 
 ## Supported PatternFly Packages
 

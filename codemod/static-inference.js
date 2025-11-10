@@ -87,6 +87,8 @@ function inferRole(componentName) {
     'clipboardcopy': 'clipboard-copy',         // Copy to clipboard component
     // CodeBlock component
     'codeblock': 'code-block',                 // Code block display component
+    // Content component
+    'content': 'content',                      // Typography/content component
   };
   
   return roleMap[name] || name;
@@ -215,6 +217,11 @@ function inferPurpose(componentName, props) {
   // CodeBlock - displays code snippets
   if (name.includes('codeblock')) {
     return 'code-display';
+  }
+  
+  // Content - typography/text content component
+  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent') {
+    return 'text-display';
   }
   
   return 'display';
@@ -487,6 +494,38 @@ function inferVariant(componentName, props) {
     }
     // Default variant - no variant attribute needed (null)
     return null;
+  }
+  
+  // Content variants - body, heading, editorial
+  // Note: Content component should NOT have nested components - use component prop instead
+  if (name.includes('content') && name !== 'accordioncontent' && name !== 'modalcontent') {
+    // Check for component prop (h1, h2, h3, etc. for headings, p for body, etc.)
+    if (propsMap.has('component')) {
+      const componentValue = propsMap.get('component');
+      if (typeof componentValue === 'string') {
+        const comp = componentValue.toLowerCase();
+        // Heading variants
+        if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(comp)) {
+          return comp; // e.g., 'h1', 'h2'
+        }
+        // Body content (p, div, span, etc.)
+        if (comp === 'p' || comp === 'div' || comp === 'span') {
+          return 'body';
+        }
+      }
+    }
+    // Check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['body', 'heading', 'editorial'].includes(val)) {
+          return val;
+        }
+      }
+    }
+    // Default to body if no variant specified
+    return 'body';
   }
   
   // ActionList variants - handled separately via children analysis
