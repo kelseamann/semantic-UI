@@ -465,6 +465,12 @@ module.exports = function transformer(fileInfo, api) {
       // Drawer structural children - role and purpose handled by parent Drawer
       'duallistselectorlist', // DualListSelectorList is purely structural - skipped
       // DualListSelectorPane and DualListSelectorListItem get attributes (they have meaningful variants/states)
+      'emptystateheader', 'emptystateicon', 'emptystatebody', 
+      'emptystatefooter', 'emptystateactions',
+      // EmptyState structural children - role and purpose handled by parent EmptyState
+      // Structural children: EmptyStateHeader, EmptyStateIcon, EmptyStateBody, EmptyStateFooter, EmptyStateActions
+      // Note: Nested components like Button and Spinner are NOT skipped - they get their own attributes
+      // (they are independent components used within EmptyState, not structural children)
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {

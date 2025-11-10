@@ -117,6 +117,9 @@ function inferRole(componentName) {
     'duallistselector': 'dual-list-selector',    // Main dual list selector container
     // DualListSelectorPane and DualListSelectorListItem don't get roles - they're structural children
     // DualListSelectorList is purely structural - skipped
+    // EmptyState component
+    'emptystate': 'empty-state',                 // Empty state container
+    // EmptyStateHeader, EmptyStateIcon, EmptyStateBody, EmptyStateFooter, EmptyStateActions are structural children - skipped
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -172,6 +175,11 @@ function inferPurpose(componentName, props) {
     }
     // Card without interactive props is display (state will indicate disabled/read-only if applicable)
     return 'display';
+  }
+  
+  // EmptyState component - check before generic checks
+  if (name.includes('emptystate')) {
+    return 'no-content';
   }
   
   // DualListSelector components - check before generic input check
@@ -892,6 +900,65 @@ function inferVariant(componentName, props) {
       return 'folder';
     }
     return null;
+  }
+  
+  // EmptyState variants - size variants (xs, sm, lg, xl, full) and use case variants
+  if (name.includes('emptystate')) {
+    const variants = [];
+    
+    // Size variants
+    if (propsMap.has('size') || propsMap.has('variant')) {
+      const sizeValue = propsMap.get('size') || propsMap.get('variant');
+      if (typeof sizeValue === 'string') {
+        const size = sizeValue.toLowerCase();
+        if (['xs', 'sm', 'lg', 'xl', 'full', 'extra-small', 'small', 'large', 'extra-large'].includes(size)) {
+          // Normalize size values
+          if (size === 'xs' || size === 'extra-small') {
+            variants.push('extra-small');
+          } else if (size === 'sm' || size === 'small') {
+            variants.push('small');
+          } else if (size === 'lg' || size === 'large') {
+            variants.push('large');
+          } else if (size === 'xl' || size === 'extra-large') {
+            variants.push('extra-large');
+          } else if (size === 'full') {
+            variants.push('full');
+          }
+        }
+      }
+    }
+    
+    // Use case variants - can be inferred from props or context
+    // These are semantic variants that describe the use case
+    if (propsMap.has('heading') || propsMap.has('title')) {
+      const heading = propsMap.get('heading') || propsMap.get('title');
+      if (typeof heading === 'string') {
+        const headingLower = heading.toLowerCase();
+        // Infer use case from heading text (basic pattern matching)
+        if (headingLower.includes('welcome') || headingLower.includes('get started')) {
+          variants.push('getting-started');
+        } else if (headingLower.includes('no results') || headingLower.includes('no data')) {
+          variants.push('no-results');
+        } else if (headingLower.includes('configure') || headingLower.includes('configuration')) {
+          variants.push('required-configuration');
+        } else if (headingLower.includes('access') || headingLower.includes('permission')) {
+          variants.push('no-access');
+        } else if (headingLower.includes('error') || headingLower.includes('unable') || headingLower.includes('failure')) {
+          variants.push('back-end-failure');
+        } else if (headingLower.includes('success') || headingLower.includes('complete') || headingLower.includes('all set')) {
+          variants.push('success');
+        } else if (headingLower.includes('create') || headingLower.includes('add') || headingLower.includes('no ') && headingLower.includes('yet')) {
+          variants.push('creation');
+        }
+      }
+    }
+    
+    // Check for card context (if used inside a card)
+    if (propsMap.has('isCard') || propsMap.has('card')) {
+      variants.push('card');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : null;
   }
   
   // Divider variants - horizontal (default) or vertical
