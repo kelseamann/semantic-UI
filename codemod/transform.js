@@ -292,9 +292,13 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   
   const attributes = [];
   
-  // Always add role and purpose (they always have values)
-  attributes.push(j.jsxAttribute(j.jsxIdentifier('data-role'), j.literal(role)));
+  // Always add purpose (it always has a value)
   attributes.push(j.jsxAttribute(j.jsxIdentifier('data-purpose'), j.literal(purpose)));
+  
+  // Only add role if we inferred a meaningful value (some structural children don't get roles)
+  if (role !== null) {
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-role'), j.literal(role)));
+  }
   
   // Only add variant, context, state, action-type, and size if we inferred meaningful values
   if (variant !== null) {
@@ -370,6 +374,7 @@ module.exports = function transformer(fileInfo, api) {
       'modalcontent', 'modalheader',
       'datalistaction', // Only DataListAction is skipped, other DataList children get attributes
       // DescriptionList children are NOT skipped - they have meaningful variants/states
+      // Droppable and Draggable are NOT skipped - they get all attributes except role (handled by parent)
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {

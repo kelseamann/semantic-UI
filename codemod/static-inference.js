@@ -109,7 +109,16 @@ function inferRole(componentName) {
     'descriptionlistdescription': 'description-value', // Description/value for a term
     // Divider component
     'divider': 'divider',                        // Visual separator component
+    // Drag and Drop components
+    'dragdropcontainer': 'drag-drop-container',  // Container for drag and drop
+    'dragdropsort': 'drag-drop-sort',           // Sortable drag and drop
+    // Droppable and Draggable don't get roles - they're structural children, role handled by parent
   };
+  
+  // Droppable and Draggable don't get roles - they're structural children, role handled by parent
+  if (name.includes('droppable') || name.includes('draggable')) {
+    return null;
+  }
   
   return roleMap[name] || name;
 }
@@ -198,6 +207,20 @@ function inferPurpose(componentName, props) {
   // Divider - visual separator
   if (name.includes('divider')) {
     return 'separator';
+  }
+  
+  // Drag and Drop components
+  if (name.includes('dragdropcontainer')) {
+    return 'drag-drop-management';
+  }
+  if (name.includes('droppable')) {
+    return 'drop-target';
+  }
+  if (name.includes('draggable')) {
+    return 'drag-source';
+  }
+  if (name.includes('dragdropsort')) {
+    return 'sort-management';
   }
   
   if (name.includes('table') || name.includes('tr') || name.includes('td') || name.includes('th')) {
@@ -792,6 +815,29 @@ function inferVariant(componentName, props) {
     return 'horizontal';
   }
   
+  // Drag and Drop variants - variant prop indicates the type of component being dragged/dropped
+  // Variant is most commonly on DragDropContainer and Droppable, less common on Draggable/DragDropSort
+  if (name.includes('dragdropcontainer') || name.includes('droppable')) {
+    // The variant prop indicates what type of component is being dragged (e.g., "DataList", "Card", etc.)
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (variantValue && typeof variantValue === 'string') {
+        return variantValue.toLowerCase();
+      }
+    }
+    return null; // No variant specified
+  }
+  // Draggable and DragDropSort rarely have variant props - return null if not found
+  if (name.includes('draggable') || name.includes('dragdropsort')) {
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (variantValue && typeof variantValue === 'string') {
+        return variantValue.toLowerCase();
+      }
+    }
+    return null; // Variant unlikely on these components
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -1143,6 +1189,24 @@ function inferState(componentName, props) {
     if (propsMap.has('isEditing') || propsMap.has('editing') || propsMap.has('editMode')) {
       return 'editing';
     }
+    return null;
+  }
+  
+  // Drag and Drop states - items can be dragging, being dragged over, etc.
+  // Note: We don't detect "active" states for drag operations (too dynamic for static analysis)
+  if (name.includes('draggable')) {
+    // Draggable items don't typically have static state props
+    return null;
+  }
+  if (name.includes('droppable')) {
+    // Droppable can be disabled
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    return null;
+  }
+  if (name.includes('dragdropcontainer') || name.includes('dragdropsort')) {
+    // Containers don't have meaningful static states
     return null;
   }
   
