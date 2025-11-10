@@ -75,6 +75,7 @@ function inferRole(componentName) {
     // Alert components
     'alert': 'alert',                         // Alert notification
     'alertgroup': 'alert-group',              // Container for multiple alerts
+    'hint': 'alert',                          // Hint is a variant of Alert (proactive guidance)
     // Avatar component
     'avatar': 'avatar',                       // User representation
     // Banner component
@@ -228,6 +229,36 @@ function inferPurpose(componentName, props) {
   }
   
   if (name.includes('form')) {
+    // Check for explicit purpose prop (create, edit, search, filter, settings)
+    if (propsMap.has('purpose')) {
+      const purposeValue = propsMap.get('purpose');
+      if (typeof purposeValue === 'string') {
+        return purposeValue.toLowerCase();
+      }
+    }
+    // Try to infer from action prop (e.g., action="/api/create" -> "create")
+    if (propsMap.has('action')) {
+      const actionValue = propsMap.get('action');
+      if (typeof actionValue === 'string') {
+        const action = actionValue.toLowerCase();
+        if (action.includes('create') || action.includes('add') || action.includes('new')) {
+          return 'create';
+        }
+        if (action.includes('edit') || action.includes('update') || action.includes('modify')) {
+          return 'edit';
+        }
+        if (action.includes('search') || action.includes('query') || action.includes('find')) {
+          return 'search';
+        }
+        if (action.includes('filter')) {
+          return 'filter';
+        }
+        if (action.includes('settings') || action.includes('config')) {
+          return 'settings';
+        }
+      }
+    }
+    // Default to form-container if we can't infer a specific purpose
     return 'form-container';
   }
   
@@ -295,7 +326,12 @@ function inferPurpose(componentName, props) {
   }
   
   // Alert - communicates information/feedback to users
-  if (name.includes('alert')) {
+  // Hint - proactive guidance (variant of alert)
+  if (name.includes('alert') || name.includes('hint')) {
+    // Hint is for proactive guidance, Alert is for reactive feedback
+    if (name.includes('hint')) {
+      return 'guidance';
+    }
     return 'notification';
   }
   
@@ -391,6 +427,7 @@ function inferVariant(componentName, props) {
   const name = componentName.toLowerCase();
   
   // Alert variants - severity only (default, info, warning, critical, success)
+  // Hint is a variant of Alert (proactive guidance)
   // Placement (toast/inline/plain) goes to data-size instead
   if (name.includes('alert') && name !== 'alertgroup') {
     // Severity variant (default, info, warning, critical, success)
@@ -402,6 +439,11 @@ function inferVariant(componentName, props) {
     }
     // Default to 'default' if no variant specified
     return 'default';
+  }
+  
+  // Hint is treated as a variant of Alert
+  if (name.includes('hint')) {
+    return 'hint';
   }
   
   // Banner variants - color types (default, blue, red, green, gold)
@@ -1061,8 +1103,9 @@ function inferVariant(componentName, props) {
 
 /**
  * Infer context from props and parent analysis
+ * parentPurpose is used to inherit Form's purpose (e.g., "create-form", "edit-form")
  */
-function inferContext(componentName, props, parentContext = null) {
+function inferContext(componentName, props, parentContext = null, parentPurpose = null) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
   
@@ -1075,6 +1118,16 @@ function inferContext(componentName, props, parentContext = null) {
   }
   
   // Inherit from parent if available
+  // If parent is Form and has a purpose, use the purpose directly (e.g., "create", "edit", "search")
+  if (parentContext === 'form' && parentPurpose) {
+    // If parentPurpose is "form-container", just use "form"
+    if (parentPurpose === 'form-container') {
+      return 'form';
+    }
+    // Otherwise, use the purpose directly (e.g., "create", "edit", "search")
+    return parentPurpose;
+  }
+  
   if (parentContext) {
     return parentContext;
   }
@@ -1120,8 +1173,9 @@ function inferContext(componentName, props, parentContext = null) {
   }
   
   // Alert context - where alerts are used (form, modal, page, alert-group, etc.)
+  // Hint is treated as a variant of Alert
   // This is typically inferred from parent components, but we can also check props
-  if (name.includes('alert')) {
+  if (name.includes('alert') || name.includes('hint')) {
     if (name === 'alertgroup') {
       return 'alert-group';
     }
@@ -1265,7 +1319,8 @@ function inferState(componentName, props) {
   }
   
   // Alert states - expandable alerts can be expanded/collapsed, transient alerts, dismissible alerts
-  if (name.includes('alert') && name !== 'alertgroup') {
+  // Hint is treated as a variant of Alert
+  if ((name.includes('alert') && name !== 'alertgroup') || name.includes('hint')) {
     // Expandable alerts
     if (propsMap.has('isExpandable') || propsMap.has('expandable')) {
       if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
@@ -1515,8 +1570,9 @@ function inferActionType(componentName, props) {
   }
   
   // Alert action types - alerts with actionLinks are actionable (not navigation)
+  // Hint is treated as a variant of Alert
   // Note: dismissible is handled as a state, not an action-type
-  if (name.includes('alert') && name !== 'alertgroup') {
+  if ((name.includes('alert') && name !== 'alertgroup') || name.includes('hint')) {
     // Alerts with actionLinks are actionable (have interactive elements for user actions)
     // These are not navigation - they're for taking actions related to the alert
     if (propsMap.has('actionLinks') || propsMap.has('actionLink')) {
@@ -1600,8 +1656,9 @@ function inferSize(componentName, props) {
   }
 
   // Alert size - placement type (toast, inline, plain)
+  // Hint is treated as a variant of Alert
   // These indicate placement/size rather than visual style
-  if (name.includes('alert') && name !== 'alertgroup') {
+  if ((name.includes('alert') && name !== 'alertgroup') || name.includes('hint')) {
     if (propsMap.has('isToast') || propsMap.has('toast')) {
       return 'toast';
     }
@@ -1645,14 +1702,14 @@ function propsToMap(props) {
       let value = null;
       
       if (prop.value) {
-        if (prop.value.type === 'StringLiteral') {
+        if (prop.value.type === 'StringLiteral' || prop.value.type === 'Literal') {
           value = prop.value.value;
         } else if (prop.value.type === 'JSXExpressionContainer') {
           // For expressions like {true}, {false}, {variable}
           if (prop.value.expression) {
             if (prop.value.expression.type === 'BooleanLiteral') {
               value = prop.value.expression.value;
-            } else if (prop.value.expression.type === 'StringLiteral') {
+            } else if (prop.value.expression.type === 'StringLiteral' || prop.value.expression.type === 'Literal') {
               value = prop.value.expression.value;
             } else if (prop.value.expression.type === 'NumericLiteral') {
               value = prop.value.expression.value;
