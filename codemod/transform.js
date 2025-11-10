@@ -247,15 +247,54 @@ function analyzeActionListChildren(j, path) {
 }
 
 /**
- * Check if a form input is wrapped by HelperText (parent)
+ * Check if a form input has HelperText associated with it
+ * HelperText can be:
+ * 1. A parent wrapper: <HelperText><TextInput /></HelperText>
+ * 2. A sibling in the same parent: <FormGroup><TextInput /><HelperText /></FormGroup>
+ * 
  * HelperText is state-dependent (error, warning, success, indeterminate) and should be a variant of the input
- * We traverse UP the AST to find if HelperText is a parent wrapper
  */
-function checkIfWrappedByHelperText(j, path) {
+function checkForHelperText(j, path) {
   let hasHelperText = false;
   let helperTextState = null; // 'error', 'warning', 'success', 'indeterminate' (default)
   
-  // Traverse up the AST to find if HelperText is a parent
+  // Helper function to extract state from HelperText props
+  function extractHelperTextState(helperTextProps) {
+    const propsMap = new Map();
+    helperTextProps.forEach(attr => {
+      if (attr.name && attr.name.name) {
+        let value = true; // Boolean shorthand
+        if (attr.value) {
+          if (attr.value.type === 'StringLiteral' || attr.value.type === 'Literal') {
+            value = attr.value.value;
+          } else if (attr.value.type === 'JSXExpressionContainer' && attr.value.expression) {
+            if (attr.value.expression.type === 'BooleanLiteral') {
+              value = attr.value.expression.value;
+            }
+          } else if (attr.value.type === 'BooleanLiteral') {
+            value = attr.value.value;
+          }
+        }
+        propsMap.set(attr.name.name, value);
+      }
+    });
+    
+    // Determine state from HelperText props (priority: error > warning > success > indeterminate)
+    if (propsMap.has('isError') && propsMap.get('isError')) {
+      return 'error';
+    } else if (propsMap.has('isWarning') && propsMap.get('isWarning')) {
+      return 'warning';
+    } else if (propsMap.has('isSuccess') && propsMap.get('isSuccess')) {
+      return 'success';
+    } else if (propsMap.has('isIndeterminate') && propsMap.get('isIndeterminate')) {
+      return 'indeterminate';
+    } else {
+      // Default state if no explicit state prop
+      return 'indeterminate';
+    }
+  }
+  
+  // CASE 1: Check if HelperText is a parent wrapper (traverse UP)
   let current = path.parent;
   let depth = 0;
   const maxDepth = 10; // Prevent infinite loops
@@ -272,44 +311,10 @@ function checkIfWrappedByHelperText(j, path) {
           // Check if this parent is HelperText
           if (name.includes('helpertext') || name.includes('helper-text')) {
             hasHelperText = true;
-            
-            // Check HelperText props for state (isError, isWarning, isSuccess, isIndeterminate)
             const helperTextProps = node.openingElement.attributes || [];
-            const propsMap = new Map();
-            helperTextProps.forEach(attr => {
-              if (attr.name && attr.name.name) {
-                let value = true; // Boolean shorthand
-                if (attr.value) {
-                  if (attr.value.type === 'StringLiteral' || attr.value.type === 'Literal') {
-                    value = attr.value.value;
-                  } else if (attr.value.type === 'JSXExpressionContainer' && attr.value.expression) {
-                    if (attr.value.expression.type === 'BooleanLiteral') {
-                      value = attr.value.expression.value;
-                    }
-                  } else if (attr.value.type === 'BooleanLiteral') {
-                    value = attr.value.value;
-                  }
-                }
-                propsMap.set(attr.name.name, value);
-              }
-            });
-            
-            // Determine state from HelperText props (priority: error > warning > success > indeterminate)
-            if (propsMap.has('isError') && propsMap.get('isError')) {
-              helperTextState = 'error';
-            } else if (propsMap.has('isWarning') && propsMap.get('isWarning')) {
-              helperTextState = 'warning';
-            } else if (propsMap.has('isSuccess') && propsMap.get('isSuccess')) {
-              helperTextState = 'success';
-            } else if (propsMap.has('isIndeterminate') && propsMap.get('isIndeterminate')) {
-              helperTextState = 'indeterminate';
-            } else {
-              // Default state if no explicit state prop
-              helperTextState = 'indeterminate';
-            }
-            
-            // Found HelperText parent, stop traversing
-            break;
+            helperTextState = extractHelperTextState(helperTextProps);
+            // Found HelperText parent, return early
+            return { hasHelperText, helperTextState };
           }
         }
       }
@@ -317,6 +322,41 @@ function checkIfWrappedByHelperText(j, path) {
     
     current = current.parent;
     depth++;
+  }
+  
+  // CASE 2: Check if HelperText is a sibling in the same parent container
+  // Find the parent JSXElement that contains this component
+  let parentElement = null;
+  current = path.parent;
+  depth = 0;
+  
+  while (current && depth < maxDepth && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+    depth++;
+  }
+  
+  if (parentElement && parentElement.children) {
+    // Look through siblings for HelperText component
+    parentElement.children.forEach(child => {
+      if (child.type === 'JSXElement' && child.openingElement) {
+        const childName = child.openingElement.name?.name;
+        if (childName) {
+          const name = childName.toLowerCase();
+          // Check for HelperText component (sibling)
+          if (name.includes('helpertext') || name.includes('helper-text')) {
+            hasHelperText = true;
+            const helperTextProps = child.openingElement.attributes || [];
+            helperTextState = extractHelperTextState(helperTextProps);
+            // Found HelperText sibling, stop looking
+            return;
+          }
+        }
+      }
+    });
   }
   
   return { hasHelperText, helperTextState };
@@ -432,8 +472,8 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
               componentName.toLowerCase().includes('radio') ||
               componentName.toLowerCase().includes('switch')) && 
              path) {
-    // Form inputs wrapped by HelperText get "with-helper-text" variant
-    const helperTextInfo = checkIfWrappedByHelperText(j, path);
+    // Form inputs with HelperText (parent wrapper or sibling) get "with-helper-text" variant
+    const helperTextInfo = checkForHelperText(j, path);
     const baseVariant = inferVariant(componentName, props);
     if (helperTextInfo.hasHelperText) {
       const variantParts = baseVariant ? baseVariant.split('-') : [];
@@ -497,7 +537,7 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
        componentName.toLowerCase().includes('radio') ||
        componentName.toLowerCase().includes('switch')) && 
       path) {
-    const helperTextInfo = checkIfWrappedByHelperText(j, path);
+    const helperTextInfo = checkForHelperText(j, path);
     // HelperText state (error, warning, success) should be reflected in the input's state
     if (helperTextInfo.hasHelperText && helperTextInfo.helperTextState) {
       // Only add meaningful states (not indeterminate)
