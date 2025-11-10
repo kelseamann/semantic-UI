@@ -76,6 +76,57 @@ function findParentContext(path, imports) {
 }
 
 /**
+ * Analyze ClipboardCopy children to infer content type variants (with-array, json-object)
+ * Traverses the AST to find array or JSON object content in children
+ */
+function analyzeClipboardCopyChildren(j, path) {
+  let hasArray = false;
+  let hasJsonObject = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasArray: false, hasJsonObject: false };
+  }
+  
+  // Look through children for text content that might indicate array or JSON
+  // Check for JSXText or JSXExpressionContainer with array/object patterns
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXText') {
+      const text = child.value.trim();
+      // Check for JSON object pattern (starts with { or contains JSON-like structure)
+      if (text.startsWith('{') || (text.includes('"') && (text.includes(':') || text.includes(',')))) {
+        hasJsonObject = true;
+      }
+      // Check for array pattern (starts with [)
+      if (text.startsWith('[')) {
+        hasArray = true;
+      }
+    } else if (child.type === 'JSXExpressionContainer' && child.expression) {
+      // Check for ArrayExpression or ObjectExpression in JSX expressions
+      if (child.expression.type === 'ArrayExpression') {
+        hasArray = true;
+      } else if (child.expression.type === 'ObjectExpression') {
+        hasJsonObject = true;
+      }
+    }
+  });
+  
+  return { hasArray, hasJsonObject };
+}
+
+/**
  * Analyze Breadcrumb children to infer variant (with-dropdown, with-heading)
  * Traverses the AST to find BreadcrumbDropdown or BreadcrumbHeading children
  */
@@ -196,6 +247,7 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   
   // For ActionList, analyze children to infer grouping variant
   // For Breadcrumb, analyze children to detect dropdown/heading variants
+  // For ClipboardCopy, analyze children to detect content type variants (array, json-object)
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -214,6 +266,21 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
     } else {
       variant = baseVariant;
     }
+  } else if (componentName.toLowerCase().includes('clipboardcopy') && path) {
+    const childrenInfo = analyzeClipboardCopyChildren(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    // Add content type variants if detected via children analysis
+    const variantParts = baseVariant ? baseVariant.split('-') : [];
+    if (childrenInfo.hasArray) {
+      // Only add if expandable (expanded with array)
+      if (variantParts.includes('expandable')) {
+        variantParts.push('with-array');
+      }
+    }
+    if (childrenInfo.hasJsonObject && !variantParts.includes('json-object')) {
+      variantParts.push('json-object');
+    }
+    variant = variantParts.length > 0 ? variantParts.join('-') : baseVariant;
   } else {
     variant = inferVariant(componentName, props);
   }

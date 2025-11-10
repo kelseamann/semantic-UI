@@ -83,6 +83,8 @@ function inferRole(componentName) {
     'breadcrumb': 'breadcrumb',               // Navigation breadcrumb
     'breadcrumbitem': 'breadcrumb-item',      // Individual breadcrumb item
     'breadcrumbheading': 'breadcrumb-heading', // Breadcrumb heading
+    // ClipboardCopy component
+    'clipboardcopy': 'clipboard-copy',         // Copy to clipboard component
   };
   
   return roleMap[name] || name;
@@ -201,6 +203,11 @@ function inferPurpose(componentName, props) {
   // Breadcrumb - navigation component
   if (name.includes('breadcrumb')) {
     return 'navigation';
+  }
+  
+  // ClipboardCopy - allows users to copy content to clipboard
+  if (name.includes('clipboardcopy')) {
+    return 'copy-action';
   }
   
   return 'display';
@@ -390,6 +397,79 @@ function inferVariant(componentName, props) {
     // Dropdown variant will be detected via children analysis in transform.js
     // For now, default to basic
     return 'basic';
+  }
+  
+  // ClipboardCopy variants - many combinations possible
+  // Variants: editable, read-only, expandable, inline-compact, code, with-array, json-object, 
+  //          with-additional-action, with-truncation, expanded-by-default
+  // Variant detection will be enhanced by children analysis in transform.js for content types
+  if (name.includes('clipboardcopy')) {
+    const variants = [];
+    
+    // Check for inline-compact variant
+    if (propsMap.has('isInline') || propsMap.has('inline') || 
+        (propsMap.has('variant') && propsMap.get('variant') === 'inline-compact')) {
+      variants.push('inline-compact');
+    }
+    
+    // Check for code variant (inline-compact-code)
+    if (propsMap.has('code') || propsMap.has('isCode')) {
+      variants.push('code');
+    }
+    
+    // Check for truncation (inline-compact-with-truncation)
+    if (propsMap.has('isTruncated') || propsMap.has('truncated') || propsMap.has('truncate')) {
+      variants.push('with-truncation');
+    }
+    
+    // Check for additional actions (inline-compact-with-additional-action)
+    if (propsMap.has('additionalActions') || propsMap.has('additionalAction')) {
+      variants.push('with-additional-action');
+    }
+    
+    // Check for expandable variant (has expandable functionality)
+    // Note: isExpanded is a state prop, but its presence indicates expandable capability
+    // defaultExpanded also indicates expandable capability
+    if (propsMap.has('expandable') || propsMap.has('isExpandable') || 
+        propsMap.has('isExpanded') || propsMap.has('defaultExpanded')) {
+      variants.push('expandable');
+      // Check if expanded by default (only defaultExpanded prop, not isExpanded)
+      if (propsMap.has('defaultExpanded') && propsMap.get('defaultExpanded') === true) {
+        variants.push('expanded-by-default');
+      }
+    }
+    
+    // Check for content type variants (array, json-object)
+    // These will be detected via children analysis in transform.js
+    // For now, check if there's a hint in props
+    if (propsMap.has('code')) {
+      const codeValue = propsMap.get('code');
+      if (typeof codeValue === 'string') {
+        if (codeValue.toLowerCase() === 'json') {
+          variants.push('json-object');
+        }
+      }
+    }
+    
+    // Check for read-only variant
+    if (propsMap.has('isReadOnly') || propsMap.has('readOnly') || propsMap.has('readonly')) {
+      variants.push('read-only');
+    } else if (!variants.includes('inline-compact')) {
+      // If not read-only and not inline-compact, it's editable (default)
+      // Inline-compact can be editable or read-only, so we don't add editable here
+      variants.push('editable');
+    }
+    
+    // Return combined variant or just the main one
+    if (variants.length > 1) {
+      // Combine all variants with hyphens
+      return variants.join('-');
+    }
+    if (variants.length === 1) {
+      return variants[0];
+    }
+    // Default to editable if no variant specified
+    return 'editable';
   }
   
   // ActionList variants - handled separately via children analysis
@@ -604,6 +684,22 @@ function inferState(componentName, props) {
       return 'transient';
     }
     // Non-expandable alerts don't have a state (they're just visible)
+    return null;
+  }
+  
+  // ClipboardCopy states - expandable clipboard copy can be expanded/collapsed
+  if (name.includes('clipboardcopy')) {
+    // Expandable clipboard copy
+    if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const expandedValue = propsMap.has('isExpanded') 
+        ? propsMap.get('isExpanded') 
+        : propsMap.get('expanded');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    // Non-expandable clipboard copy doesn't have a state
     return null;
   }
   
