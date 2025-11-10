@@ -140,6 +140,12 @@ function inferRole(componentName) {
     return null;
   }
   
+  // Icon components - all PatternFly icons get role='icon'
+  // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
+  if (name.endsWith('icon') && name !== 'menutoggle') {
+    return 'icon';
+  }
+  
   return roleMap[name] || name;
 }
 
@@ -335,6 +341,17 @@ function inferPurpose(componentName, props) {
     return 'notification';
   }
   
+  // Icon components - can be interactive (action) or decorative (display)
+  // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
+  if (name.endsWith('icon') && name !== 'menutoggle') {
+    // If icon has onClick, it's interactive (action)
+    if (propsMap.has('onClick')) {
+      return 'action';
+    }
+    // Otherwise, it's decorative (display)
+    return 'display';
+  }
+  
   // Avatar - represents a user
   if (name.includes('avatar')) {
     return 'user-representation';
@@ -444,6 +461,25 @@ function inferVariant(componentName, props) {
   // Hint is treated as a variant of Alert
   if (name.includes('hint')) {
     return 'hint';
+  }
+  
+  // Icon variants - extract icon name from component name (e.g., "StarIcon" -> "star", "CheckIcon" -> "check")
+  // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
+  // Status colors (danger, warning, success, info) go to data-state, not data-variant
+  if (name.endsWith('icon') && name !== 'menutoggle') {
+    // Remove "icon" suffix and convert to kebab-case
+    // Examples: "StarIcon" -> "star", "CheckCircleIcon" -> "check-circle", "ArrowRightIcon" -> "arrow-right"
+    let iconName = name.replace(/icon$/, '');
+    
+    // Convert camelCase/PascalCase to kebab-case
+    // Handle common patterns: "Star" -> "star", "CheckCircle" -> "check-circle"
+    iconName = iconName
+      .replace(/([a-z])([A-Z])/g, '$1-$2') // Insert hyphen before capital letters
+      .toLowerCase();
+    
+    // Return just the icon name as variant (e.g., "star", "check-circle")
+    // Status colors are handled in inferState, not here
+    return iconName;
   }
   
   // Banner variants - color types (default, blue, red, green, gold)
@@ -1318,6 +1354,33 @@ function inferState(componentName, props) {
     }
   }
   
+  // Icon states - status colors (danger, warning, success, info)
+  // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
+  if (name.endsWith('icon') && name !== 'menutoggle') {
+    // Check for status color via color prop (could be CSS variable or direct value)
+    if (propsMap.has('color')) {
+      const colorValue = propsMap.get('color');
+      if (typeof colorValue === 'string') {
+        const color = colorValue.toLowerCase();
+        // PatternFly status colors: danger, warning, success, info
+        if (color.includes('danger') || color.includes('error')) {
+          return 'danger';
+        }
+        if (color.includes('warning')) {
+          return 'warning';
+        }
+        if (color.includes('success')) {
+          return 'success';
+        }
+        if (color.includes('info')) {
+          return 'info';
+        }
+      }
+    }
+    // Icons without status colors don't have a state (they're just visible)
+    return null;
+  }
+  
   // Alert states - expandable alerts can be expanded/collapsed, transient alerts, dismissible alerts
   // Hint is treated as a variant of Alert
   if ((name.includes('alert') && name !== 'alertgroup') || name.includes('hint')) {
@@ -1602,6 +1665,36 @@ function inferSize(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
 
+  // Icon size - sm (0.75rem, 12px), md (0.875rem, 14px), lg (1rem, 16px), xl (1.375rem, 22px), 2xl (3.5rem, 56px), 3xl (6rem, 96px)
+  // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
+  // Must be checked BEFORE generic size check to normalize values
+  if (name.endsWith('icon') && name !== 'menutoggle') {
+    if (propsMap.has('size')) {
+      const sizeValue = propsMap.get('size');
+      if (typeof sizeValue === 'string') {
+        const size = sizeValue.toLowerCase();
+        // PatternFly icon sizes: sm, md, lg, xl, 2xl, 3xl
+        // Normalize to standard values
+        const sizeMap = {
+          'sm': 'sm',
+          'md': 'md',
+          'lg': 'lg',
+          'xl': 'xl',
+          '2xl': '2xl',
+          '3xl': '3xl',
+          'small': 'sm',
+          'medium': 'md',
+          'large': 'lg',
+          'extralarge': 'xl',
+          'extra-large': 'xl',
+        };
+        return sizeMap[size] || size;
+      }
+    }
+    // Default to md (medium) if no size specified (PatternFly default - most versatile)
+    return 'md';
+  }
+  
   // Avatar size - small (sm), medium (md), large (lg), extra large (xl)
   // Must be checked BEFORE generic size check to normalize values
   if (name.includes('avatar')) {
