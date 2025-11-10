@@ -135,6 +135,9 @@ function inferRole(componentName) {
     'inlineeditinput': 'editable-input',         // Editable input field
     // InputGroup component
     'inputgroup': 'input-group',                  // Container that combines input with buttons/text
+    // JumpLinks components
+    'jumplinks': 'jump-links',                    // Navigation component for jumping to page sections
+    'jumplinksitem': 'jump-link-item',            // Individual jump link item
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -243,6 +246,14 @@ function inferPurpose(componentName, props) {
   // InputGroup - combines input with buttons/text on sides
   if (name.includes('inputgroup')) {
     return 'input';
+  }
+  
+  // JumpLinks - navigation component for jumping to sections within a page
+  if (name.includes('jumplink')) {
+    if (name.includes('jumplinksitem')) {
+      return 'navigation'; // Individual jump link item
+    }
+    return 'navigation'; // Main jump links container
   }
   
   // Component-specific purposes
@@ -505,6 +516,30 @@ function inferVariant(componentName, props) {
     }
     // Default variant - will be determined by children analysis in transform.js
     return null;
+  }
+  
+  // JumpLinks variants - vertical (default), horizontal-links, expandable
+  if (name.includes('jumplinks') && !name.includes('jumplinksitem')) {
+    // Check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        // Normalize horizontal to horizontal-links
+        if (val === 'horizontal') {
+          return 'horizontal-links';
+        }
+        if (['vertical', 'horizontal-links', 'expandable'].includes(val)) {
+          return val;
+        }
+      }
+    }
+    // Check if expandable (has isExpanded prop or toggle)
+    if (propsMap.has('isExpanded') || propsMap.has('expandable') || propsMap.has('toggleAriaLabel')) {
+      return 'expandable';
+    }
+    // Default to vertical
+    return 'vertical';
   }
   
   // InlineEdit variants - field-specific (single field), full-page (multiple fields), row-editing (table row)
@@ -1252,6 +1287,11 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'overlay';
   }
   
+  // JumpLinks context - page (navigation component used on a page)
+  if (name.includes('jumplink')) {
+    return 'page';
+  }
+  
   // InlineEdit context - can be in table rows (row editing) or pages/description lists (field-specific/full-page)
   if (name.includes('inlineedit')) {
     // If parent context is table, it's row editing
@@ -1439,6 +1479,28 @@ function inferState(componentName, props) {
       // (cards can be display-only, so no interactive props suggests read-only rather than disabled)
       return 'readonly';
     }
+  }
+  
+  // JumpLinks states - expanded/collapsed (for expandable), active (for items)
+  if (name.includes('jumplink')) {
+    if (name.includes('jumplinksitem')) {
+      // JumpLinksItem states - active (selected/current location)
+      if (propsMap.has('isActive') || propsMap.has('active') || propsMap.has('aria-current')) {
+        return 'active';
+      }
+      return null;
+    }
+    // JumpLinks container states - expanded/collapsed (for expandable variant)
+    if (propsMap.has('isExpanded') || propsMap.has('expandable')) {
+      const expandedValue = propsMap.has('isExpanded') 
+        ? propsMap.get('isExpanded') 
+        : propsMap.get('expandable');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    return null;
   }
   
   // InlineEdit states - read-only (default) or edit (editing mode)
