@@ -175,6 +175,13 @@ function inferRole(componentName) {
     // MastheadBrand is structural - skipped
     // Brand component - logo/branding
     'brand': 'logo',                              // Logo/brand component (if interactive)
+    // Navigation components
+    'nav': 'navigation',                          // Main navigation container
+    'navlist': 'navigation-list',                 // List container for nav items
+    'navitem': 'navigation-item',                 // Individual navigation item/link
+    'navgroup': 'navigation-group',               // Grouped navigation items with title
+    'navexpandable': 'navigation-expandable',     // Expandable navigation item with children
+    'navsection': 'navigation-section',            // Section of navigation
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -296,6 +303,27 @@ function inferPurpose(componentName, props) {
       return 'navigation'; // Individual jump link item
     }
     return 'navigation'; // Main jump links container
+  }
+  
+  // Navigation components - hierarchical navigation structure
+  if (name.includes('nav') && !name.includes('menutoggle')) {
+    if (name.includes('navitem')) {
+      return 'navigation'; // Individual navigation link/item
+    }
+    if (name.includes('navexpandable')) {
+      return 'navigation'; // Expandable navigation item
+    }
+    if (name.includes('navgroup')) {
+      return 'grouping'; // Group of navigation items
+    }
+    if (name.includes('navsection')) {
+      return 'grouping'; // Section of navigation
+    }
+    if (name.includes('navlist')) {
+      return 'navigation-container'; // Container for nav items
+    }
+    // Main Nav component
+    return 'navigation';
   }
   
   // Label - can be used for tagging, filtering, status indication, or display
@@ -1080,6 +1108,104 @@ function inferVariant(componentName, props) {
     }
   }
   
+  // Navigation variants - orientation and type variants
+  if (name.includes('nav') && !name.includes('menutoggle')) {
+    const variants = [];
+    
+    // Main Nav component variants
+    if (!name.includes('navitem') && !name.includes('navexpandable') && 
+        !name.includes('navgroup') && !name.includes('navsection') && !name.includes('navlist')) {
+      // Orientation variants
+      if (propsMap.has('orientation')) {
+        const orientationValue = propsMap.get('orientation');
+        if (typeof orientationValue === 'string') {
+          const orient = orientationValue.toLowerCase();
+          if (orient === 'horizontal') {
+            variants.push('horizontal');
+          } else {
+            variants.push('vertical'); // Default
+          }
+        }
+      } else {
+        // Default to vertical if no orientation specified
+        variants.push('vertical');
+      }
+      
+      // Type variants - check for variant prop or infer from structure
+      if (propsMap.has('variant')) {
+        const variantValue = propsMap.get('variant');
+        if (typeof variantValue === 'string') {
+          const val = variantValue.toLowerCase();
+          if (['simple', 'grouped', 'expandable-2-level', 'expandable-3-level', 'flyout', 'drilldown', 'primary', 'secondary'].includes(val)) {
+            variants.push(val);
+          }
+        }
+      }
+      
+      // Check for theme (primary vs secondary for horizontal nav)
+      if (propsMap.has('theme')) {
+        const themeValue = propsMap.get('theme');
+        if (typeof themeValue === 'string') {
+          const theme = themeValue.toLowerCase();
+          if (theme === 'primary' || theme === 'secondary') {
+            variants.push(theme);
+          }
+        }
+      }
+      
+      return variants.length > 0 ? variants.join('-') : 'vertical-simple';
+    }
+    
+    // NavExpandable variants - check for level (2-level, 3-level)
+    if (name.includes('navexpandable')) {
+      // Check for flyout variant
+      if (propsMap.has('flyout') || propsMap.has('isFlyout')) {
+        variants.push('flyout');
+      }
+      // Check for drilldown variant
+      if (propsMap.has('drilldown') || propsMap.has('isDrilldown')) {
+        variants.push('drilldown');
+      }
+      // Check for level (2 or 3)
+      if (propsMap.has('level')) {
+        const levelValue = propsMap.get('level');
+        if (typeof levelValue === 'number' || (typeof levelValue === 'string' && !isNaN(parseInt(levelValue)))) {
+          const level = typeof levelValue === 'number' ? levelValue : parseInt(levelValue);
+          if (level === 2) {
+            variants.push('2-level');
+          } else if (level === 3) {
+            variants.push('3-level');
+          }
+        }
+      }
+      return variants.length > 0 ? variants.join('-') : 'expandable';
+    }
+    
+    // NavItem variants - check for icon
+    if (name.includes('navitem')) {
+      if (propsMap.has('icon') || propsMap.has('iconComponent')) {
+        variants.push('with-icon');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // NavGroup variants - check for title
+    if (name.includes('navgroup')) {
+      if (propsMap.has('title') || propsMap.has('groupTitle')) {
+        variants.push('with-title');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // NavList variants - check for scrollable
+    if (name.includes('navlist')) {
+      if (propsMap.has('isScrollable') || propsMap.has('scrollable')) {
+        variants.push('scrollable');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+  }
+  
   // JumpLinks variants - vertical (default), horizontal-links, expandable
   if (name.includes('jumplinks') && !name.includes('jumplinksitem')) {
     // Check for explicit variant prop
@@ -1849,11 +1975,6 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'overlay';
   }
   
-  // JumpLinks context - page (navigation component used on a page)
-  if (name.includes('jumplink')) {
-    return 'page';
-  }
-  
   // LoginForm context - authentication page
   if (name.includes('loginform')) {
     return 'authentication';
@@ -1862,6 +1983,32 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   // Masthead context - top navigation bar at page level
   if (name.includes('masthead')) {
     return 'page';
+  }
+  
+  // Navigation context - can be in drawer/flyout OR page sidebar (between-page navigation)
+  // Note: JumpLinks are in-page navigation (scrolling to sections), while Nav is between-page navigation
+  // Nav can appear in:
+  // 1. Page sidebar (persistent left sidebar) - context: 'page'
+  // 2. Drawer/flyout (overlay that slides out) - context: 'overlay' 
+  // 3. Masthead (horizontal navigation) - context: 'masthead'
+  if (name.includes('nav') && !name.includes('menutoggle')) {
+    // Check if it's horizontal navigation (typically in masthead)
+    if (propsMap.has('orientation') && propsMap.get('orientation') === 'horizontal') {
+      return 'masthead';
+    }
+    // Vertical navigation can be in a drawer/flyout (overlay) OR page sidebar (page)
+    // If parent context is drawer/overlay, use overlay; otherwise it's in a page sidebar
+    if (parentContext === 'overlay' || parentContext === 'drawer') {
+      return 'overlay';
+    }
+    // Vertical navigation in page sidebar (persistent left sidebar, not in drawer)
+    // This is the default case - Nav in page sidebar like pf-v6-c-page__sidebar
+    return 'page';
+  }
+  
+  // JumpLinks context - in-page navigation (scrolling to sections within the same page)
+  if (name.includes('jumplink')) {
+    return 'page'; // In-page navigation, always at page level
   }
   
   // Menu components context
@@ -2064,6 +2211,35 @@ function inferState(componentName, props) {
     // If no open prop, check if it's explicitly closed
     if (propsMap.has('isClosed') || propsMap.has('closed')) {
       return 'closed';
+    }
+  }
+  
+  // Navigation component states - check before generic state checks
+  if (name.includes('nav') && !name.includes('menutoggle')) {
+    // NavItem states - active (current page)
+    if (name.includes('navitem')) {
+      if (propsMap.has('isActive') || propsMap.has('active') || propsMap.has('aria-current')) {
+        return 'active';
+      }
+      // Check for disabled
+      if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
+        return 'disabled';
+      }
+    }
+    
+    // NavExpandable states - expanded/collapsed
+    if (name.includes('navexpandable')) {
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      // Default to collapsed if expandable but no explicit state
+      return 'collapsed';
     }
   }
   
