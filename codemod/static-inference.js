@@ -635,7 +635,8 @@ function inferPurpose(componentName, props) {
   }
   
   // Component-specific purposes
-  if (name.includes('input') || name.includes('textarea') || name.includes('select')) {
+  if (name.includes('input') || name.includes('textarea') || name.includes('select') || 
+      name.includes('checkbox') || name.includes('radio') || name.includes('switch')) {
     return 'input';
   }
   
@@ -1520,6 +1521,43 @@ function inferVariant(componentName, props) {
       }
       return variants.length > 0 ? variants.join('-') : 'basic';
     }
+  }
+  
+  // Switch variants - labeled (default), unlabeled, reversed, with-checkmark
+  if (name.includes('switch')) {
+    const variants = [];
+    
+    // Check for unlabeled variant (no label text)
+    if (propsMap.has('label') && !propsMap.get('label')) {
+      variants.push('unlabeled');
+    } else if (!propsMap.has('label') && !propsMap.has('labelText')) {
+      // If no label prop at all, check if it's explicitly unlabeled
+      if (propsMap.has('isUnlabeled') || propsMap.has('unlabeled')) {
+        variants.push('unlabeled');
+      } else {
+        // Default to labeled if label exists or is not explicitly unlabeled
+        variants.push('labeled');
+      }
+    } else {
+      // Has label, so it's labeled
+      variants.push('labeled');
+    }
+    
+    // Check for reversed layout (label on left)
+    if (propsMap.has('isReversed') || propsMap.has('reversed') || propsMap.has('labelPosition') && 
+        (propsMap.get('labelPosition') === 'left' || propsMap.get('labelPosition') === 'Left')) {
+      variants.push('reversed');
+    }
+    
+    // Check for checkmark (optional when labeled, required when unlabeled)
+    if (propsMap.has('hasCheckmark') || propsMap.has('checkmark') || propsMap.has('showCheckmark')) {
+      variants.push('with-checkmark');
+    } else if (variants.includes('unlabeled')) {
+      // Unlabeled switches require checkmark per docs
+      variants.push('with-checkmark');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'labeled';
   }
   
   // JumpLinks variants - vertical (default), horizontal-links, expandable
@@ -3404,6 +3442,24 @@ function inferState(componentName, props) {
     return 'open';
   }
   
+  // Switch states - checked (on), unchecked (off), disabled
+  if (name.includes('switch')) {
+    // Check for disabled state first (takes priority)
+    if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
+      return 'disabled';
+    }
+    // Check for checked state (on/off)
+    if (propsMap.has('isChecked') || propsMap.has('checked')) {
+      const checkedValue = propsMap.has('isChecked') ? propsMap.get('isChecked') : propsMap.get('checked');
+      if (checkedValue === false) {
+        return 'unchecked'; // Switch is off
+      }
+      return 'checked'; // Switch is on
+    }
+    // Default to unchecked if no checked prop (switch defaults to off)
+    return 'unchecked';
+  }
+  
   if (propsMap.has('isChecked') || propsMap.has('checked')) {
     return 'checked';
   }
@@ -3816,6 +3872,11 @@ function inferActionType(componentName, props) {
   // SkipToContent - navigation link
   if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
     return 'navigation'; // It's a link that navigates to main content
+  }
+  
+  // Switch - toggle action (on/off)
+  if (name.includes('switch')) {
+    return 'toggle'; // Switch is a toggle action (on/off)
   }
   
   // Progress components - determinate (measurable progress) vs indeterminate (unknown progress)
