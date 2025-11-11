@@ -146,6 +146,11 @@ function inferRole(componentName) {
     'listitem': 'list-item',                      // Individual list item
     // LoginForm component
     'loginform': 'login-form',                    // Authentication/login form
+    // Masthead components
+    'masthead': 'masthead',                       // Top navigation bar/header
+    // MastheadBrand is structural - skipped
+    // Brand component - logo/branding
+    'brand': 'logo',                              // Logo/brand component (if interactive)
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -162,6 +167,11 @@ function inferRole(componentName) {
   // Icons are typically named like StarIcon, CheckIcon, etc. and imported from @patternfly/react-icons
   if (name.endsWith('icon') && name !== 'menutoggle') {
     return 'icon';
+  }
+  
+  // Brand component - always gets role='logo' (both interactive and decorative)
+  if (name === 'brand') {
+    return 'logo';
   }
   
   return roleMap[name] || name;
@@ -299,6 +309,24 @@ function inferPurpose(componentName, props) {
   // LoginForm - authentication/login form
   if (name.includes('loginform')) {
     return 'authentication';
+  }
+  
+  // Masthead - top navigation bar
+  if (name.includes('masthead')) {
+    return 'navigation';
+  }
+  
+  // Brand component - logo/branding
+  // If interactive (has onClick or wrapped in Link), it's navigation
+  // Otherwise, it's decorative (display)
+  if (name.includes('brand')) {
+    // Check if it has onClick (interactive)
+    if (propsMap.has('onClick')) {
+      return 'navigation';
+    }
+    // If wrapped in Link, the Link will get navigation purpose
+    // Brand itself is decorative
+    return 'display';
   }
   
   // Component-specific purposes
@@ -680,6 +708,16 @@ function inferVariant(componentName, props) {
     }
     // Default variant - will be determined by children analysis in transform.js
     return null;
+  }
+  
+  // Masthead variants - basic (default), with-vertical-nav (has show/hide menu toggle)
+  if (name.includes('masthead') && !name.includes('mastheadbrand')) {
+    // Check for displaySwitch prop (show/hide menu toggle)
+    if (propsMap.has('displaySwitch') || propsMap.has('hasDisplaySwitch')) {
+      return 'with-vertical-nav';
+    }
+    // Default to basic
+    return 'basic';
   }
   
   // JumpLinks variants - vertical (default), horizontal-links, expandable
@@ -1459,6 +1497,11 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   // LoginForm context - authentication page
   if (name.includes('loginform')) {
     return 'authentication';
+  }
+  
+  // Masthead context - top navigation bar at page level
+  if (name.includes('masthead')) {
+    return 'page';
   }
   
   // Label context - can be in table, card, filter, or page
