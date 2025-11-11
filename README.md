@@ -289,6 +289,7 @@ The codemod works with **ALL components** imported from these PatternFly package
 - Static components without meaningful variants, states, or interactive behavior
 - Specifically skipped: Backdrop, BackgroundImage, BackToTop, Brand
 - These components always behave the same and don't benefit from semantic attributes
+- **Skeleton**: Component-specific loader - skipped for now as not many prototypes have loaders
 
 ## Examples
 
