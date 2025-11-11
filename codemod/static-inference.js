@@ -172,6 +172,8 @@ function inferRole(componentName) {
     'pageheader': 'page-header',                  // Page header section
     'pagebody': 'page-body',                      // Page body section
     'pagefooter': 'page-footer',                  // Page footer section
+    // Pagination components
+    'pagination': 'pagination',                   // Pagination controls for navigating through content
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -352,6 +354,11 @@ function inferPurpose(componentName, props) {
     }
     // Main Page component - root layout container
     return 'page-container'; // Root page container
+  }
+  
+  // Pagination - navigation for paging through content (tables, cards, lists)
+  if (name.includes('pagination')) {
+    return 'navigation'; // Navigation for paging through content
   }
   
   // Navigation components - hierarchical navigation structure
@@ -671,6 +678,11 @@ function inferPurpose(componentName, props) {
     }
     // Main Page component - root container
     return 'page'; // Root page container
+  }
+  
+  // Pagination - navigation controls for paging through content
+  if (name.includes('pagination')) {
+    return 'pagination'; // Pagination controls
   }
   
   // Notification components - check before Alert
@@ -2136,6 +2148,30 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
+  // Pagination variants - full (default), compact, indeterminate
+  if (name.includes('pagination')) {
+    // Check for variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (variantValue === 'compact' || variantValue === 'Compact') {
+        return 'compact';
+      }
+      if (variantValue === 'indeterminate' || variantValue === 'Indeterminate') {
+        return 'indeterminate';
+      }
+    }
+    // Check for isCompact prop
+    if (propsMap.has('isCompact') || propsMap.has('compact')) {
+      return 'compact';
+    }
+    // Check for indeterminate state (when total items/pages are unknown)
+    if (propsMap.has('isIndeterminate') || propsMap.has('indeterminate')) {
+      return 'indeterminate';
+    }
+    // Default to full pagination
+    return 'full';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2355,6 +2391,13 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
       name.includes('pagefooter')) {
     // These sections are within a Page, so they have 'page' context
     return 'page';
+  }
+  
+  // Pagination context - inherits from parent (page, table, or card group)
+  if (name.includes('pagination')) {
+    // Pagination can be in page, table, or card group
+    // Context is inherited from parent via findParentContext
+    return parentContext || 'page';
   }
   
   // Layout components are containers
