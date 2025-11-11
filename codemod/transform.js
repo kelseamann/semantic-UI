@@ -64,6 +64,13 @@ function findParentContext(path, imports) {
             const purpose = inferPurpose(parentName, parentProps);
             const context = inferContext(parentName, parentProps);
             
+            // For Page, return page context so children inherit it
+            if (parentName.toLowerCase().includes('page') && !parentName.toLowerCase().includes('pagesection') && 
+                !parentName.toLowerCase().includes('pageheader') && !parentName.toLowerCase().includes('pagebody') && 
+                !parentName.toLowerCase().includes('pagefooter')) {
+              return 'page';
+            }
+            
             // For Form, return both context and purpose so children can inherit purpose
             if (purpose === 'form-container') {
               return { context, purpose };
@@ -1042,6 +1049,7 @@ module.exports = function transformer(fileInfo, api) {
       // NotificationDrawer structural children - NotificationDrawerHeader, NotificationDrawerBody are structural
       'overflowmenucontent',
       // OverflowMenuContent is a structural wrapper for menu items
+      // Note: PageSection, PageHeader, PageBody, PageFooter are NOT structural - they get their own attributes
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {

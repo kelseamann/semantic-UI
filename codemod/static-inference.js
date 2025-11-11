@@ -166,6 +166,12 @@ function inferRole(componentName) {
     // JumpLinks components
     'jumplinks': 'jump-links',                    // Navigation component for jumping to page sections
     'jumplinksitem': 'jump-link-item',            // Individual jump link item
+    // Page components - root layout container
+    'page': 'page',                               // Root page container
+    'pagesection': 'page-section',                // Section within page (header, body, footer)
+    'pageheader': 'page-header',                  // Page header section
+    'pagebody': 'page-body',                      // Page body section
+    'pagefooter': 'page-footer',                  // Page footer section
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -316,6 +322,36 @@ function inferPurpose(componentName, props) {
       return 'navigation'; // Individual jump link item
     }
     return 'navigation'; // Main jump links container
+  }
+  
+  // Page components - root layout container and sections
+  if (name.includes('page')) {
+    if (name.includes('pageheader')) {
+      return 'header'; // Page header section
+    }
+    if (name.includes('pagebody')) {
+      return 'content'; // Page body section (main content)
+    }
+    if (name.includes('pagefooter')) {
+      return 'footer'; // Page footer section
+    }
+    if (name.includes('pagesection')) {
+      // PageSection can be header, body, or footer - infer from props or default to content
+      const propsMap = propsToMap(props);
+      if (propsMap.has('type') || propsMap.has('variant')) {
+        const type = propsMap.get('type') || propsMap.get('variant');
+        if (type === 'header' || type === 'Header') {
+          return 'header';
+        }
+        if (type === 'footer' || type === 'Footer') {
+          return 'footer';
+        }
+      }
+      // Default to content for body sections
+      return 'content';
+    }
+    // Main Page component - root layout container
+    return 'page-container'; // Root page container
   }
   
   // Navigation components - hierarchical navigation structure
@@ -617,6 +653,24 @@ function inferPurpose(componentName, props) {
     }
     // Main OverflowMenu component
     return 'action-group'; // Similar purpose to ActionList - organizing actions
+  }
+  
+  // Page components - root layout container and sections
+  if (name.includes('page')) {
+    if (name.includes('pagesection')) {
+      return 'page-section'; // Section within page (header, body, footer)
+    }
+    if (name.includes('pageheader')) {
+      return 'page-header'; // Page header section
+    }
+    if (name.includes('pagebody')) {
+      return 'page-body'; // Page body section
+    }
+    if (name.includes('pagefooter')) {
+      return 'page-footer'; // Page footer section
+    }
+    // Main Page component - root container
+    return 'page'; // Root page container
   }
   
   // Notification components - check before Alert
@@ -2036,6 +2090,52 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
+  // Page variants - with-vertical-nav, with-horizontal-nav, with-breadcrumb, with-footer
+  if (name.includes('page') && !name.includes('pagesection') && !name.includes('pageheader') && 
+      !name.includes('pagebody') && !name.includes('pagefooter')) {
+    const variants = [];
+    // Check for navigation type (vertical or horizontal)
+    if (propsMap.has('nav') || propsMap.has('navigation')) {
+      const navValue = propsMap.get('nav') || propsMap.get('navigation');
+      if (navValue === 'vertical' || navValue === 'Vertical') {
+        variants.push('with-vertical-nav');
+      } else if (navValue === 'horizontal' || navValue === 'Horizontal') {
+        variants.push('with-horizontal-nav');
+      }
+    }
+    // Check for breadcrumb
+    if (propsMap.has('hasBreadcrumb') || propsMap.has('breadcrumb')) {
+      variants.push('with-breadcrumb');
+    }
+    // Check for footer
+    if (propsMap.has('hasFooter') || propsMap.has('footer')) {
+      variants.push('with-footer');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // PageSection variants - sticky-top, sticky-bottom, no-padding
+  if (name.includes('pagesection')) {
+    const variants = [];
+    // Check for sticky modifier
+    if (propsMap.has('isSticky') || propsMap.has('sticky')) {
+      const stickyValue = propsMap.get('isSticky') || propsMap.get('sticky');
+      if (stickyValue === 'top' || stickyValue === true) {
+        variants.push('sticky-top');
+      } else if (stickyValue === 'bottom') {
+        variants.push('sticky-bottom');
+      }
+    }
+    // Check for padding variant
+    if (propsMap.has('hasNoPadding') || propsMap.has('noPadding') || propsMap.has('padding')) {
+      const paddingValue = propsMap.get('hasNoPadding') || propsMap.get('noPadding') || propsMap.get('padding');
+      if (paddingValue === false || paddingValue === 'none') {
+        variants.push('no-padding');
+      }
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2239,6 +2339,22 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // Context is typically inferred from parent (toolbar, table, card)
     // Check parent context first, then default to page
     return parentContext || 'page';
+  }
+  
+  // Page component - root container, no context (it's the root)
+  // Page provides context to its children (page context)
+  if (name.includes('page') && !name.includes('pagesection') && !name.includes('pageheader') && 
+      !name.includes('pagebody') && !name.includes('pagefooter')) {
+    // Page is the root container - it doesn't have a context itself
+    // But it provides 'page' context to all its children
+    return null; // No context for root Page component
+  }
+  
+  // PageSection, PageHeader, PageBody, PageFooter - inherit page context from parent Page
+  if (name.includes('pagesection') || name.includes('pageheader') || name.includes('pagebody') || 
+      name.includes('pagefooter')) {
+    // These sections are within a Page, so they have 'page' context
+    return 'page';
   }
   
   // Layout components are containers
