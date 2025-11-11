@@ -201,6 +201,10 @@ function inferRole(componentName) {
     // List components
     'list': 'list',                               // List container (ordered or unordered)
     'listitem': 'list-item',                      // Individual list item
+    // SimpleList components - simple list without bullets
+    'simplelist': 'list',                         // Simple list container (no bullets)
+    'simplelistitem': 'list-item',                // Individual simple list item
+    'simplelisttitle': 'section-title',          // Optional section title for simple list
     // LoginForm component
     'loginform': 'login-form',                    // Authentication/login form
     // Masthead components
@@ -441,6 +445,18 @@ function inferPurpose(componentName, props) {
     }
     // Main Sidebar component
     return 'layout'; // Layout container for panel and content
+  }
+  
+  // SimpleList - simple list without bullets
+  if (name.includes('simplelist')) {
+    if (name.includes('simplelistitem')) {
+      return 'display'; // Individual list item (displays information)
+    }
+    if (name.includes('simplelisttitle')) {
+      return 'header'; // Section title/header
+    }
+    // Main SimpleList component
+    return 'display'; // Display container for simple list items
   }
   
   // Navigation components - hierarchical navigation structure
@@ -826,6 +842,18 @@ function inferPurpose(componentName, props) {
     }
     // Main Sidebar component
     return 'sidebar'; // Sidebar container
+  }
+  
+  // SimpleList - simple list without bullets
+  if (name.includes('simplelist')) {
+    if (name.includes('simplelistitem')) {
+      return 'list-item'; // Individual simple list item
+    }
+    if (name.includes('simplelisttitle')) {
+      return 'section-title'; // Optional section title
+    }
+    // Main SimpleList component
+    return 'list'; // Simple list container
   }
   
   // Notification components - check before Alert
@@ -2041,6 +2069,26 @@ function inferVariant(componentName, props) {
     return 'overlay';
   }
   
+  // SimpleList variants - grouped (with section titles), with-links
+  if (name.includes('simplelist') && !name.includes('simplelistitem') && !name.includes('simplelisttitle')) {
+    const variants = [];
+    
+    // Check for grouped variant (has section titles)
+    // This will be detected via children analysis if needed
+    // For now, we can check if there's a title prop or if it's explicitly grouped
+    if (propsMap.has('isGrouped') || propsMap.has('grouped') || propsMap.has('hasTitle')) {
+      variants.push('grouped');
+    }
+    
+    // Check for links variant (items are links)
+    // This will be detected via children analysis - if SimpleListItems contain links
+    if (propsMap.has('hasLinks') || propsMap.has('links') || propsMap.has('isLink')) {
+      variants.push('with-links');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // DualListSelector variants - handled via children analysis in transform.js
   // Base variants: basic, with-tree, draggable
   // Sub-variants detected from children: with-tooltips, with-search, with-actions, multiple-drop-zones
@@ -2857,6 +2905,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'page';
   }
   
+  // SimpleList context - inherits from parent (page, sidebar, panel, form)
+  if (name.includes('simplelist')) {
+    // SimpleList is used in pages, sidebars, panels, forms for displaying list items (with optional links)
+    // Context is inherited from parent via findParentContext
+    // Common contexts: page (page-level list), sidebar (navigation list), panel (panel list), form (form options)
+    return parentContext || 'page';
+  }
+  
   // Layout components are containers
   if (name.includes('flex') || name.includes('grid') || name.includes('stack') || name.includes('card')) {
     return 'container';
@@ -3565,6 +3621,21 @@ function inferState(componentName, props) {
     if (propsMap.has('isEditing') || propsMap.has('editing') || propsMap.has('editMode')) {
       return 'editing';
     }
+    return null;
+  }
+  
+  // SimpleList states - selected (for items)
+  if (name.includes('simplelist')) {
+    // SimpleListItem states - selected, default
+    if (name.includes('simplelistitem')) {
+      // Check for selected state
+      if (propsMap.has('isSelected') || propsMap.has('selected')) {
+        return 'selected';
+      }
+      // Default state (not selected)
+      return 'default';
+    }
+    // SimpleListTitle and SimpleList container don't have states
     return null;
   }
   
