@@ -7,6 +7,19 @@
 
 A codemod tool that automatically adds standardized semantic `data-*` attributes to **all PatternFly components** in your codebase, making them AI-friendly and easier for AI tools to understand.
 
+## 📚 Documentation & Reference
+
+**Essential reading for understanding how attributes are determined:**
+
+- **[Attribute Decision Logic](./codemod/ATTRIBUTE_DECISION_LOGIC.md)** - Complete guide explaining how each of the 7 data-* attributes is determined, including functions used, props checked, and decision-making process
+- **[All Components Reference](./codemod/ALL_COMPONENTS_REFERENCE.md)** - Complete reference of all 150+ PatternFly components we support, with all 7 attributes and their possible values listed for each component
+
+These reference files are invaluable for:
+- Understanding how the codemod infers attributes
+- Testing and validation
+- Debugging attribute inference
+- Extending the codemod for custom components
+
 ## Overview
 
 This tool transforms your existing PatternFly components by adding semantic metadata attributes that appear on rendered DOM elements. AI tools can query these attributes to better understand your UI structure and component relationships.
@@ -111,9 +124,9 @@ Into:
 **These attributes appear on the rendered DOM elements** in your browser:
 
 ```html
-<div class="pf-c-card" data-role="card" data-purpose="clickable" data-variant="default" data-context="default" data-state="active">
-  <div class="pf-c-card__body" data-role="card-body" data-purpose="display" data-variant="default" data-context="default" data-state="default">
-    <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" data-context="default" data-state="active">
+<div class="pf-c-card" data-role="card" data-purpose="clickable" data-variant="default" data-context="page" data-state="active">
+  <div class="pf-c-card__body" data-role="card-body" data-purpose="display" data-variant="default" data-context="page" data-state="active">
+    <button class="pf-c-button pf-m-danger" data-role="button" data-purpose="action" data-variant="danger" data-context="page" data-action-type="destructive" data-state="active">
       Cancel
     </button>
   </div>
@@ -122,15 +135,19 @@ Into:
 
 ## Standardized Attributes
 
-Every PatternFly component gets the same 5 attributes that appear on rendered DOM elements:
+Every PatternFly component gets the same 7 attributes that appear on rendered DOM elements:
 
 | Attribute | Description | Example Values |
 |-----------|-------------|----------------|
 | `data-role` | What the component IS | `button`, `card`, `input`, `modal`, `alert`, `breadcrumb` |
-| `data-purpose` | What it DOES | `action`, `display`, `input`, `navigation`, `overlay` |
+| `data-purpose` | What it DOES | `action`, `display`, `input`, `navigation`, `overlay`, `filtering` |
 | `data-variant` | How it LOOKS | `primary`, `danger`, `secondary`, `warning`, `info` |
-| `data-context` | Where it's USED | `form`, `modal`, `table`, `toolbar`, `navigation` |
+| `data-context` | Where it's USED | `form`, `modal`, `table`, `toolbar`, `navigation`, `page` |
 | `data-state` | Current STATE | `active`, `disabled`, `selected`, `readonly`, `open` |
+| `data-action-type` | Type of ACTION | `destructive`, `navigation`, `toggle`, `selection`, `determinate`, `indeterminate` |
+| `data-size` | SIZE/SPACING | `compact`, `small`, `medium`, `large`, `extra-small`, `extra-large` |
+
+> **📖 For complete details**: See [Attribute Decision Logic](./codemod/ATTRIBUTE_DECISION_LOGIC.md) for how each attribute is determined, and [All Components Reference](./codemod/ALL_COMPONENTS_REFERENCE.md) for all possible values per component.
 
 ## Features
 
@@ -281,9 +298,11 @@ The codemod works with **ALL components** imported from these PatternFly package
 - Accordion, ActionList, Alert, Avatar
 
 **Components with Generic Inference:**
-- All other PatternFly components (Breadcrumb, Tabs, Popover, Tooltip, Wizard, etc.)
+- All other PatternFly components (Breadcrumb, Tabs, Popover, Tooltip, Wizard, TextInputGroup, Timestamp, Title, ToggleGroup, Toolbar, TreeView, Truncate, etc.)
 - Uses heuristics and fallbacks to provide reasonable defaults
 - Still adds all 7 standardized attributes
+
+> **📖 Complete Component List**: See [All Components Reference](./codemod/ALL_COMPONENTS_REFERENCE.md) for the full list of 150+ supported components with all attribute values.
 
 **Components We Skip:**
 - Static components without meaningful variants, states, or interactive behavior
@@ -533,7 +552,20 @@ document.querySelectorAll('[data-variant="danger"]')
 
 ## Documentation
 
-For detailed documentation, examples, and customization options, see [`codemod/README.md`](./codemod/README.md).
+**Essential Reference Files:**
+
+- **[Attribute Decision Logic](./codemod/ATTRIBUTE_DECISION_LOGIC.md)** - Complete guide explaining how each of the 7 data-* attributes is determined
+  - Functions used for each attribute
+  - Props checked for inference
+  - Children analysis functions
+  - Special cases and context inheritance
+
+- **[All Components Reference](./codemod/ALL_COMPONENTS_REFERENCE.md)** - Complete reference of all 150+ PatternFly components
+  - All 7 attributes with possible values for each component
+  - Organized by component category
+  - Notes on structural children, context inheritance, and variant combinations
+
+- **[Codemod README](./codemod/README.md)** - Detailed documentation, examples, and customization options
 
 ## Note About Library Code
 
