@@ -235,6 +235,32 @@ function inferRole(componentName) {
     // Tabs components - navigation for organizing content
     'tabs': 'tabs',                                             // Tabs container for organizing content
     'tab': 'tab',                                               // Individual tab item
+    // TextInputGroup component - complex text input with icons, buttons, labels
+    'textinputgroup': 'text-input-group',                      // Text input group container
+    // Timestamp component - date/time display
+    'timestamp': 'timestamp',                                   // Timestamp for displaying date/time
+    // Title component - heading/title text
+    'title': 'title',                                           // Title/heading component
+    // ToggleGroup components - toggle selection groups
+    'togglegroup': 'toggle-group',                             // Toggle group container
+    'toggleitem': 'toggle-item',                                // Individual toggle item
+    // Toolbar component - container for toolbar items and groups
+    'toolbar': 'toolbar',                                       // Toolbar container
+    'toolbaritem': 'toolbar-item',                              // Individual toolbar item
+    'toolbaritemgroup': 'toolbar-item-group',                   // Toolbar item group
+    // Tooltip component - contextual help on hover
+    'tooltip': 'tooltip',                                       // Tooltip for contextual help
+    // TreeView components - hierarchical tree structure
+    'treeview': 'tree-view',                                    // Tree view container
+    'treeviewitem': 'tree-view-item',                           // Individual tree view item/node
+    // Truncate component - text truncation
+    'truncate': 'truncate',                                     // Text truncation component
+    // Wizard components - multi-step form/process
+    'wizard': 'wizard',                                         // Wizard container
+    'wizardnav': 'wizard-nav',                                   // Wizard navigation sidebar
+    'wizardnavitem': 'wizard-nav-item',                         // Individual wizard step in sidebar
+    'wizardbody': 'wizard-body',                                // Wizard body content
+    'wizardfooter': 'wizard-footer',                            // Wizard footer with buttons
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -484,6 +510,76 @@ function inferPurpose(componentName, props) {
     }
     // Individual tab item (just "tab" without "tabs")
     return 'navigation'; // Individual tab item for navigating to content sections
+  }
+  
+  // TextInputGroup - complex text input with icons, buttons, labels
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    return 'input'; // Input control (complex text input group)
+  }
+  
+  // Timestamp - date/time display
+  if (name.includes('timestamp')) {
+    return 'display'; // Displays date/time information
+  }
+  
+  // Title - heading/title text
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    return 'header'; // Title/heading text
+  }
+  
+  // ToggleGroup - toggle selection groups
+  if (name.includes('togglegroup')) {
+    if (name.includes('toggleitem')) {
+      return 'selection'; // Individual toggle item for selection
+    }
+    return 'selection'; // Toggle group for selecting options
+  }
+  
+  // Toolbar - container for toolbar items and groups
+  if (name.includes('toolbar')) {
+    if (name.includes('toolbaritemgroup')) {
+      return 'grouping'; // Toolbar item group
+    }
+    if (name.includes('toolbaritem')) {
+      return 'action'; // Individual toolbar item (buttons, filters, etc.)
+    }
+    return 'action-group'; // Toolbar container for actions and controls
+  }
+  
+  // Tooltip - contextual help on hover
+  if (name.includes('tooltip')) {
+    return 'guidance'; // Contextual help/guidance (proactive)
+  }
+  
+  // TreeView - hierarchical tree structure
+  if (name.includes('treeview') || (name.includes('tree') && name.includes('view'))) {
+    if (name.includes('treeviewitem') || (name.includes('tree') && name.includes('item'))) {
+      return 'selection'; // Individual tree view item/node (can be selected)
+    }
+    return 'display'; // Tree view container for hierarchical display
+  }
+  
+  // Truncate - text truncation
+  if (name.includes('truncate')) {
+    return 'display'; // Displays truncated text
+  }
+  
+  // Wizard - multi-step form/process
+  if (name.includes('wizard')) {
+    if (name.includes('wizardfooter')) {
+      return 'action'; // Wizard footer with navigation buttons
+    }
+    if (name.includes('wizardbody')) {
+      return 'content'; // Wizard body content
+    }
+    if (name.includes('wizardnavitem')) {
+      return 'navigation'; // Individual wizard step in sidebar
+    }
+    if (name.includes('wizardnav')) {
+      return 'navigation-container'; // Wizard navigation sidebar
+    }
+    return 'form-container'; // Wizard container for multi-step forms/processes
   }
   
   // Navigation components - hierarchical navigation structure
@@ -902,6 +998,76 @@ function inferPurpose(componentName, props) {
     }
     // Individual tab item (just "tab" without "tabs")
     return 'tab'; // Individual tab item
+  }
+  
+  // TextInputGroup - complex text input with icons, buttons, labels
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    return 'text-input-group'; // Text input group container
+  }
+  
+  // Timestamp - date/time display
+  if (name.includes('timestamp')) {
+    return 'timestamp'; // Timestamp for displaying date/time
+  }
+  
+  // Title - heading/title text
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    return 'title'; // Title/heading component
+  }
+  
+  // ToggleGroup - toggle selection groups
+  if (name.includes('togglegroup')) {
+    if (name.includes('toggleitem')) {
+      return 'toggle-item'; // Individual toggle item
+    }
+    return 'toggle-group'; // Toggle group container
+  }
+  
+  // Toolbar - container for toolbar items and groups
+  if (name.includes('toolbar')) {
+    if (name.includes('toolbaritemgroup')) {
+      return 'toolbar-item-group'; // Toolbar item group
+    }
+    if (name.includes('toolbaritem')) {
+      return 'toolbar-item'; // Individual toolbar item
+    }
+    return 'toolbar'; // Toolbar container
+  }
+  
+  // Tooltip - contextual help on hover
+  if (name.includes('tooltip')) {
+    return 'tooltip'; // Tooltip for contextual help
+  }
+  
+  // TreeView - hierarchical tree structure
+  if (name.includes('treeview') || (name.includes('tree') && name.includes('view'))) {
+    if (name.includes('treeviewitem') || (name.includes('tree') && name.includes('item'))) {
+      return 'tree-view-item'; // Individual tree view item/node
+    }
+    return 'tree-view'; // Tree view container
+  }
+  
+  // Truncate - text truncation
+  if (name.includes('truncate')) {
+    return 'truncate'; // Text truncation component
+  }
+  
+  // Wizard - multi-step form/process
+  if (name.includes('wizard')) {
+    if (name.includes('wizardfooter')) {
+      return 'wizard-footer'; // Wizard footer with buttons
+    }
+    if (name.includes('wizardbody')) {
+      return 'wizard-body'; // Wizard body content
+    }
+    if (name.includes('wizardnavitem')) {
+      return 'wizard-nav-item'; // Individual wizard step in sidebar
+    }
+    if (name.includes('wizardnav')) {
+      return 'wizard-nav'; // Wizard navigation sidebar
+    }
+    return 'wizard'; // Wizard container
   }
   
   // Notification components - check before Alert
@@ -2790,6 +2956,226 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // TextInputGroup variants - with-icon, with-clear-button, with-label-group
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    const variants = [];
+    
+    // Check for icon variant
+    if (propsMap.has('icon') || propsMap.has('iconComponent') || propsMap.has('hasIcon')) {
+      variants.push('with-icon');
+    }
+    
+    // Check for clear button
+    if (propsMap.has('hasClearButton') || propsMap.has('clearButton') || propsMap.has('onClear')) {
+      variants.push('with-clear-button');
+    }
+    
+    // Check for label group (attribute-value filtering)
+    if (propsMap.has('hasLabelGroup') || propsMap.has('labelGroup') || propsMap.has('withLabelGroup')) {
+      variants.push('with-label-group');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // Timestamp variants - 12-hour, 24-hour, abbreviated-date
+  if (name.includes('timestamp')) {
+    const variants = [];
+    
+    // Check for time format (12-hour vs 24-hour)
+    if (propsMap.has('format') || propsMap.has('timeFormat')) {
+      const format = propsMap.get('format') || propsMap.get('timeFormat');
+      if (typeof format === 'string') {
+        const formatLower = format.toLowerCase();
+        if (formatLower.includes('12') || formatLower.includes('am') || formatLower.includes('pm')) {
+          variants.push('12-hour');
+        } else if (formatLower.includes('24') || formatLower.includes('hh:mm')) {
+          variants.push('24-hour');
+        }
+      }
+    }
+    
+    // Check for abbreviated date
+    if (propsMap.has('isAbbreviated') || propsMap.has('abbreviated') || propsMap.has('abbreviateDate')) {
+      variants.push('abbreviated-date');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : '24-hour';
+  }
+  
+  // Title variants - sizes (h1-h6, default)
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    // Check for heading size/level
+    if (propsMap.has('headingLevel') || propsMap.has('size') || propsMap.has('component')) {
+      const level = propsMap.get('headingLevel') || propsMap.get('size') || propsMap.get('component');
+      if (typeof level === 'string') {
+        const levelLower = level.toLowerCase();
+        if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(levelLower)) {
+          return levelLower;
+        }
+      } else if (typeof level === 'number' && level >= 1 && level <= 6) {
+        return `h${level}`;
+      }
+    }
+    // Default to h1 if no size specified
+    return 'h1';
+  }
+  
+  // ToggleGroup variants - single-select, multi-select
+  if (name.includes('togglegroup') && !name.includes('toggleitem')) {
+    // Check for multi-select
+    if (propsMap.has('isMultiSelect') || propsMap.has('multiSelect') || propsMap.has('selectionType') && 
+        (propsMap.get('selectionType') === 'multi' || propsMap.get('selectionType') === 'multiple')) {
+      return 'multi-select';
+    }
+    // Default to single-select
+    return 'single-select';
+  }
+  // ToggleItem doesn't have variants (inherits from parent)
+  if (name.includes('toggleitem')) {
+    return null;
+  }
+  
+  // Toolbar variants - basic, custom, with-toggle-group, sticky
+  if (name.includes('toolbar') && !name.includes('toolbaritem') && !name.includes('toolbaritemgroup')) {
+    const variants = [];
+    
+    // Check for toggle group (responsive filters)
+    if (propsMap.has('hasToggleGroup') || propsMap.has('toggleGroup') || propsMap.has('withToggleGroup')) {
+      variants.push('with-toggle-group');
+    }
+    
+    // Check for sticky variant
+    if (propsMap.has('isSticky') || propsMap.has('sticky')) {
+      variants.push('sticky');
+    }
+    
+    // Check for custom layout (non-standard layout)
+    if (propsMap.has('isCustom') || propsMap.has('custom')) {
+      variants.push('custom');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  // ToolbarItem and ToolbarItemGroup don't have variants
+  if (name.includes('toolbaritem') || name.includes('toolbaritemgroup')) {
+    return null;
+  }
+  
+  // Tooltip variants - default (always appears on hover)
+  if (name.includes('tooltip')) {
+    // Check for delay customization (but this is a prop, not a variant)
+    // Tooltip is always hover-based, no variants needed
+    return 'default';
+  }
+  
+  // TreeView variants - with-search, with-checkboxes, with-badges, with-icons, with-actions, compact
+  if (name.includes('treeview') || (name.includes('tree') && name.includes('view'))) {
+    if (name.includes('treeviewitem') || (name.includes('tree') && name.includes('item'))) {
+      // TreeViewItem doesn't have variants (inherits from parent)
+      return null;
+    }
+    // TreeView container variants
+    const variants = [];
+    
+    // Check for search bar
+    if (propsMap.has('hasSearch') || propsMap.has('search') || propsMap.has('withSearch')) {
+      variants.push('with-search');
+    }
+    
+    // Check for checkboxes
+    if (propsMap.has('hasCheckboxes') || propsMap.has('checkboxes') || propsMap.has('withCheckboxes')) {
+      variants.push('with-checkboxes');
+    }
+    
+    // Check for badges
+    if (propsMap.has('hasBadges') || propsMap.has('badges') || propsMap.has('withBadges')) {
+      variants.push('with-badges');
+    }
+    
+    // Check for icons
+    if (propsMap.has('hasIcons') || propsMap.has('icons') || propsMap.has('withIcons')) {
+      variants.push('with-icons');
+    }
+    
+    // Check for action items
+    if (propsMap.has('hasActions') || propsMap.has('actions') || propsMap.has('withActions')) {
+      variants.push('with-actions');
+    }
+    
+    // Check for compact variant
+    if (propsMap.has('isCompact') || propsMap.has('compact') || propsMap.has('variant') && 
+        (propsMap.get('variant') === 'compact' || propsMap.get('variant') === 'Compact')) {
+      variants.push('compact');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // Truncate variants - front-line, mid-line, end-line (default)
+  if (name.includes('truncate')) {
+    // Check for truncation position
+    if (propsMap.has('position') || propsMap.has('truncatePosition')) {
+      const position = propsMap.get('position') || propsMap.get('truncatePosition');
+      if (typeof position === 'string') {
+        const pos = position.toLowerCase();
+        if (pos === 'front' || pos === 'start' || pos === 'front-line') {
+          return 'front-line';
+        } else if (pos === 'middle' || pos === 'mid' || pos === 'mid-line') {
+          return 'mid-line';
+        } else if (pos === 'end' || pos === 'end-line') {
+          return 'end-line';
+        }
+      }
+    }
+    // Default to end-line truncation
+    return 'end-line';
+  }
+  
+  // Wizard variants - modal, in-page, progressive, with-sub-steps, with-optional-steps, with-drawer
+  if (name.includes('wizard') && !name.includes('wizardnav') && !name.includes('wizardnavitem') && 
+      !name.includes('wizardbody') && !name.includes('wizardfooter')) {
+    const variants = [];
+    
+    // Check for modal vs in-page
+    if (propsMap.has('isModal') || propsMap.has('modal')) {
+      variants.push('modal');
+    } else if (propsMap.has('isInPage') || propsMap.has('inPage')) {
+      variants.push('in-page');
+    } else {
+      // Default to modal
+      variants.push('modal');
+    }
+    
+    // Check for progressive wizard (dynamic steps)
+    if (propsMap.has('isProgressive') || propsMap.has('progressive')) {
+      variants.push('progressive');
+    }
+    
+    // Check for sub-steps
+    if (propsMap.has('hasSubSteps') || propsMap.has('subSteps') || propsMap.has('withSubSteps')) {
+      variants.push('with-sub-steps');
+    }
+    
+    // Check for optional steps
+    if (propsMap.has('hasOptionalSteps') || propsMap.has('optionalSteps') || propsMap.has('withOptionalSteps')) {
+      variants.push('with-optional-steps');
+    }
+    
+    // Check for drawer
+    if (propsMap.has('hasDrawer') || propsMap.has('drawer') || propsMap.has('withDrawer')) {
+      variants.push('with-drawer');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'modal';
+  }
+  // Wizard children don't have variants
+  if (name.includes('wizardnav') || name.includes('wizardnavitem') || name.includes('wizardbody') || 
+      name.includes('wizardfooter')) {
+    return null;
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2908,6 +3294,73 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // Context is inherited from parent via findParentContext
     // Common contexts: page (top page header tabs), modal (secondary tabs in modals), component (tabs within components)
     return parentContext || 'page';
+  }
+  
+  // TextInputGroup context - inherits from parent (form, toolbar, page) or defaults to form
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    // TextInputGroup is typically used in forms, toolbars, or page-level controls
+    return parentContext || 'form';
+  }
+  
+  // Timestamp context - inherits from parent (table, card, page) or defaults to page
+  if (name.includes('timestamp')) {
+    // Timestamp is used in tables, cards, pages for displaying date/time
+    return parentContext || 'page';
+  }
+  
+  // Title context - inherits from parent (page, modal, card, form) or defaults to page
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    // Title is used in pages, modals, cards, forms for headings
+    return parentContext || 'page';
+  }
+  
+  // ToggleGroup context - inherits from parent (toolbar, page, form) or defaults to page
+  if (name.includes('togglegroup')) {
+    // ToggleGroup is used in toolbars, pages, forms for selecting options
+    return parentContext || 'page';
+  }
+  
+  // Toolbar context - provides 'toolbar' context to children, but itself is in page/table/card context
+  if (name.includes('toolbar')) {
+    if (name.includes('toolbaritem') || name.includes('toolbaritemgroup')) {
+      // ToolbarItem and ToolbarItemGroup are within Toolbar, so they have 'toolbar' context
+      return 'toolbar';
+    }
+    // Main Toolbar component - typically in page, table, or card context
+    return parentContext || 'page';
+  }
+  
+  // Tooltip context - inherits from parent (form, table, page, toolbar) or defaults to page
+  if (name.includes('tooltip')) {
+    // Tooltip is used on form fields, table cells, page elements, toolbar items
+    return parentContext || 'page';
+  }
+  
+  // TreeView context - inherits from parent (wizard, drawer, modal, page) or defaults to page
+  if (name.includes('treeview') || (name.includes('tree') && name.includes('view'))) {
+    // TreeView is used in wizards, drawers, modals, pages for hierarchical selection/display
+    return parentContext || 'page';
+  }
+  
+  // Truncate context - inherits from parent (table, card, page, alert) or defaults to page
+  if (name.includes('truncate')) {
+    // Truncate is used in tables, cards, pages, alerts for truncating text
+    return parentContext || 'page';
+  }
+  
+  // Wizard context - provides 'wizard' context to children, but itself is in page/overlay context
+  if (name.includes('wizard')) {
+    if (name.includes('wizardnav') || name.includes('wizardnavitem') || name.includes('wizardbody') || 
+        name.includes('wizardfooter')) {
+      // Wizard children are within Wizard, so they have 'wizard' context
+      return 'wizard';
+    }
+    // Main Wizard component - can be modal (overlay) or in-page
+    if (propsMap.has('isModal') || propsMap.has('modal')) {
+      return 'overlay';
+    }
+    return 'page';
   }
   
   // Menu components context
@@ -3556,6 +4009,138 @@ function inferState(componentName, props) {
     return null;
   }
   
+  // TextInputGroup states - disabled, error, warning (inherits from input states)
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    // Check for disabled state
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    // Check for error state
+    if (propsMap.has('isInvalid') || propsMap.has('invalid') || 
+        propsMap.has('validated') && propsMap.get('validated') === 'error') {
+      return 'error';
+    }
+    // Check for warning state
+    if (propsMap.has('validated') && propsMap.get('validated') === 'warning') {
+      return 'warning';
+    }
+    return 'active';
+  }
+  
+  // Timestamp states - none (display component)
+  if (name.includes('timestamp')) {
+    return null;
+  }
+  
+  // Title states - none (display component)
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    return null;
+  }
+  
+  // ToggleGroup states - none (container doesn't have states)
+  if (name.includes('togglegroup') && !name.includes('toggleitem')) {
+    return null;
+  }
+  // ToggleItem states - selected, disabled
+  if (name.includes('toggleitem')) {
+    // Check for disabled state first
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    // Check for selected state
+    if (propsMap.has('isSelected') || propsMap.has('selected') || propsMap.has('isPressed') || propsMap.has('pressed')) {
+      return 'selected';
+    }
+    return 'unselected';
+  }
+  
+  // Toolbar states - none (container doesn't have states)
+  if (name.includes('toolbar') && !name.includes('toolbaritem') && !name.includes('toolbaritemgroup')) {
+    return null;
+  }
+  // ToolbarItem and ToolbarItemGroup don't have states (they contain other components)
+  if (name.includes('toolbaritem') || name.includes('toolbaritemgroup')) {
+    return null;
+  }
+  
+  // Tooltip states - open, closed
+  if (name.includes('tooltip')) {
+    // Check for open state
+    if (propsMap.has('isOpen') || propsMap.has('open') || propsMap.has('isVisible') || propsMap.has('visible')) {
+      const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : 
+                       propsMap.has('open') ? propsMap.get('open') :
+                       propsMap.has('isVisible') ? propsMap.get('isVisible') : propsMap.get('visible');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    // Default to closed if not explicitly open
+    return 'closed';
+  }
+  
+  // TreeView states - none (container doesn't have states)
+  if ((name.includes('treeview') || (name.includes('tree') && name.includes('view'))) && 
+      !name.includes('treeviewitem') && !(name.includes('tree') && name.includes('item'))) {
+    return null;
+  }
+  // TreeViewItem states - selected, expanded, collapsed, disabled
+  if (name.includes('treeviewitem') || (name.includes('tree') && name.includes('item'))) {
+    // Check for disabled state first
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    // Check for selected state
+    if (propsMap.has('isSelected') || propsMap.has('selected')) {
+      return 'selected';
+    }
+    // Check for expanded/collapsed state
+    if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const expandedValue = propsMap.has('isExpanded') ? propsMap.get('isExpanded') : propsMap.get('expanded');
+      if (expandedValue === false) {
+        return 'collapsed';
+      }
+      return 'expanded';
+    }
+    // Default to collapsed if it's a parent node without explicit state
+    if (propsMap.has('hasChildren') || propsMap.has('children')) {
+      return 'collapsed';
+    }
+    return null;
+  }
+  
+  // Truncate states - none (display component)
+  if (name.includes('truncate')) {
+    return null;
+  }
+  
+  // Wizard states - none (container doesn't have states)
+  if (name.includes('wizard') && !name.includes('wizardnav') && !name.includes('wizardnavitem') && 
+      !name.includes('wizardbody') && !name.includes('wizardfooter')) {
+    return null;
+  }
+  // WizardNavItem states - visited, current, disabled
+  if (name.includes('wizardnavitem')) {
+    // Check for disabled state first
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    // Check for current step
+    if (propsMap.has('isCurrent') || propsMap.has('current') || propsMap.has('isActive') || propsMap.has('active')) {
+      return 'current';
+    }
+    // Check for visited step
+    if (propsMap.has('isVisited') || propsMap.has('visited')) {
+      return 'visited';
+    }
+    return null;
+  }
+  // WizardNav, WizardBody, WizardFooter don't have states
+  if (name.includes('wizardnav') || name.includes('wizardbody') || name.includes('wizardfooter')) {
+    return null;
+  }
+  
   if (propsMap.has('isChecked') || propsMap.has('checked')) {
     return 'checked';
   }
@@ -3978,6 +4563,62 @@ function inferActionType(componentName, props) {
   // Tabs - navigation action (navigating between content sections)
   if (name.includes('tab')) {
     return 'navigation'; // Tabs are for navigating between content sections
+  }
+  
+  // TextInputGroup - input action (text input)
+  if (name.includes('textinputgroup') || (name.includes('text') && name.includes('input') && name.includes('group'))) {
+    return null; // Input action is implicit, no action-type needed
+  }
+  
+  // Timestamp - no action type (display component)
+  if (name.includes('timestamp')) {
+    return null;
+  }
+  
+  // Title - no action type (display component)
+  if (name.includes('title') && !name.includes('subtitle') && !name.includes('cardtitle') && 
+      !name.includes('simplelisttitle') && !name.includes('panelheader')) {
+    return null;
+  }
+  
+  // ToggleGroup - selection action
+  if (name.includes('togglegroup')) {
+    return 'selection'; // ToggleGroup is for selecting options
+  }
+  
+  // Toolbar - action group (contains various actions)
+  if (name.includes('toolbar') && !name.includes('toolbaritem') && !name.includes('toolbaritemgroup')) {
+    return null; // Toolbar is a container, action-type handled by children
+  }
+  // ToolbarItem and ToolbarItemGroup don't have action-type (they contain other components)
+  if (name.includes('toolbaritem') || name.includes('toolbaritemgroup')) {
+    return null;
+  }
+  
+  // Tooltip - no action type (guidance component)
+  if (name.includes('tooltip')) {
+    return null;
+  }
+  
+  // TreeView - selection action (for selecting items)
+  if (name.includes('treeview') || (name.includes('tree') && name.includes('view'))) {
+    return 'selection'; // TreeView is for selecting items from hierarchy
+  }
+  
+  // Truncate - no action type (display component)
+  if (name.includes('truncate')) {
+    return null;
+  }
+  
+  // Wizard - form action (multi-step form/process)
+  if (name.includes('wizard') && !name.includes('wizardnav') && !name.includes('wizardnavitem') && 
+      !name.includes('wizardbody') && !name.includes('wizardfooter')) {
+    return 'form'; // Wizard is a multi-step form/process
+  }
+  // Wizard children don't have action-type
+  if (name.includes('wizardnav') || name.includes('wizardnavitem') || name.includes('wizardbody') || 
+      name.includes('wizardfooter')) {
+    return null;
   }
   
   // Progress components - determinate (measurable progress) vs indeterminate (unknown progress)

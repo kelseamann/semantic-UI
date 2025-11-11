@@ -1,0 +1,129 @@
+{
+  "TextInputGroup": {
+    "data-role": ["text-input-group"],
+    "data-purpose": ["input"],
+    "data-variant": ["basic", "with-icon", "with-clear-button", "with-label-group"],
+    "data-context": ["form", "toolbar", "page"],
+    "data-state": ["active", "disabled", "error", "warning"],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Timestamp": {
+    "data-role": ["timestamp"],
+    "data-purpose": ["display"],
+    "data-variant": ["24-hour", "12-hour", "abbreviated-date"],
+    "data-context": ["table", "card", "page"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Title": {
+    "data-role": ["title"],
+    "data-purpose": ["header"],
+    "data-variant": ["h1", "h2", "h3", "h4", "h5", "h6"],
+    "data-context": ["page", "modal", "card", "form"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "ToggleGroup": {
+    "data-role": ["toggle-group"],
+    "data-purpose": ["selection"],
+    "data-variant": ["single-select", "multi-select"],
+    "data-context": ["toolbar", "page", "form"],
+    "data-state": [],
+    "data-action-type": ["selection"],
+    "data-size": []
+  },
+  "ToggleItem": {
+    "data-role": ["toggle-item"],
+    "data-purpose": ["selection"],
+    "data-variant": [],
+    "data-context": ["toolbar", "page", "form"],
+    "data-state": ["selected", "unselected", "disabled"],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Toolbar": {
+    "data-role": ["toolbar"],
+    "data-purpose": ["action-group"],
+    "data-variant": ["basic", "custom", "with-toggle-group", "sticky"],
+    "data-context": ["page", "table", "card"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "ToolbarItem": {
+    "data-role": ["toolbar-item"],
+    "data-purpose": ["action"],
+    "data-variant": [],
+    "data-context": ["toolbar"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "ToolbarItemGroup": {
+    "data-role": ["toolbar-item-group"],
+    "data-purpose": ["grouping"],
+    "data-variant": [],
+    "data-context": ["toolbar"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Tooltip": {
+    "data-role": ["tooltip"],
+    "data-purpose": ["guidance"],
+    "data-variant": ["default"],
+    "data-context": ["form", "table", "page", "toolbar"],
+    "data-state": ["open", "closed"],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "TreeView": {
+    "data-role": ["tree-view"],
+    "data-purpose": ["display"],
+    "data-variant": ["basic", "with-search", "with-checkboxes", "with-badges", "with-icons", "with-actions", "compact"],
+    "data-context": ["wizard", "drawer", "modal", "page"],
+    "data-state": [],
+    "data-action-type": ["selection"],
+    "data-size": []
+  },
+  "TreeViewItem": {
+    "data-role": ["tree-view-item"],
+    "data-purpose": ["selection"],
+    "data-variant": [],
+    "data-context": ["wizard", "drawer", "modal", "page"],
+    "data-state": ["selected", "expanded", "collapsed", "disabled"],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Truncate": {
+    "data-role": ["truncate"],
+    "data-purpose": ["display"],
+    "data-variant": ["front-line", "mid-line", "end-line"],
+    "data-context": ["table", "card", "page", "alert"],
+    "data-state": [],
+    "data-action-type": [],
+    "data-size": []
+  },
+  "Wizard": {
+    "data-role": ["wizard"],
+    "data-purpose": ["form-container"],
+    "data-variant": ["modal", "in-page", "progressive", "with-sub-steps", "with-optional-steps", "with-drawer"],
+    "data-context": ["overlay", "page"],
+    "data-state": [],
+    "data-action-type": ["form"],
+    "data-size": []
+  },
+  "WizardNavItem": {
+    "data-role": ["wizard-nav-item"],
+    "data-purpose": ["navigation"],
+    "data-variant": [],
+    "data-context": ["wizard"],
+    "data-state": ["visited", "current", "disabled"],
+    "data-action-type": [],
+    "data-size": []
+  }
+}
+

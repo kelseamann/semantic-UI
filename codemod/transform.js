@@ -77,6 +77,19 @@ function findParentContext(path, imports) {
               return 'sidebar';
             }
             
+            // For Toolbar, return toolbar context so children inherit it
+            if (parentName.toLowerCase().includes('toolbar') && !parentName.toLowerCase().includes('toolbaritem') && 
+                !parentName.toLowerCase().includes('toolbaritemgroup')) {
+              return 'toolbar';
+            }
+            
+            // For Wizard, return wizard context so children inherit it
+            if (parentName.toLowerCase().includes('wizard') && !parentName.toLowerCase().includes('wizardnav') && 
+                !parentName.toLowerCase().includes('wizardnavitem') && !parentName.toLowerCase().includes('wizardbody') && 
+                !parentName.toLowerCase().includes('wizardfooter')) {
+              return 'wizard';
+            }
+            
             // For Form, return both context and purpose so children can inherit purpose
             if (purpose === 'form-container') {
               return { context, purpose };
@@ -1058,6 +1071,9 @@ module.exports = function transformer(fileInfo, api) {
       'overflowmenucontent',
       // OverflowMenuContent is a structural wrapper for menu items
       // Note: PageSection, PageHeader, PageBody, PageFooter are NOT structural - they get their own attributes
+      'wizardnav', 'wizardbody', 'wizardfooter',
+      // Wizard structural children - WizardNav, WizardBody, WizardFooter are structural
+      // WizardNavItem is NOT structural - it gets its own attributes (visited, current, disabled states)
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
