@@ -58,22 +58,27 @@ function findParentContext(path, imports) {
       
       // Check if parent is a JSX element
       if (node.type === 'JSXElement' && node.openingElement) {
-        const parentName = node.openingElement.name?.name;
-        if (parentName && isPatternFlyComponent(parentName, imports)) {
-          const parentProps = node.openingElement.attributes || [];
-          const purpose = inferPurpose(parentName, parentProps);
-          const context = inferContext(parentName, parentProps);
-          
-          // For Form, return both context and purpose so children can inherit purpose
-          if (purpose === 'form-container') {
-            return { context, purpose };
+          const parentName = node.openingElement.name?.name;
+          if (parentName && isPatternFlyComponent(parentName, imports)) {
+            const parentProps = node.openingElement.attributes || [];
+            const purpose = inferPurpose(parentName, parentProps);
+            const context = inferContext(parentName, parentProps);
+            
+            // For Form, return both context and purpose so children can inherit purpose
+            if (purpose === 'form-container') {
+              return { context, purpose };
+            }
+            
+            // For LoginForm, return authentication context so children inherit it
+            if (purpose === 'authentication' || parentName.toLowerCase().includes('loginform')) {
+              return 'authentication';
+            }
+            
+            // For overlay components, just return context
+            if (purpose === 'overlay') {
+              return context;
+            }
           }
-          
-          // For overlay components, just return context
-          if (purpose === 'overlay') {
-            return context;
-          }
-        }
       }
     }
     
@@ -291,6 +296,105 @@ function analyzeListChildren(j, path) {
   });
   
   return { hasIcons, hasSmallIcons, hasBigIcons };
+}
+
+/**
+ * Analyze LoginForm children to infer variant (show-hide-password, customized-header-utilities)
+ * Traverses the AST to find password toggle or customized header utilities
+ */
+function analyzeLoginFormChildren(j, path) {
+  let hasShowHidePassword = false;
+  let hasCustomizedHeaderUtilities = false;
+  
+  // Find the JSXElement that contains this opening element
+  let parentElement = null;
+  let current = path.parent;
+  
+  // Traverse up to find the JSXElement
+  while (current && !parentElement) {
+    if (current.value && current.value.type === 'JSXElement') {
+      parentElement = current.value;
+      break;
+    }
+    current = current.parent;
+  }
+  
+  if (!parentElement || !parentElement.children) {
+    return { hasShowHidePassword: false, hasCustomizedHeaderUtilities: false };
+  }
+  
+  // Look through children for password toggle or customized header utilities
+  parentElement.children.forEach(child => {
+    if (child.type === 'JSXElement' && child.openingElement) {
+      const childName = child.openingElement.name?.name;
+      if (childName) {
+        const name = childName.toLowerCase();
+        // Check for InputGroup containing password input with toggle button
+        if (name.includes('inputgroup')) {
+          // Check if InputGroup contains password input and button
+          let hasPasswordInput = false;
+          let hasToggleButton = false;
+          if (child.children) {
+            child.children.forEach(grandchild => {
+              if (grandchild.type === 'JSXElement' && grandchild.openingElement) {
+                const grandchildName = grandchild.openingElement.name?.name;
+                if (grandchildName) {
+                  const gcName = grandchildName.toLowerCase();
+                  // Check for password input
+                  if (gcName.includes('textinput') || gcName.includes('input')) {
+                    const inputProps = grandchild.openingElement.attributes || [];
+                    const typeAttr = inputProps.find(attr => attr.name?.name === 'type');
+                    if (typeAttr && typeAttr.value) {
+                      const typeValue = typeAttr.value.type === 'StringLiteral' 
+                        ? typeAttr.value.value.toLowerCase()
+                        : '';
+                      if (typeValue === 'password') {
+                        hasPasswordInput = true;
+                      }
+                    }
+                  }
+                  // Check for button (toggle)
+                  if (gcName.includes('button')) {
+                    hasToggleButton = true;
+                  }
+                }
+              }
+            });
+          }
+          if (hasPasswordInput && hasToggleButton) {
+            hasShowHidePassword = true;
+          }
+        }
+        // Check for password input with show/hide toggle prop
+        if (name.includes('textinput') || name.includes('input')) {
+          const inputProps = child.openingElement.attributes || [];
+          const typeAttr = inputProps.find(attr => attr.name?.name === 'type');
+          const hasToggle = inputProps.some(attr => 
+            attr.name?.name === 'showPasswordToggle' || 
+            attr.name?.name === 'isPasswordToggleVisible' ||
+            attr.name?.name === 'onTogglePassword'
+          );
+          if (typeAttr && typeAttr.value) {
+            const typeValue = typeAttr.value.type === 'StringLiteral' 
+              ? typeAttr.value.value.toLowerCase()
+              : '';
+            if (typeValue === 'password' && hasToggle) {
+              hasShowHidePassword = true;
+            }
+          }
+        }
+        // Check for customized header utilities (LoginHeader, LoginHeaderUtilities, etc.)
+        if (name.includes('loginheader') || name.includes('header') || 
+            (name.includes('utilities') && name.includes('login')) ||
+            (name.includes('brand') && name.includes('login')) ||
+            (name.includes('logo') && name.includes('login'))) {
+          hasCustomizedHeaderUtilities = true;
+        }
+      }
+    }
+  });
+  
+  return { hasShowHidePassword, hasCustomizedHeaderUtilities };
 }
 
 /**
@@ -608,6 +712,7 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   // For InlineEdit, detect if it's in a table row context (row-editing variant)
   // For InputGroup, analyze children to detect variant (with-button-left, with-button-right, with-buttons-both, with-icon-before, with-icon-after, with-text-prefix, with-text-suffix, search)
   // For List, analyze children to detect icon variants (with-icons, small-icons, big-icons)
+  // For LoginForm, analyze children to detect variant (show-hide-password, customized-header-utilities)
   let variant;
   if (componentName.toLowerCase().includes('actionlist') && path) {
     const children = analyzeActionListChildren(j, path);
@@ -738,6 +843,21 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
     }
     
     variant = variantParts.length > 0 ? variantParts.join('-') : baseVariant;
+  } else if (componentName.toLowerCase().includes('loginform') && path) {
+    const childrenInfo = analyzeLoginFormChildren(j, path);
+    const baseVariant = inferVariant(componentName, props);
+    
+    // Determine variant based on children analysis
+    if (childrenInfo.hasCustomizedHeaderUtilities) {
+      variant = 'customized-header-utilities';
+    } else if (childrenInfo.hasShowHidePassword) {
+      variant = 'show-hide-password';
+    } else if (baseVariant) {
+      variant = baseVariant;
+    } else {
+      // Default to basic
+      variant = 'basic';
+    }
   } else if (componentName.toLowerCase().includes('clipboardcopy') && path) {
     const childrenInfo = analyzeClipboardCopyChildren(j, path);
     const baseVariant = inferVariant(componentName, props);

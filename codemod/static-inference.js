@@ -144,6 +144,8 @@ function inferRole(componentName) {
     // List components
     'list': 'list',                               // List container (ordered or unordered)
     'listitem': 'list-item',                      // Individual list item
+    // LoginForm component
+    'loginform': 'login-form',                    // Authentication/login form
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -292,6 +294,11 @@ function inferPurpose(componentName, props) {
       return 'display'; // Individual list item displays content
     }
     return 'display'; // List container displays organized information
+  }
+  
+  // LoginForm - authentication/login form
+  if (name.includes('loginform')) {
+    return 'authentication';
   }
   
   // Component-specific purposes
@@ -656,6 +663,23 @@ function inferVariant(componentName, props) {
     }
     
     return variants.length > 0 ? variants.join('-') : null;
+  }
+  
+  // LoginForm variants - basic (default), show-hide-password, customized-header-utilities
+  // Variant detection will be enhanced by children analysis in transform.js
+  if (name.includes('loginform')) {
+    // Check for explicit variant prop
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['basic', 'show-hide-password', 'customized-header-utilities'].includes(val)) {
+          return val;
+        }
+      }
+    }
+    // Default variant - will be determined by children analysis in transform.js
+    return null;
   }
   
   // JumpLinks variants - vertical (default), horizontal-links, expandable
@@ -1430,6 +1454,11 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   // JumpLinks context - page (navigation component used on a page)
   if (name.includes('jumplink')) {
     return 'page';
+  }
+  
+  // LoginForm context - authentication page
+  if (name.includes('loginform')) {
+    return 'authentication';
   }
   
   // Label context - can be in table, card, filter, or page
