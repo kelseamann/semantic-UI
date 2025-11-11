@@ -189,6 +189,8 @@ function inferRole(componentName) {
     'progressstepper': 'progress-stepper',        // Progress stepper for step-by-step processes
     // Spinner component - indeterminate loading indicator
     'spinner': 'spinner',                         // Spinner for indeterminate loading (1-5 seconds)
+    // SearchInput component
+    'searchinput': 'search-input',                 // Search input for filtering/finding values
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -418,6 +420,11 @@ function inferPurpose(componentName, props) {
   // Spinner - indeterminate loading indicator (similar purpose to Progress but for unknown progress)
   if (name.includes('spinner')) {
     return 'status-tracking'; // Tracks indeterminate loading status (1-5 seconds)
+  }
+  
+  // SearchInput - search/filter input
+  if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
+    return 'search'; // Search/filter input
   }
   
   // Navigation components - hierarchical navigation structure
@@ -786,6 +793,11 @@ function inferPurpose(componentName, props) {
   // Spinner - indeterminate loading indicator
   if (name.includes('spinner')) {
     return 'spinner'; // Spinner for indeterminate loading
+  }
+  
+  // SearchInput - search input for filtering/finding values
+  if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
+    return 'search-input'; // Search input component
   }
   
   // Notification components - check before Alert
@@ -2452,6 +2464,44 @@ function inferVariant(componentName, props) {
     return 'medium';
   }
   
+  // SearchInput variants - basic, with-results, advanced (with submit button), with-count, with-navigation
+  if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
+    const variants = [];
+    
+    // Check for advanced search (with submit button and form toggle)
+    if (propsMap.has('isAdvanced') || propsMap.has('advanced') || propsMap.has('hasFormToggle') || 
+        propsMap.has('formToggle') || propsMap.has('hasSubmitButton') || propsMap.has('submitButton')) {
+      variants.push('advanced');
+    }
+    
+    // Check for find function (highlights matches, allows navigation)
+    if (propsMap.has('hasFind') || propsMap.has('find') || propsMap.has('highlightMatches') || 
+        propsMap.has('hasNavigation') || propsMap.has('navigation')) {
+      variants.push('with-results');
+    }
+    
+    // Check for badge (match count)
+    if (propsMap.has('hasBadge') || propsMap.has('badge') || propsMap.has('matchCount') || 
+        propsMap.has('resultCount')) {
+      variants.push('with-count');
+    }
+    
+    // Check for navigation (navigate through matches)
+    if (propsMap.has('hasNavigation') || propsMap.has('navigation') || propsMap.has('navigateMatches')) {
+      // Only add if not already added as part of with-results
+      if (!variants.includes('with-results')) {
+        variants.push('with-navigation');
+      }
+    }
+    
+    // Check for clear button (always present in search input, but we can note it)
+    if (propsMap.has('hasClearButton') || propsMap.has('clearButton') || propsMap.has('onClear')) {
+      // Clear button is standard, don't need to add as variant
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2730,6 +2780,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // Spinner is used in wizards, modals, full pages, tables, data lists
     // Context is inherited from parent via findParentContext
     // Common contexts: wizard (loading between steps), modal (loading content), page (full page loading), table (loading data)
+    return parentContext || 'page';
+  }
+  
+  // SearchInput context - inherits from parent (table, page, toolbar)
+  if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
+    // SearchInput is used in tables, toolbars, pages for filtering/finding
+    // Context is inherited from parent via findParentContext
+    // Common contexts: table (filtering table data), toolbar (search in toolbar), page (page-level search)
     return parentContext || 'page';
   }
   
