@@ -1011,7 +1011,8 @@ module.exports = function transformer(fileInfo, api) {
       'accordionitem', 'accordioncontent', 'accordiontoggle',
       'cardbody', 'cardheader', 'cardtitle',
       'actionlistitem',
-      'modalcontent', 'modalheader',
+      'modalcontent', 'modalheader', 'modalfooter', 'modalbody',
+      // Modal structural children - ModalContent, ModalHeader, ModalFooter, ModalBody are structural
       'datalistaction', // Only DataListAction is skipped, other DataList children get attributes
       // DescriptionList children are NOT skipped - they have meaningful variants/states
       // Droppable and Draggable are NOT skipped - they get all attributes except role (handled by parent)

@@ -46,6 +46,10 @@ function inferRole(componentName) {
     'modal': 'modal',
     'modalcontent': 'modal-content',
     'modalheader': 'modal-header',
+    'modalclosebutton': 'close-button',
+    'modaltogglebutton': 'modal-toggle',
+    'modalfooter': 'modal-footer',
+    'modalbody': 'modal-body',
     'textinput': 'text-input',
     'textarea': 'text-area',
     'select': 'select',
@@ -439,7 +443,21 @@ function inferPurpose(componentName, props) {
     return 'input';
   }
   
+  // Modal components
   if (name.includes('modal')) {
+    if (name.includes('modalclosebutton')) {
+      return 'close-action';
+    }
+    if (name.includes('modaltogglebutton')) {
+      return 'toggle-trigger';
+    }
+    if (name.includes('modalfooter')) {
+      return 'action';
+    }
+    if (name.includes('modalbody')) {
+      return 'content';
+    }
+    // Main Modal component
     return 'overlay';
   }
   
@@ -823,6 +841,61 @@ function inferVariant(componentName, props) {
     }
     // Default to basic
     return 'basic';
+  }
+  
+  // Modal variants - size and type variants
+  if (name.includes('modal') && !name.includes('modalcontent') && !name.includes('modalheader') &&
+      !name.includes('modalclosebutton') && !name.includes('modaltogglebutton') &&
+      !name.includes('modalfooter') && !name.includes('modalbody')) {
+    const variants = [];
+    
+    // Size variants
+    if (propsMap.has('width')) {
+      const widthValue = propsMap.get('width');
+      if (typeof widthValue === 'string') {
+        const width = widthValue.toLowerCase();
+        if (['small', 'sm', 'medium', 'md', 'large', 'lg', 'full-width', 'full'].includes(width)) {
+          if (width === 'sm' || width === 'small') {
+            variants.push('small');
+          } else if (width === 'md' || width === 'medium') {
+            variants.push('medium');
+          } else if (width === 'lg' || width === 'large') {
+            variants.push('large');
+          } else if (width === 'full' || width === 'full-width') {
+            variants.push('full-width');
+          }
+        }
+      }
+    }
+    
+    // Check for variant prop (type variants)
+    if (propsMap.has('variant')) {
+      const variantValue = propsMap.get('variant');
+      if (typeof variantValue === 'string') {
+        const val = variantValue.toLowerCase();
+        if (['basic', 'with-form', 'with-wizard', 'confirmation', 'information'].includes(val)) {
+          variants.push(val);
+        }
+      }
+    }
+    
+    // Try to infer type from children or props
+    // Check for form-related props or children (would need children analysis)
+    if (propsMap.has('hasForm') || propsMap.has('isFormModal')) {
+      if (!variants.includes('with-form')) {
+        variants.push('with-form');
+      }
+    }
+    
+    // Check for wizard-related props
+    if (propsMap.has('hasWizard') || propsMap.has('isWizardModal')) {
+      if (!variants.includes('with-wizard')) {
+        variants.push('with-wizard');
+      }
+    }
+    
+    // Default to basic if no variants detected
+    return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
   // Menu component variants - comprehensive variant detection
@@ -1974,6 +2047,24 @@ function inferState(componentName, props) {
     }
     // Default state (no file uploaded yet) - no state
     return null;
+  }
+  
+  // Modal states - open/closed (check before generic state checks)
+  if (name.includes('modal') && !name.includes('modalcontent') && !name.includes('modalheader') &&
+      !name.includes('modalclosebutton') && !name.includes('modaltogglebutton') &&
+      !name.includes('modalfooter') && !name.includes('modalbody')) {
+    // Modal open/closed state
+    if (propsMap.has('isOpen') || propsMap.has('open')) {
+      const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : propsMap.get('open');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    // If no open prop, check if it's explicitly closed
+    if (propsMap.has('isClosed') || propsMap.has('closed')) {
+      return 'closed';
+    }
   }
   
   // Menu component states - check before generic state checks
