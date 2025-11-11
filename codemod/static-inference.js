@@ -64,6 +64,26 @@ function inferRole(componentName) {
     'drawer': 'drawer',
     'menutoggle': 'menu-toggle',
     'dropdownitem': 'dropdown-item',
+    // Menu components
+    'menu': 'menu',
+    'menulist': 'menu-list',
+    'menuitem': 'menu-item',
+    'menugroup': 'menu-group',
+    'menusearch': 'menu-search',
+    'menusearchinput': 'menu-search-input',
+    'dropdown': 'dropdown',
+    'optionsmenu': 'options-menu',
+    'optionsmenutoggle': 'options-menu-toggle',
+    'applicationlauncher': 'application-launcher',
+    'applicationlaunchermenu': 'application-launcher-menu',
+    'applicationlauncheritem': 'application-launcher-item',
+    'contextselector': 'context-selector',
+    'contextselectormenu': 'context-selector-menu',
+    'contextselectoritem': 'context-selector-item',
+    'select': 'select',
+    'selectoption': 'select-option',
+    'selectoptiongroup': 'select-option-group',
+    'selecttoggle': 'select-toggle',
     // Accordion components - more descriptive roles
     'accordion': 'accordion',
     'accordionitem': 'accordion-section',      // A section/item within an accordion
@@ -314,6 +334,91 @@ function inferPurpose(componentName, props) {
   // Masthead - top navigation bar
   if (name.includes('masthead')) {
     return 'navigation';
+  }
+  
+  // Menu components - various menu types
+  if (name.includes('menu') || name.includes('dropdown') || name.includes('select')) {
+    // Application Launcher - switch between applications
+    if (name.includes('applicationlauncher')) {
+      if (name.includes('applicationlauncheritem')) {
+        return 'application-selection';
+      }
+      return 'application-switching';
+    }
+    
+    // Context Selector - select context/workspace
+    if (name.includes('contextselector')) {
+      if (name.includes('contextselectoritem')) {
+        return 'context-selection';
+      }
+      return 'context-selection';
+    }
+    
+    // Options Menu - provides optional settings/actions
+    if (name.includes('optionsmenu')) {
+      if (name.includes('optionsmenutoggle')) {
+        return 'toggle-trigger';
+      }
+      return 'settings';
+    }
+    
+    // Select component - choose from options
+    if (name.includes('select') && !name.includes('duallistselector')) {
+      if (name.includes('selectoption')) {
+        return 'option-selection';
+      }
+      if (name.includes('selecttoggle')) {
+        return 'toggle-trigger';
+      }
+      return 'option-selection';
+    }
+    
+    // Dropdown - dropdown menu
+    if (name.includes('dropdown')) {
+      if (name.includes('dropdownitem')) {
+        return 'menu-action';
+      }
+      return 'menu';
+    }
+    
+    // Menu Toggle - opens/closes menu
+    if (name.includes('menutoggle')) {
+      return 'toggle-trigger';
+    }
+    
+    // Menu Item - individual menu item
+    if (name.includes('menuitem')) {
+      // Check if it's a navigation item (has href or onClick that navigates)
+      if (propsMap.has('href') || propsMap.has('to')) {
+        return 'navigation';
+      }
+      // Check if it's an action item (has onClick)
+      if (propsMap.has('onClick')) {
+        return 'action';
+      }
+      // Default to menu action
+      return 'menu-action';
+    }
+    
+    // Menu Search - search within menu
+    if (name.includes('menusearch')) {
+      return 'search';
+    }
+    
+    // Menu Group - groups menu items
+    if (name.includes('menugroup')) {
+      return 'grouping';
+    }
+    
+    // Menu List - container for menu items
+    if (name.includes('menulist')) {
+      return 'menu-container';
+    }
+    
+    // Generic Menu - container for menu items
+    if (name.includes('menu')) {
+      return 'menu';
+    }
   }
   
   // Brand component - logo/branding
@@ -718,6 +823,188 @@ function inferVariant(componentName, props) {
     }
     // Default to basic
     return 'basic';
+  }
+  
+  // Menu component variants - comprehensive variant detection
+  if (name.includes('menu') || name.includes('dropdown') || name.includes('select')) {
+    const variants = [];
+    
+    // Application Launcher variants
+    if (name.includes('applicationlauncher')) {
+      // Check for grid/list layout
+      if (propsMap.has('isGrid')) {
+        variants.push('grid');
+      } else {
+        variants.push('list');
+      }
+      // Check for favorites
+      if (propsMap.has('favorites') || propsMap.has('hasFavorites')) {
+        variants.push('with-favorites');
+      }
+      return variants.length > 0 ? variants.join('-') : 'list';
+    }
+    
+    // Context Selector variants
+    if (name.includes('contextselector')) {
+      // Check for search
+      if (propsMap.has('searchInputValue') || propsMap.has('hasSearch')) {
+        variants.push('with-search');
+      }
+      // Check for toggle text
+      if (propsMap.has('toggleText') || propsMap.has('hasToggleText')) {
+        variants.push('with-toggle-text');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // Options Menu variants
+    if (name.includes('optionsmenu')) {
+      // Check for plain variant (no toggle button styling)
+      if (propsMap.has('isPlain') || propsMap.has('plain')) {
+        variants.push('plain');
+      }
+      // Check for kebab toggle (default for options menu)
+      if (propsMap.has('toggle') || propsMap.has('toggleId')) {
+        // Check if toggle is kebab icon
+        const toggleType = propsMap.get('toggleType') || 'kebab';
+        if (toggleType === 'kebab' || !propsMap.has('toggleType')) {
+          variants.push('with-kebab-toggle');
+        }
+      } else {
+        variants.push('with-kebab-toggle'); // Default for options menu
+      }
+      return variants.length > 0 ? variants.join('-') : 'with-kebab-toggle';
+    }
+    
+    // Select component variants
+    if (name.includes('select') && !name.includes('duallistselector')) {
+      // Check for single/multi select
+      if (propsMap.has('variant')) {
+        const variantValue = propsMap.get('variant');
+        if (typeof variantValue === 'string') {
+          const val = variantValue.toLowerCase();
+          if (['single', 'checkbox', 'typeahead', 'typeaheadmulti'].includes(val)) {
+            variants.push(val);
+          }
+        }
+      } else {
+        variants.push('single'); // Default
+      }
+      
+      // Check for typeahead
+      if (propsMap.has('typeAheadAriaLabel') || propsMap.has('hasTypeahead')) {
+        if (!variants.includes('typeahead')) {
+          variants.push('typeahead');
+        }
+      }
+      
+      // Check for checkbox (multi-select)
+      if (propsMap.has('isCheckboxSelection') || propsMap.has('hasCheckbox')) {
+        if (!variants.includes('checkbox')) {
+          variants.push('checkbox');
+        }
+      }
+      
+      return variants.length > 0 ? variants.join('-') : 'single';
+    }
+    
+    // Dropdown variants
+    if (name.includes('dropdown') && !name.includes('dropdownitem')) {
+      // Check for kebab toggle
+      if (propsMap.has('toggle') || propsMap.has('toggleId')) {
+        const toggleType = propsMap.get('toggleType') || propsMap.get('toggle');
+        if (typeof toggleType === 'string' && toggleType.toLowerCase().includes('kebab')) {
+          variants.push('with-kebab-toggle');
+        }
+      }
+      // Check for split button
+      if (propsMap.has('isSplitButton') || propsMap.has('splitButton')) {
+        variants.push('split-button');
+      }
+      // Check for plain variant
+      if (propsMap.has('isPlain') || propsMap.has('plain')) {
+        variants.push('plain');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // Menu variants
+    if (name.includes('menu') && !name.includes('menuitem') && !name.includes('menulist') && 
+        !name.includes('menugroup') && !name.includes('menusearch') && !name.includes('menutoggle') &&
+        !name.includes('optionsmenu') && !name.includes('applicationlauncher') && !name.includes('contextselector')) {
+      // Check for plain variant
+      if (propsMap.has('isPlain') || propsMap.has('plain')) {
+        variants.push('plain');
+      }
+      // Check for scrollable
+      if (propsMap.has('isScrollable') || propsMap.has('scrollable')) {
+        variants.push('scrollable');
+      }
+      // Check for with search
+      if (propsMap.has('hasSearch') || propsMap.has('searchInputValue')) {
+        variants.push('with-search');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // Menu Item variants
+    if (name.includes('menuitem') || name.includes('dropdownitem') || 
+        name.includes('selectoption') || name.includes('applicationlauncheritem') ||
+        name.includes('contextselectoritem')) {
+      // Check for checkbox variant
+      if (propsMap.has('isCheckbox') || propsMap.has('hasCheckbox')) {
+        variants.push('checkbox');
+      }
+      // Check for radio variant
+      if (propsMap.has('isRadio') || propsMap.has('hasRadio')) {
+        variants.push('radio');
+      }
+      // Check for icon variant
+      if (propsMap.has('icon') || propsMap.has('iconComponent')) {
+        variants.push('with-icon');
+      }
+      // Check for description
+      if (propsMap.has('description') || propsMap.has('hasDescription')) {
+        variants.push('with-description');
+      }
+      // Check for action (has onClick)
+      if (propsMap.has('onClick')) {
+        variants.push('action');
+      }
+      // Check for navigation (has href or to)
+      if (propsMap.has('href') || propsMap.has('to')) {
+        variants.push('navigation');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // Menu Toggle variants
+    if (name.includes('menutoggle') || name.includes('selecttoggle') || name.includes('optionsmenutoggle')) {
+      // Check for kebab variant
+      if (propsMap.has('variant')) {
+        const variantValue = propsMap.get('variant');
+        if (typeof variantValue === 'string') {
+          const val = variantValue.toLowerCase();
+          if (['kebab', 'plain', 'primary', 'secondary'].includes(val)) {
+            variants.push(val);
+          }
+        }
+      }
+      // Check for icon variant
+      if (propsMap.has('icon') || propsMap.has('iconComponent')) {
+        variants.push('with-icon');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
+    
+    // Menu Group variants
+    if (name.includes('menugroup') || name.includes('selectoptiongroup')) {
+      // Check for label
+      if (propsMap.has('label') || propsMap.has('groupLabel')) {
+        variants.push('with-label');
+      }
+      return variants.length > 0 ? variants.join('-') : 'basic';
+    }
   }
   
   // JumpLinks variants - vertical (default), horizontal-links, expandable
@@ -1504,6 +1791,46 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'page';
   }
   
+  // Menu components context
+  if (name.includes('menu') || name.includes('dropdown') || name.includes('select')) {
+    // Application Launcher - typically in masthead
+    if (name.includes('applicationlauncher')) {
+      return 'masthead';
+    }
+    
+    // Context Selector - typically in masthead or page header
+    if (name.includes('contextselector')) {
+      return 'masthead';
+    }
+    
+    // Options Menu - can be in table rows, cards, toolbars, or page
+    if (name.includes('optionsmenu')) {
+      // Check parent context (will be handled by parentContext parameter)
+      return 'page';
+    }
+    
+    // Select - can be in forms, filters, or page
+    if (name.includes('select') && !name.includes('duallistselector')) {
+      // Check parent context (will be handled by parentContext parameter)
+      if (parentContext === 'form') {
+        return 'form';
+      }
+      return 'page';
+    }
+    
+    // Dropdown - can be in various contexts
+    if (name.includes('dropdown')) {
+      // Check parent context (will be handled by parentContext parameter)
+      return parentContext || 'page';
+    }
+    
+    // Generic Menu - can be in various contexts
+    if (name.includes('menu')) {
+      // Check parent context (will be handled by parentContext parameter)
+      return parentContext || 'page';
+    }
+  }
+  
   // Label context - can be in table, card, filter, or page
   if (name.includes('label') && !name.includes('descriptionlistterm')) {
     // LabelGroup context
@@ -1647,6 +1974,50 @@ function inferState(componentName, props) {
     }
     // Default state (no file uploaded yet) - no state
     return null;
+  }
+  
+  // Menu component states - check before generic state checks
+  if (name.includes('menu') || name.includes('dropdown') || name.includes('select')) {
+    // Menu/Dropdown/Select open/closed state (check first as it's most specific)
+    if (name.includes('menutoggle') || name.includes('selecttoggle') || name.includes('optionsmenutoggle') ||
+        name.includes('dropdown') || name.includes('select') || name.includes('optionsmenu') ||
+        name.includes('applicationlauncher') || name.includes('contextselector')) {
+      if (propsMap.has('isOpen') || propsMap.has('open') || propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : 
+                         propsMap.has('open') ? propsMap.get('open') :
+                         propsMap.has('isExpanded') ? propsMap.get('isExpanded') : propsMap.get('expanded');
+        if (openValue === false) {
+          return 'closed';
+        }
+        return 'open';
+      }
+      // If no open prop, check if it's explicitly closed
+      if (propsMap.has('isClosed') || propsMap.has('closed')) {
+        return 'closed';
+      }
+    }
+    
+    // Menu Item states - selected, checked, disabled
+    if (name.includes('menuitem') || name.includes('dropdownitem') || 
+        name.includes('selectoption') || name.includes('applicationlauncheritem') ||
+        name.includes('contextselectoritem')) {
+      // Check for selected state (for single-select menus)
+      if (propsMap.has('isSelected') || propsMap.has('selected')) {
+        return 'selected';
+      }
+      // Check for checked state (for checkbox/radio menu items)
+      if (propsMap.has('isChecked') || propsMap.has('checked')) {
+        return 'checked';
+      }
+      // Check for disabled state
+      if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
+        return 'disabled';
+      }
+      // Check for favorite state (Application Launcher items)
+      if (propsMap.has('isFavorite') || propsMap.has('favorite')) {
+        return 'favorite';
+      }
+    }
   }
   
   if (propsMap.has('isReadOnly') || propsMap.has('readOnly')) {
@@ -2053,9 +2424,33 @@ function inferActionType(componentName, props) {
     return 'destructive';
   }
   
+  // Menu items with destructive actions (delete, remove, etc.)
+  if (name.includes('menuitem') || name.includes('dropdownitem') || 
+      name.includes('selectoption') || name.includes('applicationlauncheritem') ||
+      name.includes('contextselectoritem')) {
+    // Check for danger variant
+    if (propsMap.has('variant') && propsMap.get('variant') === 'danger') {
+      return 'destructive';
+    }
+    // Check for danger styling
+    if (propsMap.has('isDanger') || propsMap.has('danger')) {
+      return 'destructive';
+    }
+    // Check for destructive text in children (would need children analysis, but we can check className or id)
+    // For now, rely on variant and danger props
+  }
+  
   // Check for navigation (links with href)
   if (propsMap.has('href')) {
     return 'navigation';
+  }
+  
+  // Menu items with href are navigation
+  if (name.includes('menuitem') || name.includes('dropdownitem') || 
+      name.includes('applicationlauncheritem') || name.includes('contextselectoritem')) {
+    if (propsMap.has('href') || propsMap.has('to')) {
+      return 'navigation';
+    }
   }
   
   // Alert action types - alerts with actionLinks are actionable (not navigation)

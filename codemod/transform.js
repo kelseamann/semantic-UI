@@ -1033,6 +1033,10 @@ module.exports = function transformer(fileInfo, api) {
       // HelperText is a structural child of form inputs - its state is reflected in the input's variant/state
       'mastheadbrand',
       // MastheadBrand is a structural wrapper for Brand component - skipped
+      'menulist', 'menugroup', 'menusearch', 'menusearchinput',
+      // Menu structural children - MenuList, MenuGroup, MenuSearch, MenuSearchInput are structural
+      'selectoptiongroup',
+      // SelectOptionGroup is a structural wrapper for grouping select options
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
