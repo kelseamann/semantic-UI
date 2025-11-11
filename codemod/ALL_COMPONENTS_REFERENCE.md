@@ -553,7 +553,7 @@ Each component lists all 7 attributes with their possible values as arrays:
 
 ### ToggleGroup / ToggleItem
 - **data-role**: `["toggle-group", "toggle-item"]`
-- **data-purpose**: `["selection"]`
+- **data-purpose**: `["selection", "filtering"]` (filtering if in toolbar context or has filter props, otherwise selection)
 - **data-variant**: `["single-select", "multi-select"]` (ToggleGroup)
 - **data-context**: `["toolbar", "page", "form"]` (inherits from parent or defaults to "page")
 - **data-state**: `["selected", "unselected", "disabled"]` (ToggleItem)

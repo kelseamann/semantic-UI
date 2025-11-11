@@ -718,9 +718,9 @@ function analyzeDualListSelectorChildren(j, path) {
  */
 function createSemanticAttributes(j, componentName, props, parentContext, path = null) {
   const role = inferRole(componentName);
-  const purpose = inferPurpose(componentName, props);
   
   // Extract parent context and purpose if parentContext is an object (Form case)
+  // Also used for purpose inference (ToggleGroup uses toolbar context for filtering)
   let parentContextValue = null;
   let parentPurpose = null;
   if (typeof parentContext === 'object' && parentContext !== null) {
@@ -729,6 +729,8 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   } else {
     parentContextValue = parentContext;
   }
+  
+  const purpose = inferPurpose(componentName, props, parentContextValue);
   
   // For ActionList, analyze children to infer grouping variant
   // For Breadcrumb, analyze children to detect dropdown/heading variants

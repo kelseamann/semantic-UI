@@ -289,8 +289,9 @@ function inferRole(componentName) {
 
 /**
  * Infer purpose from component name and props (static analysis)
+ * parentContext can be passed to help determine purpose (e.g., ToggleGroup in toolbar = filtering)
  */
-function inferPurpose(componentName, props) {
+function inferPurpose(componentName, props, parentContext = null) {
   const name = componentName.toLowerCase();
   const propsMap = propsToMap(props);
   
@@ -528,11 +529,28 @@ function inferPurpose(componentName, props) {
     return 'header'; // Title/heading text
   }
   
-  // ToggleGroup - toggle selection groups
+  // ToggleGroup - toggle selection groups (can be for selection or filtering)
   if (name.includes('togglegroup')) {
     if (name.includes('toggleitem')) {
-      return 'selection'; // Individual toggle item for selection
+      // ToggleItem purpose depends on parent ToggleGroup's purpose
+      // If parent ToggleGroup is filtering, this item is also filtering
+      // Otherwise, it's selection
+      if (parentContext === 'toolbar') {
+        return 'filtering'; // Toggle item in toolbar context is likely for filtering
+      }
+      return 'selection'; // Individual toggle item for selection/filtering
     }
+    // ToggleGroup can be used for filtering (in toolbars) or selection (standalone)
+    // Check if it's likely being used for filtering based on context or props
+    // If in toolbar context, it's commonly used for filtering
+    if (parentContext === 'toolbar') {
+      return 'filtering'; // Toggle group in toolbar is typically for filtering
+    }
+    // Check for filter-related props
+    if (propsMap.has('isFilter') || propsMap.has('filter') || propsMap.has('onFilter')) {
+      return 'filtering'; // Toggle group used for filtering
+    }
+    // Default to selection for standalone use cases (view switching, mode selection, etc.)
     return 'selection'; // Toggle group for selecting options
   }
   
