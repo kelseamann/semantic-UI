@@ -959,7 +959,9 @@ function createSemanticAttributes(j, componentName, props, parentContext, path =
   }
   
   if (context !== null) {
-    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-context'), j.literal(context)));
+    // Render "in-page" instead of "page" for better clarity in HTML
+    const contextValue = context === 'page' ? 'in-page' : context;
+    attributes.push(j.jsxAttribute(j.jsxIdentifier('data-context'), j.literal(contextValue)));
   }
   
   if (state !== null) {

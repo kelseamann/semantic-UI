@@ -228,6 +228,8 @@ function inferRole(componentName) {
     'notificationdrawergrouptoggle': 'notification-group-toggle', // Toggle for notification group
     'notificationdrawerlist': 'notification-list',             // List of notifications
     'notificationdrawerlistitem': 'notification-item',         // Individual notification item
+    // SkipToContent component - accessibility link to skip to main content
+    'skiptocontent': 'skip-link',                              // Skip to content accessibility link
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -457,6 +459,11 @@ function inferPurpose(componentName, props) {
     }
     // Main SimpleList component
     return 'display'; // Display container for simple list items
+  }
+  
+  // SkipToContent - accessibility link to skip to main content
+  if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
+    return 'navigation'; // Navigation link for accessibility (skips to main content)
   }
   
   // Navigation components - hierarchical navigation structure
@@ -854,6 +861,11 @@ function inferPurpose(componentName, props) {
     }
     // Main SimpleList component
     return 'list'; // Simple list container
+  }
+  
+  // SkipToContent - accessibility link to skip to main content
+  if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
+    return 'skip-link'; // Skip to content accessibility link
   }
   
   // Notification components - check before Alert
@@ -2606,6 +2618,11 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'side-by-side';
   }
   
+  // SkipToContent variants - simple component, no variants (always basic)
+  if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
+    return 'basic'; // Skip to content is always basic (no variants)
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2703,6 +2720,11 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   // JumpLinks context - in-page navigation (scrolling to sections within the same page)
   if (name.includes('jumplink')) {
     return 'page'; // In-page navigation, always at page level
+  }
+  
+  // SkipToContent context - always at page level (first focusable element)
+  if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
+    return 'page'; // Skip to content is always at page level (first focusable element)
   }
   
   // Menu components context
@@ -3699,6 +3721,11 @@ function inferState(componentName, props) {
 function inferActionType(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
+  
+  // SkipToContent - navigation link
+  if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
+    return 'navigation'; // It's a link that navigates to main content
+  }
   
   // Progress components - determinate (measurable progress) vs indeterminate (unknown progress)
   if (name.includes('progress')) {
