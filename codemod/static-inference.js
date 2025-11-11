@@ -182,6 +182,15 @@ function inferRole(componentName) {
     'navgroup': 'navigation-group',               // Grouped navigation items with title
     'navexpandable': 'navigation-expandable',     // Expandable navigation item with children
     'navsection': 'navigation-section',            // Section of navigation
+    // Notification components
+    'notificationbadge': 'notification-badge',    // Badge in masthead that toggles notification drawer
+    'notificationdrawer': 'notification-drawer',  // Drawer that displays notification history
+    'notificationdrawerheader': 'notification-drawer-header', // Header of notification drawer
+    'notificationdrawerbody': 'notification-drawer-body',     // Body of notification drawer
+    'notificationdrawergroup': 'notification-group',           // Group of notifications (for grouped drawer)
+    'notificationdrawergrouptoggle': 'notification-group-toggle', // Toggle for notification group
+    'notificationdrawerlist': 'notification-list',             // List of notifications
+    'notificationdrawerlistitem': 'notification-item',         // Individual notification item
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -591,6 +600,35 @@ function inferPurpose(componentName, props) {
   // ActionList - container for grouping action buttons with proper spacing
   if (name.includes('actionlist')) {
     return 'action-group';
+  }
+  
+  // Notification components - check before Alert
+  if (name.includes('notification')) {
+    if (name.includes('notificationbadge')) {
+      return 'notification-trigger'; // Badge that toggles notification drawer
+    }
+    if (name.includes('notificationdrawergroup')) {
+      return 'grouping'; // Group of notifications
+    }
+    if (name.includes('notificationdrawergrouptoggle')) {
+      return 'toggle-trigger'; // Toggle for notification group
+    }
+    if (name.includes('notificationdrawerlistitem')) {
+      return 'notification'; // Individual notification
+    }
+    if (name.includes('notificationdrawerlist')) {
+      return 'notification-container'; // Container for notifications
+    }
+    if (name.includes('notificationdrawerbody')) {
+      return 'content'; // Body content of drawer
+    }
+    if (name.includes('notificationdrawerheader')) {
+      return 'header'; // Header of drawer
+    }
+    // Main NotificationDrawer component
+    if (name.includes('notificationdrawer')) {
+      return 'notification-history'; // History of notifications
+    }
   }
   
   // Alert - communicates information/feedback to users
@@ -1733,8 +1771,40 @@ function inferVariant(componentName, props) {
     return null;
   }
   
+  // NotificationBadge variants - unread, attention, with-count
+  if (name.includes('notificationbadge')) {
+    const variants = [];
+    // Check for unread state (blue background)
+    if (propsMap.has('isUnread') || propsMap.has('unread') || propsMap.has('unreadCount')) {
+      variants.push('unread');
+    }
+    // Check for attention state (red background)
+    if (propsMap.has('isAttention') || propsMap.has('attention') || propsMap.has('attentionCount')) {
+      variants.push('attention');
+    }
+    // Check for count display
+    if (propsMap.has('count') || propsMap.has('notificationCount') || propsMap.has('badgeCount')) {
+      variants.push('with-count');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // NotificationDrawer variants - basic, grouped
+  if (name.includes('notificationdrawer') && !name.includes('notificationdrawerheader') &&
+      !name.includes('notificationdrawerbody') && !name.includes('notificationdrawergroup') &&
+      !name.includes('notificationdrawergrouptoggle') && !name.includes('notificationdrawerlist') &&
+      !name.includes('notificationdrawerlistitem')) {
+    // Check for grouped variant (has groups/categories)
+    if (propsMap.has('isGrouped') || propsMap.has('grouped') || propsMap.has('hasGroups')) {
+      return 'grouped';
+    }
+    // Default to basic
+    return 'basic';
+  }
+  
   // Drawer variants - overlay (default) or inline
-  if (name.includes('drawer')) {
+  // Note: NotificationDrawer is handled above, this is for generic Drawer
+  if (name.includes('drawer') && !name.includes('notificationdrawer')) {
     if (propsMap.has('isInline') || propsMap.has('inline')) {
       return 'inline';
     }
@@ -1985,6 +2055,16 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return 'page';
   }
   
+  // NotificationBadge context - always in masthead
+  if (name.includes('notificationbadge')) {
+    return 'masthead';
+  }
+  
+  // NotificationDrawer context - overlay (drawer that slides out)
+  if (name.includes('notificationdrawer')) {
+    return 'overlay';
+  }
+  
   // Navigation context - can be in drawer/flyout OR page sidebar (between-page navigation)
   // Note: JumpLinks are in-page navigation (scrolling to sections), while Nav is between-page navigation
   // Nav can appear in:
@@ -2211,6 +2291,75 @@ function inferState(componentName, props) {
     // If no open prop, check if it's explicitly closed
     if (propsMap.has('isClosed') || propsMap.has('closed')) {
       return 'closed';
+    }
+  }
+  
+  // Notification component states - check before generic state checks
+  if (name.includes('notification')) {
+    // NotificationBadge states - unread, attention
+    if (name.includes('notificationbadge')) {
+      // Check for unread state (blue background)
+      if (propsMap.has('isUnread') || propsMap.has('unread') || propsMap.has('unreadCount')) {
+        return 'unread';
+      }
+      // Check for attention state (red background)
+      if (propsMap.has('isAttention') || propsMap.has('attention') || propsMap.has('attentionCount')) {
+        return 'attention';
+      }
+    }
+    
+    // NotificationDrawer states - open/closed
+    if (name.includes('notificationdrawer') && !name.includes('notificationdrawerheader') &&
+        !name.includes('notificationdrawerbody') && !name.includes('notificationdrawergroup') &&
+        !name.includes('notificationdrawergrouptoggle') && !name.includes('notificationdrawerlist') &&
+        !name.includes('notificationdrawerlistitem')) {
+      // Drawer open/closed state
+      if (propsMap.has('isOpen') || propsMap.has('open') || propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : 
+                         propsMap.has('open') ? propsMap.get('open') :
+                         propsMap.has('isExpanded') ? propsMap.get('isExpanded') : propsMap.get('expanded');
+        if (openValue === false) {
+          return 'closed';
+        }
+        return 'open';
+      }
+      // If no open prop, check if it's explicitly closed
+      if (propsMap.has('isClosed') || propsMap.has('closed')) {
+        return 'closed';
+      }
+    }
+    
+    // NotificationDrawerGroup states - expanded/collapsed
+    if (name.includes('notificationdrawergroup')) {
+      if (propsMap.has('isExpanded') || propsMap.has('expanded')) {
+        const expandedValue = propsMap.has('isExpanded') 
+          ? propsMap.get('isExpanded') 
+          : propsMap.get('expanded');
+        if (expandedValue === false) {
+          return 'collapsed';
+        }
+        return 'expanded';
+      }
+      // Default to collapsed if expandable but no explicit state
+      return 'collapsed';
+    }
+    
+    // NotificationDrawerListItem states - read/unread
+    if (name.includes('notificationdrawerlistitem')) {
+      // Check for read state
+      if (propsMap.has('isRead') || propsMap.has('read')) {
+        const readValue = propsMap.has('isRead') ? propsMap.get('isRead') : propsMap.get('read');
+        if (readValue === false) {
+          return 'unread';
+        }
+        return 'read';
+      }
+      // Check for unread state
+      if (propsMap.has('isUnread') || propsMap.has('unread')) {
+        return 'unread';
+      }
+      // Default to unread if no explicit state
+      return 'unread';
     }
   }
   

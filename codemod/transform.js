@@ -1038,6 +1038,8 @@ module.exports = function transformer(fileInfo, api) {
       // Menu structural children - MenuList, MenuGroup, MenuSearch, MenuSearchInput are structural
       'selectoptiongroup',
       // SelectOptionGroup is a structural wrapper for grouping select options
+      'notificationdrawerheader', 'notificationdrawerbody',
+      // NotificationDrawer structural children - NotificationDrawerHeader, NotificationDrawerBody are structural
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
