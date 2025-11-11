@@ -191,6 +191,10 @@ function inferRole(componentName) {
     'spinner': 'spinner',                         // Spinner for indeterminate loading (1-5 seconds)
     // SearchInput component
     'searchinput': 'search-input',                 // Search input for filtering/finding values
+    // Sidebar component - panel and content layout
+    'sidebar': 'sidebar',                         // Sidebar container for panel and content
+    'sidebarcontent': 'sidebar-content',           // Main content area in sidebar layout
+    'sidebarpanel': 'sidebar-panel',               // Panel area in sidebar (often contains navigation)
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -425,6 +429,18 @@ function inferPurpose(componentName, props) {
   // SearchInput - search/filter input
   if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
     return 'search'; // Search/filter input
+  }
+  
+  // Sidebar - panel and content layout
+  if (name.includes('sidebar')) {
+    if (name.includes('sidebarcontent')) {
+      return 'content'; // Main content area
+    }
+    if (name.includes('sidebarpanel')) {
+      return 'navigation'; // Panel area (often contains navigation, jumplinks, tabs)
+    }
+    // Main Sidebar component
+    return 'layout'; // Layout container for panel and content
   }
   
   // Navigation components - hierarchical navigation structure
@@ -798,6 +814,18 @@ function inferPurpose(componentName, props) {
   // SearchInput - search input for filtering/finding values
   if (name.includes('searchinput') || (name.includes('search') && name.includes('input'))) {
     return 'search-input'; // Search input component
+  }
+  
+  // Sidebar - panel and content layout container
+  if (name.includes('sidebar')) {
+    if (name.includes('sidebarcontent')) {
+      return 'sidebar-content'; // Main content area in sidebar layout
+    }
+    if (name.includes('sidebarpanel')) {
+      return 'sidebar-panel'; // Panel area in sidebar (often contains navigation)
+    }
+    // Main Sidebar component
+    return 'sidebar'; // Sidebar container
   }
   
   // Notification components - check before Alert
@@ -2502,6 +2530,34 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
+  // Sidebar variants - stacked, side-by-side, sticky, responsive
+  if (name.includes('sidebar') && !name.includes('sidebarcontent') && !name.includes('sidebarpanel')) {
+    const variants = [];
+    
+    // Check for layout (stacked vs side-by-side)
+    if (propsMap.has('orientation') || propsMap.has('layout')) {
+      const orientation = propsMap.get('orientation') || propsMap.get('layout');
+      if (orientation === 'stacked' || orientation === 'vertical') {
+        variants.push('stacked');
+      } else if (orientation === 'side-by-side' || orientation === 'horizontal') {
+        variants.push('side-by-side');
+      }
+    }
+    // Default to side-by-side if not specified
+    
+    // Check for sticky variant
+    if (propsMap.has('isSticky') || propsMap.has('sticky')) {
+      variants.push('sticky');
+    }
+    
+    // Check for responsive variant (panel on top in mobile, beside in desktop)
+    if (propsMap.has('isResponsive') || propsMap.has('responsive')) {
+      variants.push('responsive');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'side-by-side';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2789,6 +2845,16 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // Context is inherited from parent via findParentContext
     // Common contexts: table (filtering table data), toolbar (search in toolbar), page (page-level search)
     return parentContext || 'page';
+  }
+  
+  // Sidebar context - provides 'sidebar' context to children, but itself is in 'page' context
+  if (name.includes('sidebar')) {
+    if (name.includes('sidebarcontent') || name.includes('sidebarpanel')) {
+      // SidebarContent and SidebarPanel are within Sidebar, so they have 'sidebar' context
+      return 'sidebar';
+    }
+    // Main Sidebar component - typically in page context
+    return 'page';
   }
   
   // Layout components are containers

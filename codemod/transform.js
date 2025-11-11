@@ -71,6 +71,12 @@ function findParentContext(path, imports) {
               return 'page';
             }
             
+            // For Sidebar, return sidebar context so children inherit it
+            if (parentName.toLowerCase().includes('sidebar') && !parentName.toLowerCase().includes('sidebarcontent') && 
+                !parentName.toLowerCase().includes('sidebarpanel')) {
+              return 'sidebar';
+            }
+            
             // For Form, return both context and purpose so children can inherit purpose
             if (purpose === 'form-container') {
               return { context, purpose };
