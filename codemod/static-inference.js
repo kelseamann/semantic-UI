@@ -232,6 +232,9 @@ function inferRole(componentName) {
     'skiptocontent': 'skip-link',                              // Skip to content accessibility link
     // Slider component - range input control
     'slider': 'slider',                                         // Slider for selecting numeric values within a range
+    // Tabs components - navigation for organizing content
+    'tabs': 'tabs',                                             // Tabs container for organizing content
+    'tab': 'tab',                                               // Individual tab item
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -471,6 +474,16 @@ function inferPurpose(componentName, props) {
   // Slider - range input control for selecting numeric values
   if (name.includes('slider')) {
     return 'input'; // Input control for selecting numeric values within a range
+  }
+  
+  // Tabs - navigation for organizing content
+  if (name.includes('tab')) {
+    // Check for Tabs container first (must include "tabs")
+    if (name.includes('tabs')) {
+      return 'navigation'; // Tabs container for organizing content
+    }
+    // Individual tab item (just "tab" without "tabs")
+    return 'navigation'; // Individual tab item for navigating to content sections
   }
   
   // Navigation components - hierarchical navigation structure
@@ -879,6 +892,16 @@ function inferPurpose(componentName, props) {
   // Slider - range input control for selecting numeric values
   if (name.includes('slider')) {
     return 'slider'; // Slider for selecting numeric values within a range
+  }
+  
+  // Tabs - navigation for organizing content
+  if (name.includes('tab')) {
+    // Check for Tabs container first (must include "tabs")
+    if (name.includes('tabs')) {
+      return 'tabs'; // Tabs container
+    }
+    // Individual tab item (just "tab" without "tabs")
+    return 'tab'; // Individual tab item
   }
   
   // Notification components - check before Alert
@@ -2721,6 +2744,52 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'continuous';
   }
   
+  // Tabs variants - horizontal (default), vertical, primary, secondary, filled, with-overflow
+  if (name.includes('tab')) {
+    // Tabs container variants (must include "tabs")
+    if (name.includes('tabs')) {
+      const variants = [];
+      
+      // Check for orientation (horizontal or vertical)
+      if (propsMap.has('orientation') || propsMap.has('variant')) {
+        const orientation = propsMap.get('orientation') || propsMap.get('variant');
+        if (typeof orientation === 'string') {
+          const orient = orientation.toLowerCase();
+          if (orient === 'vertical') {
+            variants.push('vertical');
+          } else {
+            // Default to horizontal
+            variants.push('horizontal');
+          }
+        }
+      } else {
+        // Default to horizontal if not specified
+        variants.push('horizontal');
+      }
+      
+      // Check for primary/secondary (hierarchy)
+      if (propsMap.has('isPrimary') || propsMap.has('primary')) {
+        variants.push('primary');
+      } else if (propsMap.has('isSecondary') || propsMap.has('secondary')) {
+        variants.push('secondary');
+      }
+      
+      // Check for filled variant (stretches to fit container width)
+      if (propsMap.has('isFilled') || propsMap.has('filled')) {
+        variants.push('filled');
+      }
+      
+      // Check for overflow variant (horizontal overflow menu)
+      if (propsMap.has('hasOverflow') || propsMap.has('overflow') || propsMap.has('withOverflow')) {
+        variants.push('with-overflow');
+      }
+      
+      return variants.length > 0 ? variants.join('-') : 'horizontal';
+    }
+    // Tab items don't have variants (they inherit from parent Tabs)
+    return null;
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2831,6 +2900,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // Context is inherited from parent via findParentContext
     // Common contexts: form (form input), page (page-level controls)
     return parentContext || 'form';
+  }
+  
+  // Tabs context - inherits from parent (page, modal, component) or defaults to page
+  if (name.includes('tab')) {
+    // Tabs are used in pages (top page header tabs), modals (secondary tabs), or within components
+    // Context is inherited from parent via findParentContext
+    // Common contexts: page (top page header tabs), modal (secondary tabs in modals), component (tabs within components)
+    return parentContext || 'page';
   }
   
   // Menu components context
@@ -3460,6 +3537,25 @@ function inferState(componentName, props) {
     return 'unchecked';
   }
   
+  // Tabs states - selected (for tab items), disabled
+  if (name.includes('tab') && !name.includes('tabs')) {
+    // Individual tab item states
+    // Check for disabled state first (takes priority)
+    if (propsMap.has('isDisabled') || propsMap.has('disabled') || propsMap.has('isAriaDisabled')) {
+      return 'disabled';
+    }
+    // Check for selected state (active tab)
+    if (propsMap.has('isSelected') || propsMap.has('selected') || propsMap.has('isActive') || propsMap.has('active')) {
+      return 'selected';
+    }
+    // Default to unselected if not selected
+    return 'unselected';
+  }
+  // Tabs container doesn't have states
+  if (name.includes('tabs')) {
+    return null;
+  }
+  
   if (propsMap.has('isChecked') || propsMap.has('checked')) {
     return 'checked';
   }
@@ -3877,6 +3973,11 @@ function inferActionType(componentName, props) {
   // Switch - toggle action (on/off)
   if (name.includes('switch')) {
     return 'toggle'; // Switch is a toggle action (on/off)
+  }
+  
+  // Tabs - navigation action (navigating between content sections)
+  if (name.includes('tab')) {
+    return 'navigation'; // Tabs are for navigating between content sections
   }
   
   // Progress components - determinate (measurable progress) vs indeterminate (unknown progress)
