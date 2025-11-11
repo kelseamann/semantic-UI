@@ -174,6 +174,11 @@ function inferRole(componentName) {
     'pagefooter': 'page-footer',                  // Page footer section
     // Pagination components
     'pagination': 'pagination',                   // Pagination controls for navigating through content
+    // Panel components - building block for other components (dropdown, search, etc.)
+    'panel': 'panel',                            // Content panel with header, body, footer
+    'panelheader': 'panel-header',               // Panel header section
+    'panelbody': 'panel-body',                   // Panel body section
+    'panelfooter': 'panel-footer',               // Panel footer section
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -359,6 +364,21 @@ function inferPurpose(componentName, props) {
   // Pagination - navigation for paging through content (tables, cards, lists)
   if (name.includes('pagination')) {
     return 'navigation'; // Navigation for paging through content
+  }
+  
+  // Panel - building block for grouping content (used in dropdown, search, etc.)
+  if (name.includes('panel')) {
+    if (name.includes('panelheader')) {
+      return 'header'; // Panel header
+    }
+    if (name.includes('panelbody')) {
+      return 'content'; // Panel body (main content)
+    }
+    if (name.includes('panelfooter')) {
+      return 'footer'; // Panel footer
+    }
+    // Main Panel component - container for grouping content
+    return 'container'; // Content container/grouping
   }
   
   // Navigation components - hierarchical navigation structure
@@ -683,6 +703,21 @@ function inferPurpose(componentName, props) {
   // Pagination - navigation controls for paging through content
   if (name.includes('pagination')) {
     return 'pagination'; // Pagination controls
+  }
+  
+  // Panel - building block component with header, body, footer
+  if (name.includes('panel')) {
+    if (name.includes('panelheader')) {
+      return 'panel-header'; // Panel header section
+    }
+    if (name.includes('panelbody')) {
+      return 'panel-body'; // Panel body section
+    }
+    if (name.includes('panelfooter')) {
+      return 'panel-footer'; // Panel footer section
+    }
+    // Main Panel component
+    return 'panel'; // Content panel
   }
   
   // Notification components - check before Alert
@@ -2172,6 +2207,29 @@ function inferVariant(componentName, props) {
     return 'full';
   }
   
+  // Panel variants - basic, with-header, with-footer, with-header-footer, scrollable, raised
+  if (name.includes('panel') && !name.includes('panelheader') && !name.includes('panelbody') && 
+      !name.includes('panelfooter')) {
+    const variants = [];
+    // Check for header
+    if (propsMap.has('hasHeader') || propsMap.has('header')) {
+      variants.push('with-header');
+    }
+    // Check for footer
+    if (propsMap.has('hasFooter') || propsMap.has('footer')) {
+      variants.push('with-footer');
+    }
+    // Check for scrollable variant
+    if (propsMap.has('isScrollable') || propsMap.has('scrollable')) {
+      variants.push('scrollable');
+    }
+    // Check for raised variant (elevated appearance)
+    if (propsMap.has('isRaised') || propsMap.has('raised')) {
+      variants.push('raised');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2397,6 +2455,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   if (name.includes('pagination')) {
     // Pagination can be in page, table, or card group
     // Context is inherited from parent via findParentContext
+    return parentContext || 'page';
+  }
+  
+  // Panel context - inherits from parent (often used in dropdown, search, overlay)
+  if (name.includes('panel')) {
+    // Panel is a building block used in dropdown, advanced search, etc.
+    // Context is inherited from parent via findParentContext
+    // Common contexts: overlay (dropdown), page (standalone), form (search)
     return parentContext || 'page';
   }
   
