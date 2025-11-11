@@ -179,6 +179,9 @@ function inferRole(componentName) {
     'panelheader': 'panel-header',               // Panel header section
     'panelbody': 'panel-body',                   // Panel body section
     'panelfooter': 'panel-footer',               // Panel footer section
+    // Password components
+    'passwordgenerator': 'password-generator',    // Component for generating passwords
+    'passwordstrength': 'password-strength',      // Indicator showing password strength
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -379,6 +382,16 @@ function inferPurpose(componentName, props) {
     }
     // Main Panel component - container for grouping content
     return 'container'; // Content container/grouping
+  }
+  
+  // Password components
+  if (name.includes('password')) {
+    if (name.includes('passwordgenerator')) {
+      return 'password-generation'; // Generates passwords with options
+    }
+    if (name.includes('passwordstrength')) {
+      return 'password-validation'; // Validates and displays password strength
+    }
   }
   
   // Navigation components - hierarchical navigation structure
@@ -718,6 +731,16 @@ function inferPurpose(componentName, props) {
     }
     // Main Panel component
     return 'panel'; // Content panel
+  }
+  
+  // Password components
+  if (name.includes('password')) {
+    if (name.includes('passwordgenerator')) {
+      return 'password-generator'; // Component for generating passwords
+    }
+    if (name.includes('passwordstrength')) {
+      return 'password-strength'; // Indicator showing password strength
+    }
   }
   
   // Notification components - check before Alert
@@ -2230,6 +2253,38 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
+  // PasswordGenerator variants - basic, with-options, with-copy
+  if (name.includes('passwordgenerator')) {
+    const variants = [];
+    // Check for options (length, character types, etc.)
+    if (propsMap.has('hasOptions') || propsMap.has('options') || propsMap.has('length') || 
+        propsMap.has('includeUppercase') || propsMap.has('includeLowercase') || 
+        propsMap.has('includeNumbers') || propsMap.has('includeSymbols')) {
+      variants.push('with-options');
+    }
+    // Check for copy functionality
+    if (propsMap.has('hasCopy') || propsMap.has('onCopy') || propsMap.has('copyButton')) {
+      variants.push('with-copy');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // PasswordStrength variants - basic, with-requirements, with-toggle
+  if (name.includes('passwordstrength')) {
+    const variants = [];
+    // Check for requirements display
+    if (propsMap.has('hasRequirements') || propsMap.has('requirements') || 
+        propsMap.has('showRequirements') || propsMap.has('helperText')) {
+      variants.push('with-requirements');
+    }
+    // Check for password toggle (show/hide)
+    if (propsMap.has('hasToggle') || propsMap.has('toggle') || 
+        propsMap.has('showPasswordToggle') || propsMap.has('onTogglePassword')) {
+      variants.push('with-toggle');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2466,6 +2521,19 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     return parentContext || 'page';
   }
   
+  // Password components context - typically in forms, especially authentication
+  if (name.includes('password')) {
+    if (name.includes('passwordgenerator') || name.includes('passwordstrength')) {
+      // PasswordGenerator and PasswordStrength are typically used in forms
+      // Check if parent is LoginForm or authentication context
+      if (parentContext === 'authentication' || parentContext === 'form') {
+        return parentContext;
+      }
+      // Default to form context (most common use case)
+      return 'form';
+    }
+  }
+  
   // Layout components are containers
   if (name.includes('flex') || name.includes('grid') || name.includes('stack') || name.includes('card')) {
     return 'container';
@@ -2656,6 +2724,45 @@ function inferState(componentName, props) {
     // If no open prop, check if it's explicitly closed
     if (propsMap.has('isClosed') || propsMap.has('closed')) {
       return 'closed';
+    }
+  }
+  
+  // PasswordStrength states - weak, fair, good, strong
+  if (name.includes('passwordstrength')) {
+    // Check for strength level
+    if (propsMap.has('strength') || propsMap.has('strengthLevel')) {
+      const strength = propsMap.get('strength') || propsMap.get('strengthLevel');
+      if (typeof strength === 'string') {
+        const strengthLower = strength.toLowerCase();
+        if (['weak', 'fair', 'good', 'strong'].includes(strengthLower)) {
+          return strengthLower;
+        }
+      }
+    }
+    // Check for boolean strength indicators
+    if (propsMap.has('isWeak') || propsMap.has('weak')) {
+      return 'weak';
+    }
+    if (propsMap.has('isStrong') || propsMap.has('strong')) {
+      return 'strong';
+    }
+    if (propsMap.has('isGood') || propsMap.has('good')) {
+      return 'good';
+    }
+    if (propsMap.has('isFair') || propsMap.has('fair')) {
+      return 'fair';
+    }
+  }
+  
+  // PasswordGenerator states - generating, ready
+  if (name.includes('passwordgenerator')) {
+    // Check if currently generating
+    if (propsMap.has('isGenerating') || propsMap.has('generating')) {
+      return 'generating';
+    }
+    // Check if ready (password generated)
+    if (propsMap.has('isReady') || propsMap.has('ready') || propsMap.has('password')) {
+      return 'ready';
     }
   }
   
