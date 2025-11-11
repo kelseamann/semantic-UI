@@ -230,6 +230,8 @@ function inferRole(componentName) {
     'notificationdrawerlistitem': 'notification-item',         // Individual notification item
     // SkipToContent component - accessibility link to skip to main content
     'skiptocontent': 'skip-link',                              // Skip to content accessibility link
+    // Slider component - range input control
+    'slider': 'slider',                                         // Slider for selecting numeric values within a range
   };
   
   // Droppable and Draggable don't get roles - they're structural children, role handled by parent
@@ -464,6 +466,11 @@ function inferPurpose(componentName, props) {
   // SkipToContent - accessibility link to skip to main content
   if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
     return 'navigation'; // Navigation link for accessibility (skips to main content)
+  }
+  
+  // Slider - range input control for selecting numeric values
+  if (name.includes('slider')) {
+    return 'input'; // Input control for selecting numeric values within a range
   }
   
   // Navigation components - hierarchical navigation structure
@@ -866,6 +873,11 @@ function inferPurpose(componentName, props) {
   // SkipToContent - accessibility link to skip to main content
   if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
     return 'skip-link'; // Skip to content accessibility link
+  }
+  
+  // Slider - range input control for selecting numeric values
+  if (name.includes('slider')) {
+    return 'slider'; // Slider for selecting numeric values within a range
   }
   
   // Notification components - check before Alert
@@ -2623,6 +2635,54 @@ function inferVariant(componentName, props) {
     return 'basic'; // Skip to content is always basic (no variants)
   }
   
+  // Slider variants - continuous, discrete, with-input, with-thumb-value, with-buttons, with-lock
+  if (name.includes('slider')) {
+    const variants = [];
+    
+    // Check for discrete variant (has tick marks, predefined values)
+    if (propsMap.has('isDiscrete') || propsMap.has('discrete') || propsMap.has('step') && propsMap.get('step') > 0) {
+      variants.push('discrete');
+    } else {
+      // Default to continuous if not discrete
+      variants.push('continuous');
+    }
+    
+    // Check for input group variants (detected via children analysis or props)
+    if (propsMap.has('hasInput') || propsMap.has('input') || propsMap.has('withInput')) {
+      // Check if input is on thumb (thumb value) or on right (default value input)
+      if (propsMap.has('thumbValue') || propsMap.has('valueOnThumb')) {
+        variants.push('with-thumb-value');
+      } else {
+        variants.push('with-input');
+      }
+    }
+    
+    // Check for buttons variant (increase/decrease buttons)
+    if (propsMap.has('hasButtons') || propsMap.has('buttons') || propsMap.has('withButtons')) {
+      variants.push('with-buttons');
+    }
+    
+    // Check for lock feature
+    if (propsMap.has('hasLock') || propsMap.has('lock') || propsMap.has('withLock') || propsMap.has('isLockable')) {
+      variants.push('with-lock');
+    }
+    
+    // Check for tick marks (for discrete sliders)
+    if (propsMap.has('hasTickMarks') || propsMap.has('tickMarks') || propsMap.has('showTickMarks')) {
+      // Tick marks are part of discrete variant, but we can note it
+      if (!variants.includes('discrete')) {
+        variants.push('with-tick-marks');
+      }
+    }
+    
+    // Check for helper text
+    if (propsMap.has('helperText') || propsMap.has('hasHelperText')) {
+      variants.push('with-helper-text');
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'continuous';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2725,6 +2785,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
   // SkipToContent context - always at page level (first focusable element)
   if (name.includes('skiptocontent') || (name.includes('skip') && name.includes('content'))) {
     return 'page'; // Skip to content is always at page level (first focusable element)
+  }
+  
+  // Slider context - inherits from parent (form, page) or defaults to form
+  if (name.includes('slider')) {
+    // Slider is typically used in forms for value selection, but can also be in page-level controls
+    // Context is inherited from parent via findParentContext
+    // Common contexts: form (form input), page (page-level controls)
+    return parentContext || 'form';
   }
   
   // Menu components context
@@ -3644,6 +3712,29 @@ function inferState(componentName, props) {
       return 'editing';
     }
     return null;
+  }
+  
+  // Slider states - disabled, locked, error, warning
+  if (name.includes('slider')) {
+    // Check for locked state (lock feature enabled and locked)
+    if (propsMap.has('isLocked') || propsMap.has('locked')) {
+      return 'locked';
+    }
+    // Check for disabled state
+    if (propsMap.has('isDisabled') || propsMap.has('disabled')) {
+      return 'disabled';
+    }
+    // Check for error state (validation error)
+    if (propsMap.has('isInvalid') || propsMap.has('invalid') || 
+        propsMap.has('validated') && propsMap.get('validated') === 'error') {
+      return 'error';
+    }
+    // Check for warning state
+    if (propsMap.has('validated') && propsMap.get('validated') === 'warning') {
+      return 'warning';
+    }
+    // Default state (active/editable)
+    return 'active';
   }
   
   // SimpleList states - selected (for items)
