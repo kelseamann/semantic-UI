@@ -182,6 +182,13 @@ function inferRole(componentName) {
     // Password components
     'passwordgenerator': 'password-generator',    // Component for generating passwords
     'passwordstrength': 'password-strength',      // Indicator showing password strength
+    // Popover component - contextual overlay for additional information
+    'popover': 'popover',                         // Popover overlay for additional information
+    // Progress components
+    'progress': 'progress',                       // Progress bar for task/process completion
+    'progressstepper': 'progress-stepper',        // Progress stepper for step-by-step processes
+    // Spinner component - indeterminate loading indicator
+    'spinner': 'spinner',                         // Spinner for indeterminate loading (1-5 seconds)
     // Label components
     'label': 'label',                             // Label/tag component
     'labelgroup': 'label-group',                  // Container for multiple labels
@@ -392,6 +399,25 @@ function inferPurpose(componentName, props) {
     if (name.includes('passwordstrength')) {
       return 'password-validation'; // Validates and displays password strength
     }
+  }
+  
+  // Popover - contextual overlay for additional information/guidance
+  if (name.includes('popover')) {
+    return 'guidance'; // Provides additional information/guidance (proactive)
+  }
+  
+  // Progress components
+  if (name.includes('progress')) {
+    if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+      return 'status-tracking'; // Tracks progress through step-by-step process
+    }
+    // Main Progress component
+    return 'status-tracking'; // Tracks progress of task/process
+  }
+  
+  // Spinner - indeterminate loading indicator (similar purpose to Progress but for unknown progress)
+  if (name.includes('spinner')) {
+    return 'status-tracking'; // Tracks indeterminate loading status (1-5 seconds)
   }
   
   // Navigation components - hierarchical navigation structure
@@ -741,6 +767,25 @@ function inferPurpose(componentName, props) {
     if (name.includes('passwordstrength')) {
       return 'password-strength'; // Indicator showing password strength
     }
+  }
+  
+  // Popover - contextual overlay for additional information
+  if (name.includes('popover')) {
+    return 'popover'; // Popover overlay
+  }
+  
+  // Progress components
+  if (name.includes('progress')) {
+    if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+      return 'progress-stepper'; // Progress stepper for step-by-step processes
+    }
+    // Main Progress component
+    return 'progress'; // Progress bar for task/process completion
+  }
+  
+  // Spinner - indeterminate loading indicator
+  if (name.includes('spinner')) {
+    return 'spinner'; // Spinner for indeterminate loading
   }
   
   // Notification components - check before Alert
@@ -2285,6 +2330,128 @@ function inferVariant(componentName, props) {
     return variants.length > 0 ? variants.join('-') : 'basic';
   }
   
+  // Popover variants - based on behavior: trigger type, dismissal method, content type
+  if (name.includes('popover')) {
+    const variants = [];
+    
+    // Check for trigger type (click is default, but can be hover in some cases)
+    if (propsMap.has('trigger') || propsMap.has('triggerType')) {
+      const trigger = propsMap.get('trigger') || propsMap.get('triggerType');
+      if (typeof trigger === 'string' && trigger.toLowerCase() === 'hover') {
+        variants.push('hoverable');
+      }
+    }
+    // Check for hover prop
+    if (propsMap.has('onMouseEnter') || propsMap.has('hover') || propsMap.has('isHoverable')) {
+      variants.push('hoverable');
+    }
+    
+    // Check for dismissal methods
+    // Popovers can be dismissed by: exit icon, outside click, action button
+    if (propsMap.has('hasCloseButton') || propsMap.has('closeButton') || propsMap.has('onClose')) {
+      variants.push('closeable');
+    }
+    if (propsMap.has('closeOnOutsideClick') || propsMap.has('dismissOnOutsideClick')) {
+      const closeOutside = propsMap.get('closeOnOutsideClick') || propsMap.get('dismissOnOutsideClick');
+      if (closeOutside !== false) {
+        variants.push('dismissible');
+      }
+    }
+    if (propsMap.has('hasActionButton') || propsMap.has('actionButton') || propsMap.has('onAction')) {
+      variants.push('actionable');
+    }
+    
+    // Check for alert variant (with status header) - if documented
+    if (propsMap.has('alertTitle') || propsMap.has('alertType')) {
+      const alertType = propsMap.get('alertType');
+      if (alertType && typeof alertType === 'string') {
+        const type = alertType.toLowerCase();
+        if (['info', 'success', 'warning', 'danger'].includes(type)) {
+          variants.push(`alert-${type}`);
+        } else {
+          variants.push('alert');
+        }
+      } else {
+        variants.push('alert');
+      }
+    }
+    
+    return variants.length > 0 ? variants.join('-') : 'default';
+  }
+  
+  // Progress variants - determinate only (indeterminate should use spinner instead per docs)
+  // Variants: small, default, large
+  if (name.includes('progress') && !name.includes('progressstepper') && !name.includes('progress-stepper')) {
+    const variants = [];
+    // Progress bars are always determinate (have a value/percentage)
+    // If no value, it's still a progress bar, just without a value displayed
+    // Check for size
+    if (propsMap.has('size')) {
+      const size = propsMap.get('size');
+      if (typeof size === 'string') {
+        const sizeLower = size.toLowerCase();
+        if (['sm', 'small'].includes(sizeLower)) {
+          variants.push('small');
+        } else if (['lg', 'large'].includes(sizeLower)) {
+          variants.push('large');
+        }
+      }
+    }
+    // Default variant if no size specified
+    return variants.length > 0 ? variants.join('-') : 'default';
+  }
+  
+  // ProgressStepper variants - basic, with-descriptions, vertical, compact, with-icons, with-help-popover
+  if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+    const variants = [];
+    // Check for descriptions
+    if (propsMap.has('hasDescriptions') || propsMap.has('descriptions') || propsMap.has('description')) {
+      variants.push('with-descriptions');
+    }
+    // Check for vertical orientation
+    if (propsMap.has('isVertical') || propsMap.has('vertical') || propsMap.has('orientation')) {
+      const orientation = propsMap.get('orientation') || propsMap.get('isVertical') || propsMap.get('vertical');
+      if (orientation === 'vertical' || orientation === true) {
+        variants.push('vertical');
+      }
+    }
+    // Check for compact variant
+    if (propsMap.has('isCompact') || propsMap.has('compact')) {
+      variants.push('compact');
+    }
+    // Check for icons
+    if (propsMap.has('hasIcons') || propsMap.has('icons') || propsMap.has('customIcons')) {
+      variants.push('with-icons');
+    }
+    // Check for help popover
+    if (propsMap.has('hasHelpPopover') || propsMap.has('helpPopover') || propsMap.has('helpText')) {
+      variants.push('with-help-popover');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
+  // Spinner variants - sizes only (indeterminate is in action-type, not variant)
+  if (name.includes('spinner')) {
+    // Check for size
+    if (propsMap.has('size')) {
+      const size = propsMap.get('size');
+      if (typeof size === 'string') {
+        const sizeLower = size.toLowerCase();
+        if (['xs', 'extra-small'].includes(sizeLower)) {
+          return 'extra-small';
+        } else if (['sm', 'small'].includes(sizeLower)) {
+          return 'small';
+        } else if (['md', 'medium'].includes(sizeLower)) {
+          return 'medium';
+        } else if (['lg', 'large'].includes(sizeLower)) {
+          return 'large';
+        }
+      }
+    }
+    // Default size if not specified
+    return 'medium';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2534,6 +2701,38 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     }
   }
   
+  // Popover context - inherits from parent (form, table, page)
+  if (name.includes('popover')) {
+    // Popover is used on form field labels, table column headings, page titles
+    // Context is inherited from parent via findParentContext
+    // Common contexts: form (form field labels), table (column headings), page (titles)
+    return parentContext || 'page';
+  }
+  
+  // Progress context - inherits from parent (table, card, wizard, page)
+  if (name.includes('progress') && !name.includes('progressstepper') && !name.includes('progress-stepper')) {
+    // Progress bar is used in tables, cards, wizards, dashboards
+    // Context is inherited from parent via findParentContext
+    // Common contexts: table (table rows), card (dashboard cards), wizard (validation), page (standalone)
+    return parentContext || 'page';
+  }
+  
+  // ProgressStepper context - inherits from parent (table, card, popover, page)
+  if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+    // ProgressStepper is used in tables, cards, popovers
+    // Context is inherited from parent via findParentContext
+    // Common contexts: table (table rows), card (multi-step processes), popover (installation status), page (standalone)
+    return parentContext || 'page';
+  }
+  
+  // Spinner context - inherits from parent (wizard, modal, page, table)
+  if (name.includes('spinner')) {
+    // Spinner is used in wizards, modals, full pages, tables, data lists
+    // Context is inherited from parent via findParentContext
+    // Common contexts: wizard (loading between steps), modal (loading content), page (full page loading), table (loading data)
+    return parentContext || 'page';
+  }
+  
   // Layout components are containers
   if (name.includes('flex') || name.includes('grid') || name.includes('stack') || name.includes('card')) {
     return 'container';
@@ -2764,6 +2963,77 @@ function inferState(componentName, props) {
     if (propsMap.has('isReady') || propsMap.has('ready') || propsMap.has('password')) {
       return 'ready';
     }
+  }
+  
+  // Popover states - open/closed
+  if (name.includes('popover')) {
+    // Popover open/closed state
+    if (propsMap.has('isOpen') || propsMap.has('open') || propsMap.has('isVisible') || propsMap.has('visible')) {
+      const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : 
+                       propsMap.has('open') ? propsMap.get('open') :
+                       propsMap.has('isVisible') ? propsMap.get('isVisible') : propsMap.get('visible');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    // If no open prop, check if it's explicitly closed
+    if (propsMap.has('isClosed') || propsMap.has('closed')) {
+      return 'closed';
+    }
+  }
+  
+  // Progress states - in-progress, error, success
+  if (name.includes('progress') && !name.includes('progressstepper') && !name.includes('progress-stepper')) {
+    // Check for error/failure state
+    if (propsMap.has('isError') || propsMap.has('error') || propsMap.has('hasError') || 
+        propsMap.has('isFailure') || propsMap.has('failure')) {
+      return 'error';
+    }
+    // Check for success/complete state
+    if (propsMap.has('isSuccess') || propsMap.has('success') || propsMap.has('isComplete') || 
+        propsMap.has('complete') || propsMap.has('isFinished') || propsMap.has('finished')) {
+      return 'success';
+    }
+    // Check for in-progress state
+    if (propsMap.has('isInProgress') || propsMap.has('inProgress') || propsMap.has('value')) {
+      return 'in-progress';
+    }
+    // Default to in-progress if no explicit state
+    return 'in-progress';
+  }
+  
+  // ProgressStepper states - completed, in-progress, failure, warning, pending (per step)
+  // Note: ProgressStepper has states per step, not for the whole component
+  // We'll check for overall state if available
+  if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+    // Check for overall error state
+    if (propsMap.has('hasError') || propsMap.has('hasFailure') || propsMap.has('error')) {
+      return 'error';
+    }
+    // Check for overall success state (all steps complete)
+    if (propsMap.has('isComplete') || propsMap.has('complete') || propsMap.has('allStepsComplete')) {
+      return 'success';
+    }
+    // Default to in-progress if steps are in progress
+    if (propsMap.has('currentStep') || propsMap.has('activeStep')) {
+      return 'in-progress';
+    }
+  }
+  
+  // Spinner states - loading (always loading when shown, indeterminate)
+  if (name.includes('spinner')) {
+    // Spinner is always in loading state when visible
+    // Check if it's hidden/not loading
+    if (propsMap.has('isLoading') || propsMap.has('loading')) {
+      const loadingValue = propsMap.get('isLoading') || propsMap.get('loading');
+      if (loadingValue === false) {
+        return null; // Not loading, spinner shouldn't be shown
+      }
+      return 'loading';
+    }
+    // Default to loading state (spinner is always loading when shown)
+    return 'loading';
   }
   
   // Navigation component states - check before generic state checks
@@ -3234,6 +3504,20 @@ function inferState(componentName, props) {
 function inferActionType(componentName, props) {
   const propsMap = propsToMap(props);
   const name = componentName.toLowerCase();
+  
+  // Progress components - determinate (measurable progress) vs indeterminate (unknown progress)
+  if (name.includes('progress')) {
+    if (name.includes('progressstepper') || name.includes('progress-stepper')) {
+      return 'determinate'; // ProgressStepper shows measurable step-by-step progress
+    }
+    // Main Progress component - always determinate (has value/percentage)
+    return 'determinate'; // Progress bar shows measurable progress
+  }
+  
+  // Spinner - indeterminate (progress cannot be measured)
+  if (name.includes('spinner')) {
+    return 'indeterminate'; // Spinner shows indeterminate loading (1-5 seconds, unknown progress)
+  }
   
   // Check for destructive actions (danger variant, delete-related props)
   if (propsMap.has('variant') && propsMap.get('variant') === 'danger') {
