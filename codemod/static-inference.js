@@ -96,6 +96,10 @@ function inferRole(componentName) {
     // ActionList components - more descriptive roles
     'actionlist': 'action-group',             // Container for grouping action buttons
     'actionlistitem': 'action-item',           // Individual action item within the group
+    // OverflowMenu components - menu for overflow actions when space is constrained
+    'overflowmenu': 'overflow-menu',           // Menu container for overflow actions
+    'overflowmenucontent': 'overflow-menu-content', // Content of overflow menu
+    'overflowmenuitem': 'overflow-menu-item',  // Individual item in overflow menu
     // Alert components
     'alert': 'alert',                         // Alert notification
     'alertgroup': 'alert-group',              // Container for multiple alerts
@@ -600,6 +604,19 @@ function inferPurpose(componentName, props) {
   // ActionList - container for grouping action buttons with proper spacing
   if (name.includes('actionlist')) {
     return 'action-group';
+  }
+  
+  // OverflowMenu - menu for overflow actions when space is constrained
+  // Similar to ActionList in purpose (organizing actions) but uses menu pattern for overflow
+  if (name.includes('overflowmenu')) {
+    if (name.includes('overflowmenuitem')) {
+      return 'action'; // Individual action item in overflow menu
+    }
+    if (name.includes('overflowmenucontent')) {
+      return 'menu-container'; // Container for menu items
+    }
+    // Main OverflowMenu component
+    return 'action-group'; // Similar purpose to ActionList - organizing actions
   }
   
   // Notification components - check before Alert
@@ -1992,6 +2009,33 @@ function inferVariant(componentName, props) {
     return null; // Variant unlikely on these components
   }
   
+  // OverflowMenu variants - with-kebab-toggle (default), responsive
+  if (name.includes('overflowmenu') && !name.includes('overflowmenuitem') && 
+      !name.includes('overflowmenucontent')) {
+    const variants = [];
+    // OverflowMenu always has a kebab toggle
+    variants.push('with-kebab-toggle');
+    // Check for responsive variant (different behavior on mobile)
+    if (propsMap.has('isResponsive') || propsMap.has('responsive') || propsMap.has('breakpoint')) {
+      variants.push('responsive');
+    }
+    return variants.length > 0 ? variants.join('-') : 'with-kebab-toggle';
+  }
+  
+  // OverflowMenuItem variants - check for icon, description
+  if (name.includes('overflowmenuitem')) {
+    const variants = [];
+    // Check for icon
+    if (propsMap.has('icon') || propsMap.has('iconComponent')) {
+      variants.push('with-icon');
+    }
+    // Check for description
+    if (propsMap.has('description') || propsMap.has('hasDescription')) {
+      variants.push('with-description');
+    }
+    return variants.length > 0 ? variants.join('-') : 'basic';
+  }
+  
   // ActionList variants - handled separately via children analysis
   // See inferActionListVariant() function below
   
@@ -2189,6 +2233,14 @@ function inferContext(componentName, props, parentContext = null, parentPurpose 
     // For now, let parent context detection handle this
   }
   
+  // OverflowMenu context - can be in toolbar, table, card, or page
+  // Similar to ActionList, but specifically for overflow scenarios
+  if (name.includes('overflowmenu')) {
+    // Context is typically inferred from parent (toolbar, table, card)
+    // Check parent context first, then default to page
+    return parentContext || 'page';
+  }
+  
   // Layout components are containers
   if (name.includes('flex') || name.includes('grid') || name.includes('stack') || name.includes('card')) {
     return 'container';
@@ -2360,6 +2412,25 @@ function inferState(componentName, props) {
       }
       // Default to unread if no explicit state
       return 'unread';
+    }
+  }
+  
+  // OverflowMenu states - open/closed (check before generic state checks)
+  if (name.includes('overflowmenu') && !name.includes('overflowmenuitem') && 
+      !name.includes('overflowmenucontent')) {
+    // OverflowMenu open/closed state
+    if (propsMap.has('isOpen') || propsMap.has('open') || propsMap.has('isExpanded') || propsMap.has('expanded')) {
+      const openValue = propsMap.has('isOpen') ? propsMap.get('isOpen') : 
+                       propsMap.has('open') ? propsMap.get('open') :
+                       propsMap.has('isExpanded') ? propsMap.get('isExpanded') : propsMap.get('expanded');
+      if (openValue === false) {
+        return 'closed';
+      }
+      return 'open';
+    }
+    // If no open prop, check if it's explicitly closed
+    if (propsMap.has('isClosed') || propsMap.has('closed')) {
+      return 'closed';
     }
   }
   

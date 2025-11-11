@@ -1040,6 +1040,8 @@ module.exports = function transformer(fileInfo, api) {
       // SelectOptionGroup is a structural wrapper for grouping select options
       'notificationdrawerheader', 'notificationdrawerbody',
       // NotificationDrawer structural children - NotificationDrawerHeader, NotificationDrawerBody are structural
+      'overflowmenucontent',
+      // OverflowMenuContent is a structural wrapper for menu items
     ];
     
     if (structuralChildren.some(child => name.includes(child))) {
